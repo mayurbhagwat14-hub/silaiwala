@@ -209,20 +209,20 @@ const PopularTailors = () => {
   return (
     <HomeSection>
       {safeTailors.length > 0 && (
-        <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 md:-mx-6 md:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="-mx-4 mb-4 flex items-center gap-2 overflow-x-auto px-4 py-1 md:-mx-6 md:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Link
             to="/user/tailors"
-            className="flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[12.5px] font-semibold text-gray-800 ring-1 ring-[#E6E3EA]"
+            className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#E6E3EA] bg-white pl-3 pr-3.5 text-[12.5px] font-semibold text-gray-800 transition-colors hover:border-[#843D9B]/40"
           >
-            <SlidersHorizontal size={15} /> Filters
+            <SlidersHorizontal size={14} className="text-[#843D9B]" /> Filters
           </Link>
           {FILTERS.map((f) => (
             <button
               key={f.id}
               type="button"
               onClick={() => setFilter(f.id)}
-              className={`relative isolate shrink-0 rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors ${
-                filter === f.id ? 'text-white' : 'bg-white text-gray-700 ring-1 ring-[#E6E3EA]'
+              className={`relative isolate flex h-9 shrink-0 items-center rounded-full border px-4 text-[12.5px] font-semibold transition-colors ${
+                filter === f.id ? 'border-[#843D9B] text-white' : 'border-[#E6E3EA] bg-white text-gray-700 hover:border-[#843D9B]/40'
               }`}
             >
               {filter === f.id && (
