@@ -424,6 +424,19 @@ async function repriceCartItems(items) {
   });
 }
 
+/** Admin default when walletConfig.advancePercentage is not configured (matches Settings schema default). */
+const DEFAULT_ADVANCE_PCT = 30;
+
+/**
+ * THE advance rule (single source of truth — checkout screens, createOrder, tailor accept and
+ * earnings all use it): store / ready-made items are paid in full up front; stitching
+ * services pay the admin-configured advance %.
+ */
+function resolveAdvancePct(settings, { isCartCheckout = false, isReadyMade = false } = {}) {
+  if (isCartCheckout || isReadyMade) return 100;
+  return Number(settings?.walletConfig?.advancePercentage) || DEFAULT_ADVANCE_PCT;
+}
+
 function splitAdvanceRemaining(total, advancePercentage) {
   const pct = Math.min(100, Math.max(0, Number(advancePercentage) || 0));
   const totalInt = Math.round(Number(total) || 0);
@@ -441,6 +454,8 @@ module.exports = {
   computeCheckoutPricing,
   enrichOrderItemsForPricing,
   splitAdvanceRemaining,
+  resolveAdvancePct,
+  DEFAULT_ADVANCE_PCT,
   computeVisitFee,
   getRoadDistanceKm,
   isHomeMeasurementItem,

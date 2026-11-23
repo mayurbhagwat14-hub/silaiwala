@@ -11,7 +11,7 @@ const seedLandingPages = async () => {
                 type: 'legal',
                 slug: 'privacy-policy',
                 title: 'Privacy Policy',
-                content: '<h1>Privacy Policy</h1><p>We value your privacy. Your data is protected. At SewZella, we ensure that your information is kept secure and used solely for providing you with the best bespoke tailoring experience.</p><h2>Information Collection</h2><p>We collect essential information to process your orders and measurements securely.</p>',
+                content: '<h1>Privacy Policy</h1><p>We value your privacy. Your data is protected. At Sewzella, we ensure that your information is kept secure and used solely for providing you with the best bespoke tailoring experience.</p><h2>Information Collection</h2><p>We collect essential information to process your orders and measurements securely.</p>',
                 category: 'customer',
                 isActive: true
             },
@@ -19,7 +19,7 @@ const seedLandingPages = async () => {
                 type: 'legal',
                 slug: 'terms-of-service',
                 title: 'Terms of Service',
-                content: '<h1>Terms of Service</h1><p>By using our app and website, you agree to these terms. SewZella provides bespoke tailoring services. All measurements and garment choices are final once production begins.</p><h2>Refund Policy</h2><p>As items are custom-made, we do not offer refunds, but we guarantee a perfect fit and will provide free alterations if needed.</p>',
+                content: '<h1>Terms of Service</h1><p>By using our app and website, you agree to these terms. Sewzella provides bespoke tailoring services. All measurements and garment choices are final once production begins.</p><h2>Refund Policy</h2><p>As items are custom-made, we do not offer refunds, but we guarantee a perfect fit and will provide free alterations if needed.</p>',
                 category: 'customer',
                 isActive: true
             },

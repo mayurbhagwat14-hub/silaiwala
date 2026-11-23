@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion, useInView } from 'framer-motion';
 import { Shirt, Ruler, Scissors, Radar, PackageCheck, Workflow } from 'lucide-react';
 import { Reveal, SectionHeading, Glyph } from '../components/landingShared';
-import { SERIF, EASE, fadeUp } from '../components/landingTokens';
+import { SANS, EASE, fadeUp } from '../components/landingTokens';
 
 const STEPS = [
   {
@@ -55,7 +55,7 @@ const HowItWorks = () => {
           <SectionHeading
             eyebrow="Simple steps"
             icon={Workflow}
-            title="How SewZella"
+            title="How Sewzella"
             accent="works"
             lede="From choosing a style to wearing it, your outfit is just five easy steps away."
           />
@@ -113,7 +113,7 @@ const HowItWorks = () => {
                           : 'ring-1 ring-transparent group-hover:bg-[#FBF8FD]'
                       }`}
                     >
-                      <h3 className="text-[17px] font-semibold text-[#1A1523]" style={{ fontFamily: SERIF }}>
+                      <h3 className="text-[17px] font-semibold text-[#1A1523]" style={{ fontFamily: SANS }}>
                         {title}
                       </h3>
                       <p className="mt-2 text-[13px] leading-relaxed text-[#6B6575]">{desc}</p>
@@ -144,7 +144,7 @@ const HowItWorks = () => {
                   </span>
                 </span>
                 <div className="min-w-0 flex-1 rounded-[20px] bg-[#FBF8FD] p-4 ring-1 ring-[#EDE5F3]">
-                  <h3 className="text-[17px] font-semibold text-[#1A1523]" style={{ fontFamily: SERIF }}>{title}</h3>
+                  <h3 className="text-[17px] font-semibold text-[#1A1523]" style={{ fontFamily: SANS }}>{title}</h3>
                   <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#6B6575]">{desc}</p>
                 </div>
               </motion.li>

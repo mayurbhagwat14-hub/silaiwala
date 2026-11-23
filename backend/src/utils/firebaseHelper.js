@@ -66,9 +66,10 @@ const sendMulticastNotification = async ({ tokens, title, body, data = {}, isUrg
       notification: {
         title: String(title),
         body: String(body),
-        sound: 'default',
+        // A custom sound (bundled in the app's res/raw) replaces the default ringtone
+        sound: data?.sound ? String(data.sound) : 'default',
         priority: 'high',
-        defaultSound: true,
+        defaultSound: !data?.sound,
         defaultVibrateTimings: true,
         visibility: 'public',
         ...(data?.channelId ? { channelId: String(data.channelId) } : {})

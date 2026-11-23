@@ -350,22 +350,10 @@ const CreateOrderForUser = () => {
             }
         } catch (err) {
             console.error('Price calculation error:', err);
-            const base = (Number(selectedService.basePrice) || 0) * quantity;
-            const addonsTotal = styleAddons.reduce((s, a) => s + (Number(a.price) || 0), 0);
-            const homeFee = measurementMethod === 'home' ? 150 : 0;
-            const platformFee = Math.round(base * 0.05);
-            const gst = Math.round((base + addonsTotal + homeFee + platformFee) * 0.05);
-            const total = base + addonsTotal + homeFee + platformFee + gst;
-            setPriceSummary({
-                total,
-                base,
-                addons: addonsTotal,
-                tailorAtHome: homeFee,
-                platformFee,
-                taxes: gst,
-                delivery: 0,
-                discountAmount: 0
-            });
+            // Never show a guessed total (it used hardcoded 5% fee / 5% GST / ₹150 visit and
+            // disagreed with what the server charges). Keep it empty; the Recalculate button retries.
+            setPriceSummary(null);
+            toast.error(err.response?.data?.message || 'Could not calculate the price. Please try again.');
         } finally {
             setPriceLoading(false);
         }

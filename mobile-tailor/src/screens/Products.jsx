@@ -386,7 +386,7 @@ const Products = () => {
                         {activeTab === 'samples' ? 'Stitching Services' : activeTab === 'fabrics' ? 'Fabric Inventory' : 'Ready-made Garments'}
                     </Txt>
                     <Txt className="text-xs font-medium text-gray-500 mt-1 max-w-2xl leading-relaxed">
-                        {activeTab === 'samples' ? 'Select the stitching services you provide. Official photos and titles are provided by SewZella.' : activeTab === 'fabrics' ? 'Manage fabric materials available at your shop' : 'Manage ready-made store garments'}
+                        {activeTab === 'samples' ? 'Select the stitching services you provide. Official photos and titles are provided by Sewzella.' : activeTab === 'fabrics' ? 'Manage fabric materials available at your shop' : 'Manage ready-made store garments'}
                     </Txt>
                 </Box>
 

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Award, Clock3, Cpu, BadgeCheck, ArrowRight, Heart } from 'lucide-react';
 import { Reveal, SectionHeading, Glyph, Shine } from '../components/landingShared';
-import { SERIF, fadeUp, EASE } from '../components/landingTokens';
+import { SANS, fadeUp, EASE } from '../components/landingTokens';
 
 const PILLARS = [
   {
@@ -84,7 +84,7 @@ const WhyChoose = ({ appName }) => (
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#843D9B] text-white shadow-[0_10px_20px_-10px_rgba(132,61,155,0.9)] transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110 sm:h-11 sm:w-11">
                 <Glyph icon={icon} size={20} strokeWidth={1.8} />
               </span>
-              <h3 className="mt-3 text-[15px] font-semibold leading-snug text-[#1A1523] sm:mt-4 sm:text-[17px]" style={{ fontFamily: SERIF }}>{title}</h3>
+              <h3 className="mt-3 text-[15px] font-semibold leading-snug text-[#1A1523] sm:mt-4 sm:text-[17px]" style={{ fontFamily: SANS }}>{title}</h3>
               <p className="mt-1.5 text-[12px] leading-relaxed text-[#6B6575] sm:text-[13.5px]">{desc}</p>
             </motion.li>
           ))}

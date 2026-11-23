@@ -39,7 +39,7 @@ export const SOCKET_URL = envSocketUrl || getBackendBase() || 'http://localhost:
 export const API_URL = envApiUrl || (SOCKET_URL ? `${SOCKET_URL}/api/v1` : '/api/v1');
 
 
-export const APP_NAME = 'SewZella';
+export const APP_NAME = 'Sewzella';
 
 export const THEME = {
     primary: '#FD0053', // Emerald Green (Starbucks-like)

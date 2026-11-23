@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import VoiceSearchButton from '../../../components/ui/VoiceSearchButton';
 
 const searchTerms = [
     'Search tailors...',
@@ -120,8 +121,16 @@ const AnimatedSearchBar = ({ className = "", value, onChange, onSearch, hideBack
                 onKeyDown={handleSearch}
                 onFocus={() => setIsFocused(true)}
                 placeholder={livePlaceholder}
-                className={`w-full h-full pl-10 pr-4 text-[13px] font-medium focus:outline-none focus:ring-0 transition-all placeholder:text-gray-400 relative z-10 ${hideBackground ? 'bg-transparent border-transparent shadow-none' : 'bg-white border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-white/20 focus:border-white shadow-inner'} ${className.includes('py-') ? '' : 'py-3 sm:py-3.5'}`}
+                className={`w-full h-full pl-10 pr-12 text-[13px] font-medium focus:outline-none focus:ring-0 transition-all placeholder:text-gray-400 relative z-10 ${hideBackground ? 'bg-transparent border-transparent shadow-none' : 'bg-white border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-white/20 focus:border-white shadow-inner'} ${className.includes('py-') ? '' : 'py-3 sm:py-3.5'}`}
             />
+
+            <div className="absolute inset-y-0 right-0 z-20 flex items-center pr-1.5">
+                <VoiceSearchButton
+                    className="h-9 w-9"
+                    onTranscript={(text) => setInputValue(text)}
+                    onFinal={(text) => executeSearch(text)}
+                />
+            </div>
 
             <AnimatePresence>
                 {isFocused && inputValue.trim() && filteredSuggestions.length > 0 && (

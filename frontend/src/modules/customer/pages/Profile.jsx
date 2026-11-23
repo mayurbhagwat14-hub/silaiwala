@@ -289,7 +289,7 @@ const ProfilePage = () => {
                 {profile?.customerMembershipEnabled !== false && (() => {
                     const activeMembership = profile?.membership;
                     const hasActive = activeMembership?.isActive && activeMembership?.plan;
-                    const planName = hasActive ? activeMembership.plan.name : 'SewZella Club';
+                    const planName = hasActive ? activeMembership.plan.name : 'Sewzella Club';
                     const daysRemaining = activeMembership?.daysRemaining ?? 0;
 
                     return (

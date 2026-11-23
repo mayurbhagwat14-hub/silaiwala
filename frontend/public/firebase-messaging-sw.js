@@ -16,7 +16,7 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background FCM message:', payload);
 
-  const title = payload?.data?.title || payload?.notification?.title || 'SewZella Notification 🔔';
+  const title = payload?.data?.title || payload?.notification?.title || 'Sewzella Notification 🔔';
   const body = payload?.data?.body || payload?.data?.message || payload?.notification?.body || 'New notification received';
   const url = payload?.data?.url || payload?.data?.targetUrl || '/';
 

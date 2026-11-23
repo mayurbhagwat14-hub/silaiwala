@@ -40,7 +40,7 @@ export default function RootLayout() {
       <View style={{ flex: 1, backgroundColor: '#F7F8FC' }}>
         <ErrorBoundary>
           <MeasurementAuthProvider>
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F7F8FC' }, animation: 'none', freezeOnBlur: true }} />
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F7F8FC' }, animation: 'none' }} />
             <NavPathTracker />
             <AppManagers />
           </MeasurementAuthProvider>

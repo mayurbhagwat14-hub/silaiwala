@@ -664,7 +664,7 @@ const DeliveryRegister = () => {
             Create Delivery Account
           </Txt>
           <Txt className="text-xs sm:text-[13px] font-medium text-[#64748B] max-w-[280px] mx-auto leading-relaxed">
-            Register as a delivery partner with SewZella
+            Register as a delivery partner with Sewzella
           </Txt>
         </Box>
 

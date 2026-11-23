@@ -475,6 +475,57 @@ const ServiceDetail = () => {
         }
     }, [isAlteration]);
 
+    // Live bill from the SAME backend calculation the payment page uses (/orders/price-summary),
+    // so the amount shown here always equals what checkout charges (delivery & visit fee depend on
+    // the address distance, which only the server knows). Local maths is only a fallback.
+    const [serverPricing, setServerPricing] = useState(null);
+    useEffect(() => {
+        if (!serviceData) return undefined;
+        let alive = true;
+        const timer = setTimeout(async () => {
+            const sid = String(serviceData._id || serviceData.id || id);
+            const idx = editBasketIndex != null && editBasketIndex >= 0
+                ? editBasketIndex
+                : serviceItems.findIndex((row) => String(row.serviceDetails?._id || row.serviceDetails?.id || '') === sid);
+            const others = idx >= 0 ? serviceItems.filter((_, i) => i !== idx) : serviceItems;
+            const tailorRef = preSelectedTailor?._id || preSelectedTailor?.id ||
+                (typeof serviceData.tailor === 'object' ? serviceData.tailor?._id : serviceData.tailor) || null;
+            const current = {
+                serviceDetails: {
+                    _id: sid,
+                    id: sid,
+                    tailorId: tailorRef,
+                    tailorCoordinates: preSelectedTailor?.location?.coordinates || serviceData?.tailor?.location?.coordinates || null,
+                },
+                configuration: {
+                    deliveryType,
+                    fabricSource,
+                    selectedFabric: fabricSource === 'platform' && selectedFabric
+                        ? { _id: selectedFabric._id || selectedFabric.id, price: selectedFabric.price || 0 }
+                        : null,
+                    isTailorAtHome,
+                    addons: (selectedAddons || []).map((a) => ({ _id: a._id || a.id, price: Number(a.price) || 0 })),
+                    customizations: selectedCustomizations,
+                },
+                pricing: {},
+            };
+            try {
+                const res = await api.post('/orders/price-summary', {
+                    items: [...others, current],
+                    deliveryAddress: selectedAddress,
+                    isCartCheckout: false,
+                });
+                if (alive && res.data?.success) setServerPricing(res.data.data);
+            } catch (_) {
+                if (alive) setServerPricing(null); // guest / offline -> local estimate
+            }
+        }, 400);
+        return () => {
+            alive = false;
+            clearTimeout(timer);
+        };
+    }, [serviceData, deliveryType, fabricSource, selectedFabric, selectedAddons, selectedCustomizations, isTailorAtHome, serviceItems, editBasketIndex, selectedAddress, preSelectedTailor, id]);
+
     useEffect(() => {
         let isMounted = true;
         
@@ -674,7 +725,21 @@ const ServiceDetail = () => {
     const totalOrderTaxes = Math.round(totalOrderTaxable * (gstPercentage / 100));
 
     // Grand Total (Accurate across all basket items without double-counting shared fees)
-    const grandTotal = Math.round(totalOrderTaxable + totalOrderTaxes + effectiveDeliveryFee);
+    const localGrandTotal = Math.round(totalOrderTaxable + totalOrderTaxes + effectiveDeliveryFee);
+    const grandTotal = serverPricing ? Math.round(Number(serverPricing.total) || 0) : localGrandTotal;
+    const bill = serverPricing
+        ? {
+            base: Number(serverPricing.base) || 0,
+            fabric: Number(serverPricing.fabric) || 0,
+            addons: Number(serverPricing.addons) || 0,
+            visit: Number(serverPricing.tailorAtHome) || 0,
+            delivery: Number(serverPricing.delivery) || 0,
+            platformFee: Number(serverPricing.platformFee) || 0,
+            taxes: Number(serverPricing.taxes) || 0,
+            gst: serverPricing.gstPercentage ?? gstPercentage,
+            discount: Number(serverPricing.membershipDiscount) || 0,
+        }
+        : null;
 
     const getDeliveryDays = () => {
         if (deliveryType === 'express') return 10;
@@ -810,7 +875,7 @@ const ServiceDetail = () => {
             configuration: { 
                 deliveryType, 
                 fabricSource, 
-                selectedFabric: selectedFabric
+                selectedFabric: (fabricSource === 'platform' && selectedFabric)
                     ? {
                         _id: selectedFabric._id || selectedFabric.id,
                         id: selectedFabric._id || selectedFabric.id,
@@ -1148,7 +1213,7 @@ const ServiceDetail = () => {
                             </Box>
                             <Box className="min-w-0 flex-1">
                                 <Box className="flex items-center justify-between gap-1">
-                                    <Txt className="text-[9px] font-black uppercase tracking-wider text-primary flex-1" numberOfLines={1}>{preSelectedTailor?.shopName ? `By ${preSelectedTailor.shopName}` : 'Selected Service'}</Txt>
+                                    <Txt className="text-[9px] font-black uppercase tracking-wider text-primary flex-1" numberOfLines={1}>{(() => { const shop = preSelectedTailor?.shopName || serviceData?.tailor?.shopName || location.state?.tailorName; return shop && shop !== 'Tailor Partner' ? `By ${shop}` : 'Selected Service'; })()}</Txt>
                                     <Txt className="text-sm font-black text-primary">₹{(serviceData.basePrice || 0).toLocaleString()}</Txt>
                                 </Box>
                                 <Txt className="text-sm font-black text-gray-900 truncate mt-0.5">{serviceData.title}</Txt>
@@ -1444,6 +1509,7 @@ const ServiceDetail = () => {
                                     </Box>
                                 </Box>
                             </Box>
+                            {!bill && (
                             <Scroll horizontal contentClassName="flex gap-1.5 pb-3">
                                 <Box className="shrink-0 bg-gray-50 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1.5">
                                     <I icon={Scissors} size={8} color="#9ca3af" />
@@ -1456,9 +1522,24 @@ const ServiceDetail = () => {
                                     </Box>
                                 )}
                             </Scroll>
+                            )}
                             {showPriceBreakdown && (
                                 <Box className="overflow-hidden mb-3">
                                     <Box className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-1.5 text-xs text-gray-600">
+                                        {bill ? (
+                                            <>
+                                                <Row l={otherBasketItems.length > 0 ? `Stitching (${otherBasketItems.length + 1} items)` : 'Stitching'} r={`₹${bill.base.toLocaleString()}`} />
+                                                {bill.fabric > 0 && <Row l="Fabric" r={`+₹${bill.fabric.toLocaleString()}`} cls="text-indigo-600" />}
+                                                {bill.addons > 0 && <Row l="Styles & customizations" r={`+₹${bill.addons.toLocaleString()}`} cls="text-emerald-600" />}
+                                                {bill.visit > 0 && <Row l="Tailor At Home Visit" r={`+₹${bill.visit.toLocaleString()}`} cls="text-sky-600" />}
+                                                {bill.platformFee > 0 && <Row l="Platform Fee" r={`+₹${bill.platformFee.toLocaleString()}`} cls="text-gray-500" />}
+                                                <Row l={`GST (${bill.gst}%)`} r={`+₹${bill.taxes.toLocaleString()}`} cls="text-gray-400" />
+                                                {bill.delivery > 0 && <Row l="Delivery" r={`+₹${bill.delivery.toLocaleString()}`} cls="text-amber-600" />}
+                                                {bill.discount > 0 && <Row l="Membership discount" r={`-₹${bill.discount.toLocaleString()}`} cls="text-emerald-600" />}
+                                                <Row l="Total Amount" r={`₹${grandTotal.toLocaleString()}`} cls="font-bold text-gray-900 pt-1" />
+                                            </>
+                                        ) : (
+                                        <>
                                         {otherBasketItems.length > 0 && <Row l={`Other Basket Items (${otherBasketItems.length})`} r={`₹${otherBasketTotal.toLocaleString()}`} cls="font-medium text-primary" />}
                                         <Row l="Current Item Base" r={`₹${basePrice.toLocaleString()}`} />
                                         {fabricPrice > 0 && <Row l="Fabric" r={`+₹${fabricPrice.toLocaleString()}`} cls="text-indigo-600" />}
@@ -1474,6 +1555,8 @@ const ServiceDetail = () => {
                                         {platformFee > 0 && <Row l="Platform Fee" r={`+₹${platformFee.toLocaleString()}`} cls="text-gray-500" />}
                                         <Row l={`GST (${gstPercentage}%)`} r={`+₹${taxes.toLocaleString()}`} cls="text-gray-400 pb-1 border-b border-gray-200" />
                                         <Row l="Total Amount" r={`₹${grandTotal.toLocaleString()}`} cls="font-bold text-gray-900 pt-1" />
+                                        </>
+                                        )}
                                     </Box>
                                 </Box>
                             )}

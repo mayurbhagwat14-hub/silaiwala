@@ -3,7 +3,7 @@ import api from '../utils/api';
 import deliveryLogoDefault from '../assets/deliveryLogo.png';
 
 export const BRANDING_DEFAULTS = {
-    appName: 'SewZella',
+    appName: 'Sewzella',
     supportEmail: 'support@silaiwala.com',
     supportPhone: '+91 9429692921',
     emergencyPhone: '+91 9999999999',
@@ -21,6 +21,7 @@ const useBrandingStore = create((set, get) => ({
     supportPhone: BRANDING_DEFAULTS.supportPhone,
     emergencyPhone: BRANDING_DEFAULTS.emergencyPhone,
     logos: { ...BRANDING_DEFAULTS.logos },
+    socialLinks: {},
     isLoaded: false,
 
     fetchBranding: async () => {
@@ -31,13 +32,15 @@ const useBrandingStore = create((set, get) => ({
             const general = res.data?.data?.general;
 
             if (general) {
-                const appName = general.platformName || BRANDING_DEFAULTS.appName;
+                const rawAppName = (general.platformName || BRANDING_DEFAULTS.appName).trim();
+                const appName = rawAppName.toLowerCase() === 'sewzella' ? 'Sewzella' : rawAppName;
 
                 set({
                     appName,
                     supportEmail: general.supportEmail || BRANDING_DEFAULTS.supportEmail,
                     supportPhone: general.supportPhone || BRANDING_DEFAULTS.supportPhone,
                     emergencyPhone: general.emergencyPhone || BRANDING_DEFAULTS.emergencyPhone,
+                    socialLinks: general.socialLinks || {},
                     logos: {
                         customer: general.appLogos?.customer || BRANDING_DEFAULTS.logos.customer,
                         tailor: general.appLogos?.tailor || BRANDING_DEFAULTS.logos.tailor,

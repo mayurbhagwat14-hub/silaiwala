@@ -377,7 +377,7 @@ const TailorRegistration = () => {
                     Create Partner Account
                 </h1>
                 <p className="text-xs sm:text-[13px] font-medium text-[#64748B] max-w-[280px] mx-auto leading-relaxed">
-                    Register as a certified tailor partner with SewZella
+                    Register as a certified tailor partner with Sewzella
                 </p>
             </div>
 

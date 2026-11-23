@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { SERIF } from '../components/landingTokens';
+import { SANS } from '../components/landingTokens';
 
 const WORDS = [
   'Bridal Lehengas',
@@ -17,7 +17,7 @@ const Row = () => (
   <div className="flex shrink-0 items-center">
     {WORDS.map((w) => (
       <span key={w} className="flex items-center">
-        <span className="whitespace-nowrap px-6 text-[22px] italic text-white/90 sm:px-8 sm:text-[28px]" style={{ fontFamily: SERIF }}>
+        <span className="whitespace-nowrap px-6 text-[22px] text-white/90 sm:px-8 sm:text-[28px]" style={{ fontFamily: SANS }}>
           {w}
         </span>
         <span aria-hidden="true" className="text-[16px] text-[#E2C4EE]">✦</span>

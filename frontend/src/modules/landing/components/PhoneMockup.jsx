@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Search, Scissors, Truck, Ruler, Package, ShieldCheck, Bell, Home, Shirt, User } from 'lucide-react';
 import { Glyph } from './landingShared';
-import { SERIF } from './landingTokens';
+import { SANS } from './landingTokens';
 
-/* Illustrative SewZella app screens rendered in HTML/CSS (sharp at any size, no image weight). */
+/* Illustrative Sewzella app screens rendered in HTML/CSS (sharp at any size, no image weight). */
 
 const StatusBar = ({ dark }) => (
   <div className={`flex items-center justify-between px-6 pt-3 text-[10px] font-semibold ${dark ? 'text-white' : 'text-[#1A1523]'}`}>
@@ -27,7 +27,7 @@ const HomeScreen = () => (
     <div className="flex items-center justify-between px-5 pt-4">
       <div>
         <p className="text-[10px] font-medium text-[#6B6575]">Good evening</p>
-        <p className="text-[16px] font-semibold text-[#1A1523]" style={{ fontFamily: SERIF }}>
+        <p className="text-[16px] font-semibold text-[#1A1523]" style={{ fontFamily: SANS }}>
           Hello, <span className="text-[#843D9B]">Aanya</span>
         </p>
       </div>
@@ -42,10 +42,10 @@ const HomeScreen = () => (
       <img src="/landing/opt/womens-wear.jpg" alt="" loading="lazy" className="absolute right-0 top-0 h-full w-[55%] object-cover object-top" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#4A1560] via-[#4A1560]/85 to-transparent" />
       <div className="relative p-3.5">
-        <p className="text-[13px] font-semibold leading-tight text-white" style={{ fontFamily: SERIF }}>
+        <p className="text-[13px] font-semibold leading-tight text-white" style={{ fontFamily: SANS }}>
           Design your
           <br />
-          <em>dream outfit</em>
+          <span>dream outfit</span>
         </p>
         <span className="mt-2.5 inline-block rounded-full bg-white px-2.5 py-1 text-[8.5px] font-bold text-[#843D9B]">Start stitching</span>
       </div>
@@ -103,7 +103,7 @@ const TrackingScreen = () => (
       <StatusBar dark />
       <div className="px-5 pt-4 text-white">
         <p className="text-[9px] uppercase tracking-[0.16em] text-white/60">Order SZ-2481</p>
-        <p className="mt-0.5 text-[15px] font-semibold" style={{ fontFamily: SERIF }}>Bridal Lehenga</p>
+        <p className="mt-0.5 text-[15px] font-semibold" style={{ fontFamily: SANS }}>Bridal Lehenga</p>
         <div className="mt-3 flex items-center gap-2 rounded-xl bg-white/10 p-2 ring-1 ring-white/15">
           <img src="/landing/opt/tailor-partner.jpg" alt="" loading="lazy" className="h-7 w-7 rounded-full object-cover" />
           <div className="min-w-0 flex-1">

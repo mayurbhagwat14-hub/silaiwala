@@ -31,7 +31,7 @@ const Header = ({ customerPhone, onCancelTask }) => {
             <div className="flex flex-col items-center justify-center">
                 <img 
                     src={execLogo} 
-                    alt={appName || "SewZella"} 
+                    alt={appName || "Sewzella"} 
                     className="h-10 w-auto object-contain max-w-[170px]" 
                     onError={(e) => {
                         e.target.onerror = null;
@@ -90,7 +90,7 @@ const Header = ({ customerPhone, onCancelTask }) => {
                                 type="button"
                                 onClick={() => {
                                     setMenuOpen(false);
-                                    openAdminWhatsApp('Hi SewZella Admin, I need help with a measurement request.');
+                                    openAdminWhatsApp('Hi Sewzella Admin, I need help with a measurement request.');
                                 }}
                                 className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-purple-50 hover:text-[#5B21B6] transition-colors cursor-pointer"
                             >

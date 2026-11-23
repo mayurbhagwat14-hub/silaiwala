@@ -509,7 +509,7 @@ const RequestDetail = () => {
                 <div className="w-16 h-16 rounded-3xl bg-[#581C87] flex items-center justify-center text-white shadow-xl shadow-purple-900/20 animate-pulse mb-4">
                     <Sparkles size={28} />
                 </div>
-                <h3 className="text-base font-serif font-bold text-gray-900">SewZella</h3>
+                <h3 className="text-base font-serif font-bold text-gray-900">Sewzella</h3>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Loading Tailoring Measurement...</p>
             </div>
         );

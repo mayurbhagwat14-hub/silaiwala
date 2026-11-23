@@ -177,7 +177,7 @@ exports.testPushNotification = asyncHandler(async (req, res, next) => {
     const results = await sendMulticastNotification({
       tokens: targetTokens,
       title: "Test Push Notification 🔔",
-      body: "This is a test push notification from SewZella. Setup is working correctly!",
+      body: "This is a test push notification from Sewzella. Setup is working correctly!",
       data: {
         type: "TEST",
         url: "/partner/notifications",

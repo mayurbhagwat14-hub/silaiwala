@@ -104,7 +104,7 @@ const targetFromData = (data = {}) => {
 export function attachNotificationListeners() {
   const received = Notifications.addNotificationReceivedListener((n) => {
     const data = n.request.content.data || {};
-    const title = data.title || n.request.content.title || 'SewZella';
+    const title = data.title || n.request.content.title || 'Sewzella';
     const body = data.body || data.message || n.request.content.body || 'New Notification';
     const orderId = data.orderId || data.id || data.order;
     const status = data.status;

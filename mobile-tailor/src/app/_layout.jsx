@@ -43,7 +43,7 @@ export default function RootLayout() {
           {/* TailorContextWrapper on the web: auth + notifications around every /partner route */}
           <TailorAuthProvider>
             <TailorNotificationProvider>
-              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F7F8FC' }, animation: 'none', freezeOnBlur: true }} />
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F7F8FC' }, animation: 'none' }} />
             </TailorNotificationProvider>
           </TailorAuthProvider>
           <NavPathTracker />

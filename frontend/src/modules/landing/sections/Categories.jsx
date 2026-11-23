@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, ArrowUpRight, LayoutGrid } from 'lucide-react';
 import api from '../../../utils/api';
 import { SOCKET_URL } from '../../../config/constants';
 import { Reveal, SectionHeading, Shine } from '../components/landingShared';
-import { SERIF, fadeUp, optimizedImg } from '../components/landingTokens';
+import { SANS, fadeUp, optimizedImg } from '../components/landingTokens';
 
 /* Shown when the CMS list can't be loaded. Admin → CMS → Landing Categories overrides it. */
 const DEFAULT_CATEGORIES = [
@@ -22,35 +22,19 @@ const resolveCatImg = (img) => {
   return `${SOCKET_URL}${separator}${img}`;
 };
 
-const cardIn = {
-  hidden: { opacity: 0, y: 40, clipPath: 'inset(12% 0% 0% 0% round 26px)' },
-  visible: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    clipPath: 'inset(0% 0% 0% 0% round 26px)',
-    transition: { duration: 0.9, delay: (i % 3) * 0.1, ease: [0.22, 1, 0.36, 1] },
-  }),
-};
-
-const CategoryCard = ({ cat, index, onOpen, tall, wide }) => (
-  <motion.button
+/** Compact category card (the scatter motion lives on its wrapper). */
+const CategoryCard = ({ cat, index, onOpen }) => (
+  <button
     type="button"
-    // Data arrives after the section reveal, so each card animates itself in
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true, margin: '-40px' }}
-    variants={cardIn}
-    custom={index}
     onClick={onOpen}
-    className={`group relative block w-full overflow-hidden rounded-[26px] bg-[#EFE6F3] text-left shadow-[0_20px_50px_-30px_rgba(42,15,56,0.5)] ring-1 ring-[#EDE5F3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#843D9B] ${
-      wide ? 'col-span-2 aspect-[16/10] sm:col-span-1 ' : ''
-    }${tall ? (wide ? 'sm:aspect-[3/4]' : 'aspect-[3/4]') : wide ? 'sm:aspect-[4/5]' : 'aspect-[4/5]'}`}
+    className="group relative block aspect-[3/4] w-full overflow-hidden rounded-[22px] bg-[#EFE6F3] text-left shadow-[0_24px_50px_-28px_rgba(42,15,56,0.55)] ring-1 ring-white/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#843D9B]"
   >
     <img
       src={resolveCatImg(cat.img)}
       alt={cat.title}
       loading="lazy"
       decoding="async"
+      draggable={false}
       className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-[1.2s] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.06]"
       onError={(e) => {
         const fallback = DEFAULT_CATEGORIES[index % DEFAULT_CATEGORIES.length].img;
@@ -60,27 +44,40 @@ const CategoryCard = ({ cat, index, onOpen, tall, wide }) => (
         }
       }}
     />
-    <div className="absolute inset-0 bg-gradient-to-t from-[#1F0B2B]/75 via-[#1F0B2B]/5 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-100" />
+    <div className="absolute inset-0 bg-gradient-to-t from-[#1F0B2B]/80 via-[#1F0B2B]/10 to-transparent" />
 
-    <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-[17px] font-semibold leading-tight text-white sm:text-[22px]" style={{ fontFamily: SERIF }}>
-            {cat.title}
-          </h3>
-          {cat.desc && (
-            <p className="mt-1 hidden text-[12px] leading-snug text-white/80 sm:block sm:max-h-0 sm:overflow-hidden sm:text-[12.5px] sm:opacity-0 transition-all duration-500 group-hover:max-h-12 group-hover:opacity-100 group-focus-visible:max-h-12 group-focus-visible:opacity-100">
-              {cat.desc}
-            </p>
-          )}
-        </div>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/90 text-[#843D9B] backdrop-blur sm:h-10 sm:w-10 transition-all duration-300 group-hover:rotate-45 group-hover:bg-white">
-          <ArrowUpRight size={18} />
-        </span>
+    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3 sm:p-4">
+      <div className="min-w-0">
+        <h3 className="truncate text-[15px] font-semibold leading-tight text-white sm:text-[18px]" style={{ fontFamily: SANS }}>
+          {cat.title}
+        </h3>
+        {cat.desc && (
+          <p className="mt-0.5 line-clamp-1 text-[10.5px] text-white/75 sm:text-[12px]">{cat.desc}</p>
+        )}
       </div>
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/90 text-[#843D9B] transition-transform duration-300 group-hover:rotate-45 sm:h-9 sm:w-9">
+        <ArrowUpRight size={16} />
+      </span>
     </div>
-  </motion.button>
+  </button>
 );
+
+/* Each card starts gathered in a loose deck at the grid's centre and scatters to its own
+   slot as the section scrolls into view (progress 0 → 1). */
+const DECK_TILT = [-9, 7, -4, 10, -7, 4, -10, 6];
+
+const ScatterItem = ({ progress, offset, index, total, children }) => {
+  const tilt = DECK_TILT[index % DECK_TILT.length];
+  const x = useTransform(progress, [0, 1], [offset.x, 0]);
+  const y = useTransform(progress, [0, 1], [offset.y + index * -4, 0]);
+  const rotate = useTransform(progress, [0, 1], [tilt, 0]);
+  const scale = useTransform(progress, [0, 1], [0.9, 1]);
+  return (
+    <motion.div style={{ x, y, rotate, scale, zIndex: total - index }} className="relative will-change-transform">
+      {children}
+    </motion.div>
+  );
+};
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -104,8 +101,41 @@ const Categories = () => {
   }, []);
 
   const count = categories.length;
-  // 4 → one row of 4; 3/6/9 → rows of 3; otherwise rows of 4
-  const cols = count % 3 === 0 && count !== 12 ? 'lg:grid-cols-3' : 'lg:grid-cols-4';
+  // 3/6/9 → rows of 3; otherwise rows of 4 (2 per row on phones)
+  const threeUp = count % 3 === 0 && count !== 12;
+  const cols = threeUp ? 'sm:grid-cols-3' : 'sm:grid-cols-4';
+  const maxW = threeUp ? 'max-w-[780px]' : 'max-w-[1000px]';
+
+  // Scroll progress for the deck → scatter motion
+  const reduceMotion = useReducedMotion();
+  const gridRef = useRef(null);
+  const itemRefs = useRef([]);
+  const [offsets, setOffsets] = useState([]);
+  const { scrollYProgress } = useScroll({ target: gridRef, offset: ['start 0.95', 'start 0.3'] });
+  const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 26, mass: 0.4 });
+
+  // Distance from each card's slot to the grid centre = where it sits while stacked
+  useLayoutEffect(() => {
+    const measure = () => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const g = grid.getBoundingClientRect();
+      const cx = g.left + g.width / 2;
+      const cy = g.top + g.height / 2;
+      setOffsets(
+        itemRefs.current.slice(0, count).map((el) => {
+          if (!el) return { x: 0, y: 0 };
+          // offsetLeft/Top ignore the current transform, so the slot is measured, not the animated card
+          const left = g.left + el.offsetLeft;
+          const top = g.top + el.offsetTop;
+          return { x: cx - (left + el.offsetWidth / 2), y: cy - (top + el.offsetHeight / 2) };
+        })
+      );
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [count]);
 
   return (
     <section id="categories" className="relative scroll-mt-24 bg-[#FBF8FD] py-20 md:py-28">
@@ -131,18 +161,24 @@ const Categories = () => {
           </motion.div>
         </Reveal>
 
-        <Reveal className={`mt-12 grid grid-cols-2 gap-3 sm:gap-5 ${cols}`}>
-          {categories.map((cat, i) => (
-            <CategoryCard
-              key={cat._id || cat.title || i}
-              cat={cat}
-              index={i}
-              tall={count === 4}
-              wide={count % 2 === 0 && count >= 4 && (i === 0 || i === count - 1)}
-              onOpen={() => navigate(cat.link || '/user/services')}
-            />
-          ))}
-        </Reveal>
+        <div ref={gridRef} className={`relative mx-auto mt-10 grid grid-cols-2 gap-3 sm:mt-14 sm:gap-5 ${cols} ${maxW}`}>
+          {categories.map((cat, i) => {
+            const card = (
+              <CategoryCard cat={cat} index={i} onOpen={() => navigate(cat.link || '/user/services')} />
+            );
+            return (
+              <div key={cat._id || cat.title || i} ref={(el) => { itemRefs.current[i] = el; }}>
+                {reduceMotion ? (
+                  card
+                ) : (
+                  <ScatterItem progress={progress} offset={offsets[i] || { x: 0, y: 0 }} index={i} total={count}>
+                    {card}
+                  </ScatterItem>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

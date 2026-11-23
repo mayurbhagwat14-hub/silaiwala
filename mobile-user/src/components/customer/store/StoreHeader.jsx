@@ -20,7 +20,7 @@ const StoreHeader = ({
     logos
   } = useBrandingStore();
   const logoSrc = getImageUrl(logos?.customer) || logos?.customer || '/sewzella_logo.jpeg';
-  const displayName = appName || 'SewZella';
+  const displayName = appName || 'Sewzella';
   return <Box className="bg-white border-b border-slate-100 transition-all duration-300 shadow-2xs">
             <Box className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-3">
                 {/* Branding Row */}

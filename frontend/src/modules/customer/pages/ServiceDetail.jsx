@@ -8,7 +8,7 @@ import { cn } from '../../../utils/cn';
 import ServiceHero from '../components/service-detail/ServiceHero';
 import DeliverySelector from '../components/service-detail/DeliverySelector';
 import MeasurementSelector from '../components/service-detail/MeasurementSelector';
-import MeasurementSchedulePicker from '../components/checkout/summary/MeasurementSchedulePicker';
+import MeasurementSchedulePicker, { formatYYYYMMDD } from '../components/checkout/summary/MeasurementSchedulePicker';
 import FabricSelector from '../components/service-detail/FabricSelector';
 import CustomizationSelector from '../components/service-detail/CustomizationSelector';
 import DesignUpload from '../components/service-detail/DesignUpload';
@@ -473,6 +473,57 @@ const ServiceDetail = () => {
         }
     }, [isAlteration]);
 
+    // Live bill from the SAME backend calculation the payment page uses (/orders/price-summary),
+    // so the amount shown here always equals what checkout charges (delivery & visit fee depend on
+    // the address distance, which only the server knows). Local maths is only a fallback.
+    const [serverPricing, setServerPricing] = useState(null);
+    useEffect(() => {
+        if (!serviceData) return undefined;
+        let alive = true;
+        const timer = setTimeout(async () => {
+            const sid = String(serviceData._id || serviceData.id || id);
+            const idx = editBasketIndex != null && editBasketIndex >= 0
+                ? editBasketIndex
+                : serviceItems.findIndex((row) => String(row.serviceDetails?._id || row.serviceDetails?.id || '') === sid);
+            const others = idx >= 0 ? serviceItems.filter((_, i) => i !== idx) : serviceItems;
+            const tailorRef = preSelectedTailor?._id || preSelectedTailor?.id ||
+                (typeof serviceData.tailor === 'object' ? serviceData.tailor?._id : serviceData.tailor) || null;
+            const current = {
+                serviceDetails: {
+                    _id: sid,
+                    id: sid,
+                    tailorId: tailorRef,
+                    tailorCoordinates: preSelectedTailor?.location?.coordinates || serviceData?.tailor?.location?.coordinates || null,
+                },
+                configuration: {
+                    deliveryType,
+                    fabricSource,
+                    selectedFabric: fabricSource === 'platform' && selectedFabric
+                        ? { _id: selectedFabric._id || selectedFabric.id, price: selectedFabric.price || 0 }
+                        : null,
+                    isTailorAtHome,
+                    addons: (selectedAddons || []).map((a) => ({ _id: a._id || a.id, price: Number(a.price) || 0 })),
+                    customizations: selectedCustomizations,
+                },
+                pricing: {},
+            };
+            try {
+                const res = await api.post('/orders/price-summary', {
+                    items: [...others, current],
+                    deliveryAddress: selectedAddress,
+                    isCartCheckout: false,
+                });
+                if (alive && res.data?.success) setServerPricing(res.data.data);
+            } catch (_) {
+                if (alive) setServerPricing(null); // guest / offline → local estimate
+            }
+        }, 400);
+        return () => {
+            alive = false;
+            clearTimeout(timer);
+        };
+    }, [serviceData, deliveryType, fabricSource, selectedFabric, selectedAddons, selectedCustomizations, isTailorAtHome, serviceItems, editBasketIndex, selectedAddress, preSelectedTailor, id]);
+
     useEffect(() => {
         let isMounted = true;
         
@@ -681,7 +732,21 @@ const ServiceDetail = () => {
     const totalOrderTaxes = Math.round(totalOrderTaxable * (gstPercentage / 100));
 
     // Grand Total (Accurate across all basket items without double-counting shared fees)
-    const grandTotal = Math.round(totalOrderTaxable + totalOrderTaxes + effectiveDeliveryFee);
+    const localGrandTotal = Math.round(totalOrderTaxable + totalOrderTaxes + effectiveDeliveryFee);
+    const grandTotal = serverPricing ? Math.round(Number(serverPricing.total) || 0) : localGrandTotal;
+    const bill = serverPricing
+        ? {
+            base: Number(serverPricing.base) || 0,
+            fabric: Number(serverPricing.fabric) || 0,
+            addons: Number(serverPricing.addons) || 0,
+            visit: Number(serverPricing.tailorAtHome) || 0,
+            delivery: Number(serverPricing.delivery) || 0,
+            platformFee: Number(serverPricing.platformFee) || 0,
+            taxes: Number(serverPricing.taxes) || 0,
+            gst: serverPricing.gstPercentage ?? gstPercentage,
+            discount: Number(serverPricing.membershipDiscount) || 0,
+        }
+        : null;
 
     const getDeliveryDays = () => {
         if (deliveryType === 'express') return 10;
@@ -816,8 +881,9 @@ const ServiceDetail = () => {
             },
             configuration: { 
                 deliveryType, 
-                fabricSource, 
-                selectedFabric: selectedFabric
+                fabricSource,
+                // The backend charges whatever fabric is sent — only send it when the platform supplies it
+                selectedFabric: (fabricSource === 'platform' && selectedFabric)
                     ? {
                         _id: selectedFabric._id || selectedFabric.id,
                         id: selectedFabric._id || selectedFabric.id,
@@ -1653,8 +1719,8 @@ const ServiceDetail = () => {
                                 </div>
                             </div>
 
-                            {/* Quick Breakdown - Mini Tags */}
-                            <div className="flex gap-1.5 overflow-x-auto pb-3 no-scrollbar">
+                            {/* Quick Breakdown - Mini Tags (local estimate; hidden once the server bill is in) */}
+                            {!bill && <div className="flex gap-1.5 overflow-x-auto pb-3 no-scrollbar">
                                 <div className="shrink-0 bg-gray-50 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1.5">
                                     <Scissors size={8} className="text-gray-400" />
                                     <span className="text-[9px] font-black text-gray-500 uppercase">Current: ₹{currentTotal}</span>
@@ -1665,7 +1731,7 @@ const ServiceDetail = () => {
                                         <span className="text-[9px] font-black text-primary uppercase">Basket: ₹{otherBasketTotal}</span>
                                     </div>
                                 )}
-                            </div>
+                            </div>}
 
                             {/* Action Buttons */}
                             <AnimatePresence>
@@ -1677,6 +1743,19 @@ const ServiceDetail = () => {
                                         className="overflow-hidden mb-3"
                                     >
                                         <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-1.5 text-xs text-gray-600">
+                                            {bill ? (
+                                                <>
+                                                    <div className="flex justify-between"><span>{otherBasketItems.length > 0 ? `Stitching (${otherBasketItems.length + 1} items)` : 'Stitching'}</span><span>₹{bill.base.toLocaleString()}</span></div>
+                                                    {bill.fabric > 0 && <div className="flex justify-between text-indigo-600"><span>Fabric</span><span>+₹{bill.fabric.toLocaleString()}</span></div>}
+                                                    {bill.addons > 0 && <div className="flex justify-between text-emerald-600"><span>Styles & customizations</span><span>+₹{bill.addons.toLocaleString()}</span></div>}
+                                                    {bill.visit > 0 && <div className="flex justify-between text-sky-600"><span>Tailor At Home Visit</span><span>+₹{bill.visit.toLocaleString()}</span></div>}
+                                                    {bill.platformFee > 0 && <div className="flex justify-between text-gray-500"><span>Platform Fee</span><span>+₹{bill.platformFee.toLocaleString()}</span></div>}
+                                                    <div className="flex justify-between text-gray-400"><span>GST ({bill.gst}%)</span><span>+₹{bill.taxes.toLocaleString()}</span></div>
+                                                    {bill.delivery > 0 && <div className="flex justify-between text-amber-600"><span>Delivery</span><span>+₹{bill.delivery.toLocaleString()}</span></div>}
+                                                    {bill.discount > 0 && <div className="flex justify-between text-emerald-600"><span>Membership discount</span><span>-₹{bill.discount.toLocaleString()}</span></div>}
+                                                    <div className="flex justify-between font-bold text-gray-900 pt-1 border-t border-gray-200"><span>Total Amount</span><span>₹{grandTotal.toLocaleString()}</span></div>
+                                                </>
+                                            ) : (<>
                                             {otherBasketItems.length > 0 && (
                                                 <div className="flex justify-between font-medium text-primary">
                                                     <span>Other Basket Items ({otherBasketItems.length})</span>
@@ -1737,6 +1816,7 @@ const ServiceDetail = () => {
                                                 <span>Total Amount</span>
                                                 <span>₹{grandTotal.toLocaleString()}</span>
                                             </div>
+                                            </>)}
                                         </div>
                                     </motion.div>
                                 )}

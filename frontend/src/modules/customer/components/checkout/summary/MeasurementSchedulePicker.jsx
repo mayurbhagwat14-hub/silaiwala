@@ -9,7 +9,7 @@ const TIME_SLOTS = [
     { id: '18-20', label: '06:00 PM - 08:00 PM', startHour: 18, period: 'Night' },
 ];
 
-const formatYYYYMMDD = (date) => {
+export const formatYYYYMMDD = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');

@@ -31,7 +31,7 @@ const Header = ({
 
             {/* Center: Admin Configured Measurement Executive Logo */}
             <Box className="flex flex-col items-center justify-center">
-                <Img src={execLogo} alt={appName || "SewZella"} className="h-10 w-[150px] object-contain" fallback="/assets/images/admin_executive_logo.png" />
+                <Img src={execLogo} alt={appName || "Sewzella"} className="h-10 w-[150px] object-contain" fallback="/assets/images/admin_executive_logo.png" />
             </Box>
 
             {/* Right: Actions */}
@@ -58,7 +58,7 @@ const Header = ({
                                 </Btn>}
                             <Btn onPress={() => {
             setMenuOpen(false);
-            openAdminWhatsApp('Hi SewZella Admin, I need help with a measurement request.');
+            openAdminWhatsApp('Hi Sewzella Admin, I need help with a measurement request.');
           }} className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-purple-50 hover:text-[#5B21B6] transition-colors cursor-pointer">
                                 <I icon={HelpCircle} size={14} /> Help & Support
                             </Btn>

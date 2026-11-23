@@ -233,7 +233,12 @@ exports.getMyRequests = asyncHandler(async (req, res, next) => {
         $or: [
           { executive: req.user.id, status: "assigned" },
           { executive: req.user.id, status: "pending" },
-          { executive: null, status: "pending", $or: [{ broadcastCandidates: req.user.id }, { broadcastCandidates: { $size: 0 } }] }
+          {
+            executive: null,
+            status: "pending",
+            rejectedBy: { $ne: req.user.id }, // never show a request back to someone who declined it
+            $or: [{ broadcastCandidates: req.user.id }, { broadcastCandidates: { $size: 0 } }],
+          }
         ]
       };
     } else {
@@ -1109,13 +1114,26 @@ exports.adminAssignExecutive = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Executive not found or not verified", 404));
   }
 
+  // Once the executive has verified the customer's OTP the visit is underway — reassigning
+  // then would orphan the measurements being taken.
+  if (["otp_verified", "measurements_uploaded", "completed"].includes(request.status)) {
+    return next(new ErrorResponse(`Cannot reassign a request in '${request.status}' state`, 400));
+  }
+
+  // Everyone who could still see this request (previous executive + broadcast pool) must drop it
+  const previousHolders = [
+    request.executive ? String(request.executive) : null,
+    ...(request.broadcastCandidates || []).map(String),
+  ].filter((id) => id && id !== String(executiveUserId));
+
   request.executive = executiveUserId;
   request.status = "assigned";
+  request.broadcastCandidates = [];
   await request.save();
 
-  // Update order
+  // Update order (only while it is still in the measurement phase)
   const order = await Order.findById(request.order);
-  if (order) {
+  if (order && MEASUREMENT_PHASE_STATUSES.includes(order.status)) {
     order.status = "measurement-assigned";
     order.trackingHistory.push({
       status: "measurement-assigned",
@@ -1163,6 +1181,15 @@ exports.adminAssignExecutive = asyncHandler(async (req, res, next) => {
       scheduledTime: request.scheduledTime,
       status: "assigned",
     });
+
+    // Remove it from the previous executive's / other candidates' pending lists
+    for (const holderId of [...new Set(previousHolders)]) {
+      io.to(`user_${holderId}`).emit("measurement_request_claimed", {
+        requestId: request._id,
+        claimedBy: String(executiveUserId),
+        reason: "reassigned",
+      });
+    }
   }
 
   res.status(200).json({

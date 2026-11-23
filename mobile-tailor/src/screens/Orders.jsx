@@ -1173,6 +1173,16 @@ const Orders = () => {
                                         <Btn onPress={() => handleAction('View Detail', order)} className="flex-1 py-2.5 md:py-3 bg-white border border-gray-200 rounded-xl text-[10px] font-black text-gray-700 uppercase tracking-widest hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
                                             Details
                                         </Btn>
+                                        {/* Chat with the customer about this order */}
+                                        {!isNew && order.status !== 'cancelled' && <Btn onPress={() => {
+                  setUnreadChats(prev => ({ ...prev, [order._id]: 0 }));
+                  navigate(`/partner/orders/${order._id}/chat`);
+                }} accessibilityLabel="Chat with customer" className="relative w-11 py-2.5 md:py-3 bg-white border border-gray-200 rounded-xl flex items-center justify-center shadow-sm">
+                                                <I icon={MessageSquare} size={16} className="text-[#843D9B]" />
+                                                {unreadChats[order._id] > 0 && <Box className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 border-2 border-white items-center justify-center">
+                                                        <Txt className="text-[9px] font-black text-white">{unreadChats[order._id] > 9 ? '9+' : unreadChats[order._id]}</Txt>
+                                                    </Box>}
+                                            </Btn>}
                                         {isNew ? <Btn onPress={() => handleStatusUpdate(order._id, 'accepted')} disabled={updatingOrders[order._id]} className="flex-[1.5] py-2.5 md:py-3 bg-[#843D9B] rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-lg shadow-[#843D9B]/20 hover:bg-[#4E2460] active:scale-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50">
                                                 {updatingOrders[order._id] ? <Spin className="w-3.5 h-3.5 animate-spin text-white" /> : 'Accept Order'}
                                             </Btn> : (() => {

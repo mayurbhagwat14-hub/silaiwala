@@ -7,8 +7,8 @@ const organizedFaqs = [
   {
     type: 'faq',
     slug: 'what-is-sewzella',
-    title: 'What is SewZella?',
-    content: '<p>SewZella is an all-in-one digital custom tailoring platform connecting you with verified master tailors, boutiques, and fashion designers. We manage doorstep fabric pickup, expert measurements, custom stitching, quality inspection, and doorstep delivery with a 100% Perfect Fit Guarantee.</p>',
+    title: 'What is Sewzella?',
+    content: '<p>Sewzella is an all-in-one digital custom tailoring platform connecting you with verified master tailors, boutiques, and fashion designers. We manage doorstep fabric pickup, expert measurements, custom stitching, quality inspection, and doorstep delivery with a 100% Perfect Fit Guarantee.</p>',
     category: 'customer',
     isActive: true
   },
@@ -87,8 +87,8 @@ const organizedFaqs = [
   {
     type: 'faq',
     slug: 'where-is-sewzella-service-available',
-    title: 'Where is SewZella service available?',
-    content: '<p>SewZella operates across major urban cities and suburbs. Enable location in the app or enter your pin code on the home screen to check instant availability in your area.</p>',
+    title: 'Where is Sewzella service available?',
+    content: '<p>Sewzella operates across major urban cities and suburbs. Enable location in the app or enter your pin code on the home screen to check instant availability in your area.</p>',
     category: 'customer',
     isActive: true
   }

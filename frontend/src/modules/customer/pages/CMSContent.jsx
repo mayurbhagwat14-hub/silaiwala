@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2 } from 'lucide-react';
+import { ArrowLeft, Share2, FileText, Clock, Mail, MessageCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import api from '../../../utils/api';
 import BottomNav from '../components/BottomNav';
 import { sanitizeCmsHtml } from '../../../utils/formatHtml';
+import useBrandingStore from '../../../store/brandingStore';
 
-const CMSContentPage = () => {
-    const { slug } = useParams();
+const NO_NAV_SLUGS = ['privacy-policy', 'terms-of-service', 'terms-and-conditions'];
+
+/**
+ * Renders an admin-managed CMS page (About Us, Contact Us, Shipping Policy, ...).
+ * `slug` may be passed as a prop (from the shared legal route) or read from the URL.
+ */
+const CMSContentPage = ({ slug: slugProp, showBottomNav = true }) => {
+    const { slug: slugParam } = useParams();
+    const slug = slugProp || slugParam;
     const navigate = useNavigate();
+    const { appName, supportEmail } = useBrandingStore();
     const [content, setContent] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -16,11 +26,10 @@ const CMSContentPage = () => {
             setIsLoading(true);
             try {
                 const res = await api.get(`/cms/content/${slug}`);
-                if (res.data.success) {
-                    setContent(res.data.data);
-                }
+                setContent(res.data?.success ? res.data.data : null);
             } catch (error) {
                 console.error('Error fetching CMS content:', error);
+                setContent(null);
             } finally {
                 setIsLoading(false);
             }
@@ -28,169 +37,124 @@ const CMSContentPage = () => {
         fetchContent();
     }, [slug]);
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#FDFBFD]">
-                <div className="w-10 h-10 border-4 border-purple-100 border-t-[#843D9B] rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({ title: content?.title, url: window.location.href }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            toast.success('Link copied');
+        }
+    };
 
-    if (!content) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center font-['Plus_Jakarta_Sans',sans-serif]">
-                <h2 className="text-xl font-bold text-gray-900">Document Not Found</h2>
-                <p className="text-xs text-gray-500 mt-1 mb-4">The policy you requested is not available.</p>
-                <button 
-                    onClick={() => navigate(-1)} 
-                    className="px-6 py-2.5 bg-[#843D9B] text-white rounded-full font-semibold text-xs shadow-xs hover:bg-[#723287] transition-colors"
-                >
-                    Go Back
-                </button>
-            </div>
-        );
-    }
+    const withNav = showBottomNav && !NO_NAV_SLUGS.includes(slug);
+    const updated = content?.updatedAt
+        ? new Date(content.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+        : null;
 
     return (
-        <div className="min-h-screen bg-[#FDFBFD] pb-24 font-['Plus_Jakarta_Sans',sans-serif] overflow-x-hidden">
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#843D9B] via-[#742b8b] to-[#511364] pt-8 pb-24 px-4 sm:px-6 text-white overflow-hidden shrink-0 shadow-lg shadow-purple-900/10">
-                <div className="relative z-10 max-w-4xl mx-auto flex items-center justify-between mb-4">
-                    <button 
-                        onClick={() => navigate(-1)} 
-                        className="p-2 -ml-1 text-white hover:bg-white/10 rounded-full transition-colors"
+        <div className={`min-h-screen bg-[#F7F5FA] font-sans text-gray-900 ${withNav ? 'pb-28' : 'pb-10'}`}>
+            {/* Header bar */}
+            <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/90 backdrop-blur-md">
+                <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3.5">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100"
                         aria-label="Back"
                     >
                         <ArrowLeft size={20} />
                     </button>
-                    <h1 className="text-sm font-semibold tracking-wide uppercase text-purple-200">
-                        Official Legal Policy
+                    <h1 className="min-w-0 flex-1 truncate text-[16px] font-bold text-gray-900">
+                        {content?.title || (isLoading ? '' : 'Page')}
                     </h1>
-                    <button 
-                        onClick={() => {
-                            if (navigator.share) {
-                                navigator.share({ title: content.title, url: window.location.href }).catch(console.error);
-                            } else {
-                                navigator.clipboard.writeText(window.location.href);
-                                alert('Link copied to clipboard!');
-                            }
-                        }}
-                        className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors"
-                        aria-label="Share"
-                    >
-                        <Share2 size={16} />
-                    </button>
-                </div>
-
-                <div className="relative z-10 max-w-4xl mx-auto mt-2 bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-[#843D9B] shadow-sm shrink-0 font-bold text-xs">
-                        DOC
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-[10px] font-semibold text-purple-200 uppercase tracking-wider">SewZella Compliance</p>
-                        <p className="text-sm sm:text-base font-bold text-white truncate">{content.title}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Content Body */}
-            <div className="px-3.5 sm:px-6 -mt-10 relative z-20 max-w-4xl mx-auto w-full overflow-hidden">
-                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-9 shadow-xs border border-purple-100/70 w-full max-w-full overflow-hidden">
-                    <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-                        <div className="w-1.5 h-3.5 bg-[#843D9B] rounded-full" />
-                        <h3 className="text-xs font-semibold text-gray-700 tracking-wide">
-                            {content.title}
-                        </h3>
-                    </div>
-
-                    <div
-                        className="cms-content-render w-full max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word]
-                                   text-[13.5px] sm:text-[14.5px] leading-[1.75] text-slate-700"
-                        dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(content.content) }}
-                    />
-
-                    {!['privacy-policy', 'terms-of-service', 'terms-and-conditions'].includes(slug) && (
-                        <div className="mt-8 pt-5 border-t border-gray-100 flex flex-col items-center text-center">
-                            <p className="text-[11px] font-medium text-slate-400">
-                                Last Updated: {new Date(content.updatedAt || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                                <br />
-                                © SewZella Digital Tailoring Platform
-                            </p>
-                        </div>
+                    {content && (
+                        <button
+                            onClick={handleShare}
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100"
+                            aria-label="Share"
+                        >
+                            <Share2 size={18} />
+                        </button>
                     )}
                 </div>
-            </div>
+            </header>
 
-            {!['privacy-policy', 'terms-of-service', 'terms-and-conditions'].includes(slug) && (
-                <BottomNav />
-            )}
+            <main className="mx-auto max-w-3xl px-4 py-5">
+                {isLoading ? (
+                    <div className="space-y-3 rounded-2xl border border-gray-100 bg-white p-6">
+                        <div className="h-6 w-2/3 animate-pulse rounded bg-gray-100" />
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="h-3.5 animate-pulse rounded bg-gray-100" style={{ width: `${95 - i * 7}%` }} />
+                        ))}
+                    </div>
+                ) : !content ? (
+                    <div className="rounded-2xl border border-gray-100 bg-white px-6 py-14 text-center">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#843D9B]/10 text-[#843D9B]">
+                            <FileText size={24} />
+                        </div>
+                        <h2 className="text-base font-bold text-gray-900">Page not available</h2>
+                        <p className="mx-auto mt-1 max-w-xs text-sm text-gray-500">This page hasn't been published yet. Please check back later.</p>
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="mt-6 rounded-xl bg-[#843D9B] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#6f3284]"
+                        >
+                            Go Back
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-8">
+                            <div className="mb-5 border-b border-gray-100 pb-5">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#843D9B]">{appName || 'Sewzella'}</p>
+                                <h2 className="mt-1 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">{content.title}</h2>
+                                {updated && (
+                                    <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+                                        <Clock size={12} /> Last updated {updated}
+                                    </p>
+                                )}
+                            </div>
+                            <div
+                                className="cms-content-render break-words text-[14px] leading-[1.75] text-gray-700 [overflow-wrap:anywhere] sm:text-[15px]"
+                                dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(content.content) }}
+                            />
+                        </article>
+
+                        <div className="mt-4 flex flex-col items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white p-4 sm:flex-row">
+                            <p className="text-sm text-gray-600">Still have questions?</p>
+                            <div className="flex w-full gap-2 sm:w-auto">
+                                <button
+                                    onClick={() => navigate('/user/support')}
+                                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#843D9B] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#6f3284] sm:flex-none"
+                                >
+                                    <MessageCircle size={14} /> Help Center
+                                </button>
+                                <a
+                                    href={`mailto:${supportEmail || 'support@sewzella.com'}`}
+                                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none"
+                                >
+                                    <Mail size={14} /> Email Us
+                                </a>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </main>
+
+            {withNav && <BottomNav />}
 
             <style dangerouslySetInnerHTML={{
                 __html: `
-                .cms-content-render h1 {
-                    font-size: 1.35rem;
-                    line-height: 1.3;
-                    font-weight: 700;
-                    color: #0f172a;
-                    margin-top: 1.25rem;
-                    margin-bottom: 0.75rem;
-                    letter-spacing: -0.015em;
-                }
-                .cms-content-render h1:first-child {
-                    margin-top: 0;
-                }
-                .cms-content-render h2 {
-                    font-size: 1.15rem;
-                    line-height: 1.35;
-                    font-weight: 600;
-                    color: #843D9B;
-                    margin-top: 1.5rem;
-                    margin-bottom: 0.5rem;
-                    letter-spacing: -0.01em;
-                }
-                .cms-content-render h3 {
-                    font-size: 1rem;
-                    line-height: 1.4;
-                    font-weight: 600;
-                    color: #1e293b;
-                    margin-top: 1.25rem;
-                    margin-bottom: 0.5rem;
-                }
-                .cms-content-render p {
-                    margin-bottom: 0.85rem;
-                    line-height: 1.75;
-                    color: #334155;
-                }
-                .cms-content-render strong, .cms-content-render b {
-                    color: #0f172a;
-                    font-weight: 600;
-                }
-                .cms-content-render ul {
-                    list-style-type: disc;
-                    padding-left: 1.25rem;
-                    margin-bottom: 1rem;
-                }
-                .cms-content-render ol {
-                    list-style-type: decimal;
-                    padding-left: 1.25rem;
-                    margin-bottom: 1rem;
-                }
-                .cms-content-render li {
-                    color: #334155;
-                    line-height: 1.65;
-                    margin-bottom: 0.35rem;
-                }
-                .cms-content-render li::marker {
-                    color: #843D9B;
-                }
-                @media (min-width: 640px) {
-                    .cms-content-render h1 {
-                        font-size: 1.55rem;
-                    }
-                    .cms-content-render h2 {
-                        font-size: 1.25rem;
-                    }
-                }
+                .cms-content-render h1 { font-size: 1.3rem; line-height: 1.3; font-weight: 700; color: #111827; margin: 1.5rem 0 0.6rem; }
+                .cms-content-render h2 { font-size: 1.1rem; line-height: 1.35; font-weight: 700; color: #111827; margin: 1.5rem 0 0.5rem; }
+                .cms-content-render h3 { font-size: 1rem; line-height: 1.4; font-weight: 600; color: #1f2937; margin: 1.25rem 0 0.4rem; }
+                .cms-content-render > :first-child { margin-top: 0; }
+                .cms-content-render p { margin-bottom: 0.85rem; }
+                .cms-content-render a { color: #843D9B; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+                .cms-content-render strong, .cms-content-render b { color: #111827; font-weight: 600; }
+                .cms-content-render ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 1rem; }
+                .cms-content-render ol { list-style: decimal; padding-left: 1.25rem; margin-bottom: 1rem; }
+                .cms-content-render li { margin-bottom: 0.35rem; line-height: 1.65; }
+                .cms-content-render li::marker { color: #843D9B; }
+                .cms-content-render img { max-width: 100%; height: auto; border-radius: 12px; }
             `}} />
         </div>
     );

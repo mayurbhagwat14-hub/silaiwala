@@ -265,7 +265,7 @@ const TailorShopOrders = () => {
                                 </Box>
                                 <Box className="flex justify-between">
                                     <Txt className="text-gray-500 font-medium">Fabric Source</Txt>
-                                    <Txt className="font-bold capitalize">{selected.fabricSource === 'sewzella' ? 'Platform / SewZella' : 'Customer Provided'}</Txt>
+                                    <Txt className="font-bold capitalize">{selected.fabricSource === 'sewzella' ? 'Platform / Sewzella' : 'Customer Provided'}</Txt>
                                 </Box>
                                 {selected.expectedCompletionDate && <Box className="flex justify-between">
                                         <Txt className="text-gray-500 font-medium">Expected Completion</Txt>

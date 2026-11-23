@@ -46,7 +46,7 @@ const ExploreBento = () => {
 
   return (
     <HomeSection>
-      <SectionTitle title="Explore" accent="SewZella" subtitle="Everything you need, made to measure" to="/user/what-we-offer" linkLabel="View all" />
+      <SectionTitle title="Explore" accent="Sewzella" subtitle="Everything you need, made to measure" to="/user/what-we-offer" linkLabel="View all" />
       <motion.div
         initial="hidden"
         whileInView="visible"

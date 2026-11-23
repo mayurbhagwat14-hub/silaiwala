@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import api from '../lib/api';
 
 export const BRANDING_DEFAULTS = {
-    appName: 'SewZella',
+    appName: 'Sewzella',
     supportEmail: 'support@silaiwala.com',
     supportPhone: '+91 9429692921',
     emergencyPhone: '+91 9999999999',
@@ -30,7 +30,8 @@ const useBrandingStore = create((set, get) => ({
             const general = res.data?.data?.general;
 
             if (general) {
-                const appName = general.platformName || BRANDING_DEFAULTS.appName;
+                const rawAppName = (general.platformName || BRANDING_DEFAULTS.appName).trim();
+                const appName = rawAppName.toLowerCase() === 'sewzella' ? 'Sewzella' : rawAppName;
 
                 set({
                     appName,

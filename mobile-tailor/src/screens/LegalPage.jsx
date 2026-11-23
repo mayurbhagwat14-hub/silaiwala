@@ -41,8 +41,8 @@ const LEGAL_DATA = {
       number: "01",
       title: "Platform Acceptance & Scope",
       content: `
-                    <p>Welcome to <strong>SewZella</strong> (referred to as "Platform", "we", "us", or "our"). By accessing, browsing, registering, or placing orders via our mobile application, website, or partner portals, you agree to be bound by these Terms and Conditions.</p>
-                    <p>SewZella operates an on-demand custom tailoring marketplace that bridges customers with verified master tailors, fashion designers, fabric suppliers, and logistics partners across India.</p>
+                    <p>Welcome to <strong>Sewzella</strong> (referred to as "Platform", "we", "us", or "our"). By accessing, browsing, registering, or placing orders via our mobile application, website, or partner portals, you agree to be bound by these Terms and Conditions.</p>
+                    <p>Sewzella operates an on-demand custom tailoring marketplace that bridges customers with verified master tailors, fashion designers, fabric suppliers, and logistics partners across India.</p>
                     <div class="callout-box">
                         <p><strong>Note for Partners:</strong> Tailors, boutiques, measurement executives, and delivery partners are also subject to their respective onboarding agreements and operational SLAs in addition to these terms.</p>
                     </div>
@@ -64,7 +64,7 @@ const LEGAL_DATA = {
       number: "03",
       title: "100% Perfect Fit Guarantee & Alterations",
       content: `
-                    <p>Every stitched garment placed through SewZella is backed by our signature <strong>100% Perfect Fit Guarantee</strong>:</p>
+                    <p>Every stitched garment placed through Sewzella is backed by our signature <strong>100% Perfect Fit Guarantee</strong>:</p>
                     <ul>
                         <li>If the finished garment does not fit as per agreed measurements, you may request a <strong>free alteration within 7 days</strong> of delivery through the app.</li>
                         <li>Our delivery partner will collect the garment from your doorstep, return it to the artisan for precision adjustments, and re-deliver it at zero extra logistics cost.</li>
@@ -76,7 +76,7 @@ const LEGAL_DATA = {
       number: "04",
       title: "Pricing, Payments & Advance Structure",
       content: `
-                    <p>All prices listed on SewZella are transparent with zero hidden charges. Tailoring charges comprise pattern making, cutting, stitching, finishing, quality check, and roundtrip pickup/delivery.</p>
+                    <p>All prices listed on Sewzella are transparent with zero hidden charges. Tailoring charges comprise pattern making, cutting, stitching, finishing, quality check, and roundtrip pickup/delivery.</p>
                     <ul>
                         <li><strong>Payment Modes:</strong> We accept UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, Net Banking, and select Cash-on-Delivery (COD) services.</li>
                         <li><strong>Advance & Balances:</strong> Custom couture orders may require an advance payment prior to fabric cutting, with any balance payable upon final quality approval or doorstep delivery.</li>
@@ -92,7 +92,7 @@ const LEGAL_DATA = {
                     <ul>
                         <li><strong>Before Fabric Cutting:</strong> You may cancel with a 100% refund at any point before the tailor commences fabric cutting. If fabric was already collected, a nominal return courier fee may apply.</li>
                         <li><strong>After Fabric Cutting:</strong> Once fabric has been cut to customer measurements, cancellation is not possible. If quality defects exist, our full alteration and remake guarantee applies.</li>
-                        <li><strong>Damaged or Lost Fabric:</strong> In the rare event fabric is damaged or misplaced while in transit, SewZella compensates up to the verified purchase value of the fabric.</li>
+                        <li><strong>Damaged or Lost Fabric:</strong> In the rare event fabric is damaged or misplaced while in transit, Sewzella compensates up to the verified purchase value of the fabric.</li>
                     </ul>
                 `
     }, {
@@ -136,7 +136,7 @@ const LEGAL_DATA = {
       number: "01",
       title: "Information We Collect",
       content: `
-                    <p>To deliver custom tailoring services, SewZella collects only essential operational data:</p>
+                    <p>To deliver custom tailoring services, Sewzella collects only essential operational data:</p>
                     <ul>
                         <li><strong>Account Details:</strong> Full name, mobile number, email address, and profile picture.</li>
                         <li><strong>Measurement & Fitting Data:</strong> Body measurements, garment preferences, neck style choices, and fitting notes saved in your profile.</li>
@@ -205,7 +205,7 @@ const LegalPage = ({
     type: paramType
   } = useParams();
   const navigate = useNavigate();
-  const appName = useBrandingStore(state => state.appName) || 'SewZella';
+  const appName = useBrandingStore(state => state.appName) || 'Sewzella';
 
   // Determine whether user wants terms or privacy
   const rawType = (propType || paramType || 'terms-and-conditions').toLowerCase();

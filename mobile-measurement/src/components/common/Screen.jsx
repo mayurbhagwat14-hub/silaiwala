@@ -1,6 +1,6 @@
 // Page container: safe-area handling (status bar / gesture bar) + page background.
 import React from 'react';
-import { View, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, KeyboardAvoidingView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { parse } from '../../lib/tw';
@@ -23,7 +23,7 @@ export default function Screen({ className = 'bg-white', children, top = true, b
       <StatusBar style={statusBar} />
       {statusBg ? <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top, backgroundColor: parse(statusBg).view.backgroundColor, zIndex: 10 }} /> : null}
       {keyboard ? (
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
           {content}
         </KeyboardAvoidingView>
       ) : content}

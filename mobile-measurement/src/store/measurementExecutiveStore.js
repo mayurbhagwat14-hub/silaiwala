@@ -7,6 +7,8 @@ const useMeasurementStore = create((set, get) => ({
     profile: null,
     stats: null,
     requests: [],
+    // Which tab `requests` currently holds — background refreshes reload this same tab
+    requestsTab: 'pending',
     loading: false,
     error: null,
 
@@ -104,15 +106,21 @@ const useMeasurementStore = create((set, get) => ({
     },
 
     // Requests
-    fetchRequests: async (statusFilter = 'pending') => {
-        set({ loading: true, error: null });
+    fetchRequests: async (statusFilter = 'pending', { silent = false } = {}) => {
+        set(silent ? { requestsTab: statusFilter } : { loading: true, error: null, requestsTab: statusFilter });
         try {
             const res = await api.get(`/measurement-executive/requests?status=${statusFilter}`);
-            set({ requests: res.data.data, loading: false });
+            // Ignore a late response for a tab the user already left
+            if (get().requestsTab !== statusFilter) return;
+            set({ requests: res.data.data || [], loading: false });
         } catch (error) {
+            if (silent) return;
             set({ error: error.response?.data?.message || 'Failed to load requests', loading: false });
         }
     },
+
+    /** Re-load the tab the list is showing (socket events, polling, after accept/reject). */
+    refreshRequests: () => get().fetchRequests(get().requestsTab, { silent: true }),
 
     getRequestDetail: async (id) => {
         set({ loading: true, error: null });
@@ -129,7 +137,7 @@ const useMeasurementStore = create((set, get) => ({
     acceptRequest: async (id) => {
         try {
             await api.put(`/measurement-executive/requests/${id}/accept`);
-            get().fetchRequests('active');
+            get().refreshRequests();
         } catch (error) {
             throw error;
         }
@@ -138,7 +146,7 @@ const useMeasurementStore = create((set, get) => ({
     rejectRequest: async (id) => {
         try {
             await api.put(`/measurement-executive/requests/${id}/reject`);
-            get().fetchRequests('pending');
+            get().refreshRequests();
         } catch (error) {
             throw error;
         }

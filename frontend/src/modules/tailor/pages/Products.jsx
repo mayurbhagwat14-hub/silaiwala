@@ -433,7 +433,7 @@ const Products = () => {
                     </h3>
                     <p className="text-xs font-medium text-gray-500 mt-1 max-w-2xl leading-relaxed">
                         {activeTab === 'samples' 
-                            ? 'Select the stitching services you provide. Official photos and titles are provided by SewZella.' 
+                            ? 'Select the stitching services you provide. Official photos and titles are provided by Sewzella.' 
                             : activeTab === 'fabrics' 
                                 ? 'Manage fabric materials available at your shop' 
                                 : 'Manage ready-made store garments'}
@@ -653,7 +653,7 @@ const Products = () => {
 
                                             {/* Verified platform service icon */}
                                             <div className="absolute top-3 right-3 z-10">
-                                                <span className="h-7 w-7 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#843D9B] shadow-sm" title="Official SewZella Service">
+                                                <span className="h-7 w-7 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#843D9B] shadow-sm" title="Official Sewzella Service">
                                                     <ShieldCheck size={16} />
                                                 </span>
                                             </div>

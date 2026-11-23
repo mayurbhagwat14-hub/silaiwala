@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Download, Radar, CreditCard, Camera } from 'lucide-react';
 import PhoneMockup from '../components/PhoneMockup';
 import { Reveal, SectionHeading, StoreButtons, Glyph } from '../components/landingShared';
-import { fadeUp, EASE, SERIF } from '../components/landingTokens';
+import { fadeUp, EASE, SANS } from '../components/landingTokens';
 
 const FEATURES = [
   { icon: Radar, label: 'Live order tracking' },
@@ -61,7 +61,7 @@ const AppPromo = ({ appName }) => {
           <motion.div variants={fadeUp} custom={2} className="mt-9">
             <StoreButtons />
           </motion.div>
-          <motion.p variants={fadeUp} custom={3} className="mt-8 text-[26px] italic text-[#843D9B]" style={{ fontFamily: SERIF }}>
+          <motion.p variants={fadeUp} custom={3} className="mt-8 text-[26px] text-[#843D9B]" style={{ fontFamily: SANS }}>
             Style, your way.
           </motion.p>
         </Reveal>

@@ -243,7 +243,7 @@ export const usePushNotifications = (user) => {
 
       try { playNotificationSound(user?.role || 'customer'); } catch (e) { console.error(e); }
 
-      const title = payload?.data?.title || payload?.notification?.title || 'SewZella';
+      const title = payload?.data?.title || payload?.notification?.title || 'Sewzella';
       const body = payload?.data?.body || payload?.data?.message || payload?.notification?.body || 'New Notification';
 
       const orderId = payload?.data?.orderId || payload?.data?.id || payload?.data?.order;

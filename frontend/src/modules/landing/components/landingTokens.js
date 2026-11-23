@@ -1,4 +1,4 @@
-/* ─── Design tokens (SewZella premium landing) ─── */
+/* ─── Design tokens (Sewzella premium landing) ─── */
 export const SERIF = "'Playfair Display', 'Libre Caslon Text', Georgia, serif";
 export const SANS = "'Plus Jakarta Sans', system-ui, sans-serif";
 

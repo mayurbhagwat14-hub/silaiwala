@@ -301,7 +301,7 @@ const AdminSubscriptions = () => {
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                                     {subConfig.customerMembershipEnabled
-                                        ? 'Customer app shows SewZella Club cards, discounts, and free delivery perks.'
+                                        ? 'Customer app shows Sewzella Club cards, discounts, and free delivery perks.'
                                         : 'Membership is completely hidden from customer profile, banners, and checkout.'}
                                 </p>
                             </div>

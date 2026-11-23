@@ -282,7 +282,11 @@ const CheckoutSummary = () => {
     }, [currentPricing, appliedCoupon, discountAmount, baseTotal]);
 
     const finalTotal = Math.round(Number(displayPricing?.total) || 0);
-    const effectiveAdvancePct = requireFullPayment ? 100 : (advancePercentage || 30);
+    // The server tells us the exact advance rule it will charge (same rule as createOrder);
+  // the local guess is only used until the price summary arrives.
+  const effectiveAdvancePct = Number.isFinite(Number(currentPricing?.advancePercentage)) && currentPricing?.advancePercentage != null
+    ? Number(currentPricing.advancePercentage)
+    : (requireFullPayment ? 100 : (advancePercentage || 30));
     const { advanceAmount } = splitAdvanceRemaining(finalTotal, effectiveAdvancePct);
 
     const handlePayment = async () => {

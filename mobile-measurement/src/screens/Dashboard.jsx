@@ -282,9 +282,9 @@ const Dashboard = () => {
                         <Box className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 mb-1">
                             <I icon={ClipboardList} size={18} />
                         </Box>
-                        <Txt className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Earning</Txt>
-                        <Txt className="text-sm font-black text-gray-900">₹{profile?.totalEarned || 0}</Txt>
-                        <Txt className="text-[8px] font-bold text-gray-400">Earned</Txt>
+                        <Txt className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Total Earning</Txt>
+                        <Txt className="text-sm font-black text-gray-900 text-center">₹{profile?.totalEarned || 0}</Txt>
+                        <Txt className="text-[8px] font-bold text-gray-400 text-center">Earned</Txt>
                     </Box>
 
                     <Box className="w-px h-12 bg-gray-100" />
@@ -293,9 +293,9 @@ const Dashboard = () => {
                         <Box className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 mb-1">
                             <I icon={AlertCircle} size={18} />
                         </Box>
-                        <Txt className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Pending</Txt>
-                        <Txt className="text-sm font-black text-gray-900">{stats?.totalPending || 0}</Txt>
-                        <Txt className="text-[8px] font-bold text-gray-400">Tasks</Txt>
+                        <Txt className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Pending</Txt>
+                        <Txt className="text-sm font-black text-gray-900 text-center">{stats?.totalPending || 0}</Txt>
+                        <Txt className="text-[8px] font-bold text-gray-400 text-center">Tasks</Txt>
                     </Box>
 
                     <Box className="w-px h-12 bg-gray-100" />
@@ -304,9 +304,9 @@ const Dashboard = () => {
                         <Box className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 mb-1">
                             <I icon={TrendingUp} size={18} />
                         </Box>
-                        <Txt className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total</Txt>
-                        <Txt className="text-sm font-black text-gray-900">{stats?.totalMeasurements || 0}</Txt>
-                        <Txt className="text-[8px] font-bold text-gray-400">Tasks</Txt>
+                        <Txt className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Total</Txt>
+                        <Txt className="text-sm font-black text-gray-900 text-center">{stats?.totalMeasurements || 0}</Txt>
+                        <Txt className="text-[8px] font-bold text-gray-400 text-center">Tasks</Txt>
                     </Box>
 
                     <Box className="w-px h-12 bg-gray-100" />
@@ -315,7 +315,7 @@ const Dashboard = () => {
                         <Box className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 mb-1">
                             <I icon={CheckCircle} size={18} />
                         </Box>
-                        <Txt className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Status</Txt>
+                        <Txt className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Status</Txt>
                         <Txt className={`text-sm font-black ${isSocketConnected ? 'text-emerald-500' : 'text-gray-400'}`}>
                             {isSocketConnected ? '4.8' : '0.0'}
                         </Txt>

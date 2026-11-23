@@ -16,7 +16,7 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[sw.js] Received background FCM message:', payload);
 
-  const title = payload?.data?.title || payload?.notification?.title || 'SewZella Notification 🔔';
+  const title = payload?.data?.title || payload?.notification?.title || 'Sewzella Notification 🔔';
   const body = payload?.data?.body || payload?.data?.message || payload?.notification?.body || 'New notification received';
   const url = payload?.data?.url || payload?.data?.targetUrl || '/';
   
@@ -68,7 +68,7 @@ const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SewZella</title>
+  <title>Sewzella</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; }

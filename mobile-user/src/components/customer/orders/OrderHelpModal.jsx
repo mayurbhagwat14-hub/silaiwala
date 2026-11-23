@@ -38,7 +38,7 @@ const OrderHelpModal = ({
     Linking.openURL(`tel:${cleanNumber}`);
   };
   const handleWhatsAppClick = () => {
-    const bodyLines = [`Hi SewZella Admin, I need help with my order.`, `Order ID: ${orderIdDisplay}`, `Order Status: ${order?.status || 'In Progress'}`].join('\n');
+    const bodyLines = [`Hi Sewzella Admin, I need help with my order.`, `Order ID: ${orderIdDisplay}`, `Order Status: ${order?.status || 'In Progress'}`].join('\n');
     openAdminWhatsApp(bodyLines);
   };
   return <Sheet visible={!!(isOpen)} onClose={onClose} className={`bg-white w-full sm:max-w-lg rounded-t-[2.5rem] sm:rounded-3xl overflow-hidden shadow-2xl   sm:  flex flex-col max-h-[90vh]`}>

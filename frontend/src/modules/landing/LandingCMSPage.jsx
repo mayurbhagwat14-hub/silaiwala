@@ -22,7 +22,7 @@ import { sanitizeCmsHtml } from '../../utils/formatHtml';
 
 const DEFAULT_TERMS = {
   title: "Terms of Service",
-  subtitle: "Everything you need to know about placing custom tailoring orders on SewZella",
+  subtitle: "Everything you need to know about placing custom tailoring orders on Sewzella",
   effectiveDate: "January 1, 2026",
   version: "v2.4 Active",
   summaryChips: [
@@ -36,15 +36,15 @@ const DEFAULT_TERMS = {
       num: "01",
       title: "Platform Overview & Eligibility",
       body: `
-        <p>SewZella is India's premier digital custom tailoring marketplace connecting customers with vetted master artisans, fashion boutiques, and doorstep measurement executives.</p>
-        <p>By browsing, booking, or registering on SewZella, you verify that you are at least 18 years of age and possess the legal capacity to enter into binding agreements.</p>
+        <p>Sewzella is India's premier digital custom tailoring marketplace connecting customers with vetted master artisans, fashion boutiques, and doorstep measurement executives.</p>
+        <p>By browsing, booking, or registering on Sewzella, you verify that you are at least 18 years of age and possess the legal capacity to enter into binding agreements.</p>
       `
     },
     {
       num: "02",
       title: "Measurements, Fabric & Design Consultations",
       body: `
-        <p>Custom tailoring depends heavily on accurate body specifications. SewZella provides three measurement pathways:</p>
+        <p>Custom tailoring depends heavily on accurate body specifications. Sewzella provides three measurement pathways:</p>
         <ul>
           <li><strong>Doorstep Executive Visit:</strong> Our certified specialist measures you in the comfort of your home with sanitized measuring equipment.</li>
           <li><strong>Sample Garment Pick-up:</strong> Our courier collects your best-fitting garment and our master tailor mirrors its exact silhouette.</li>
@@ -175,7 +175,7 @@ const LandingCMSPage = ({ forcedSlug }) => {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: (content?.title || fallback?.title || 'SewZella'),
+        title: (content?.title || fallback?.title || 'Sewzella'),
         url: window.location.href,
       }).catch(() => {});
     } else {

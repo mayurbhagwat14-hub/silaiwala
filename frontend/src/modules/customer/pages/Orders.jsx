@@ -11,6 +11,7 @@ import { SOCKET_URL } from '../../../config/constants';
 import useAuthStore from '../../../store/authStore';
 import { getToken } from '../../../utils/auth';
 import api from '../../../utils/api';
+import VoiceSearchButton from '../../../components/ui/VoiceSearchButton';
 
 
 
@@ -163,96 +164,95 @@ const OrdersPage = () => {
         };
     }, [activeData]);
 
+    const TABS = [
+        { id: 'orders', label: 'Orders', icon: ShoppingBag },
+        { id: 'alterations', label: 'Alterations', icon: Scissors },
+        { id: 'custom-designs', label: 'Custom Designs', icon: PenTool },
+        { id: 'completed', label: 'Completed', icon: CheckCircle2 },
+    ];
+
     return (
-        <div className="min-h-screen bg-[#F7F8FC] pb-6 font-sans">
-            {/* 1. Purple Header */}
-            <div className="sticky top-0 z-50 bg-[#6b2a80] bg-gradient-to-r from-[#6b2a80] to-[#843D9B] shadow-md px-4 md:px-6 lg:px-8 pt-4 pb-4 rounded-b-[1.25rem]">
-                <div className="flex justify-between items-center mb-3">
-                    <div>
-                        <h1 className="text-[22px] font-black text-white mb-0.5 tracking-tight leading-none">My Orders</h1>
-                        <p className="text-[11px] font-medium text-[#E0BBE4]">Track and manage your requests</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button className="text-white hover:text-gray-200 transition-colors">
-                            <Search size={22} />
-                        </button>
-                        <button 
+        <div className="min-h-screen bg-[#F7F5FA] pb-6 font-sans">
+            {/* Header + tabs stay pinned together so cards never slide under a gap */}
+            <div className="sticky top-0 z-40 bg-[#F7F5FA]">
+                <div className="rounded-b-[24px] bg-gradient-to-br from-[#6b2a80] to-[#843D9B] px-4 pb-4 pt-4 shadow-md md:px-6 lg:px-8">
+                    <div className="mb-3.5 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-[20px] font-bold leading-tight tracking-tight text-white">My Orders</h1>
+                            <p className="mt-0.5 text-[12px] text-white/70">Track and manage your requests</p>
+                        </div>
+                        <button
                             type="button"
                             onClick={() => navigate('/user/notifications')}
-                            className="relative text-white hover:text-gray-200 transition-colors cursor-pointer"
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/20 transition-colors hover:bg-white/25"
                             aria-label="Notifications"
                         >
-                            <Bell size={22} />
+                            <Bell size={19} />
                         </button>
                     </div>
-                </div>
 
-                {/* Search & Filter Bar */}
-                <div className="bg-white rounded-full flex items-center shadow-sm overflow-hidden h-11 border border-gray-100">
-                    <div className="flex items-center gap-2 flex-1 px-3.5">
-                        <Search size={16} className="text-gray-400 shrink-0" />
+                    {/* Search & Filter Bar */}
+                    <div className="flex h-12 items-center overflow-hidden rounded-2xl bg-white shadow-sm">
+                        <Search size={17} className="ml-3.5 shrink-0 text-[#843D9B]" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={`Search ${placeholderText}|`}
-                            className="bg-transparent text-[12px] font-medium text-gray-700 w-full focus:outline-none placeholder:text-gray-400 py-1"
+                            placeholder={searchQuery ? '' : `Search ${placeholderText}|`}
+                            className="h-full w-full min-w-0 bg-transparent px-2.5 text-[13px] font-medium text-gray-800 placeholder:text-gray-400 focus:outline-none"
                         />
+                        <VoiceSearchButton
+                            className="h-9 w-9"
+                            onTranscript={(text) => setSearchQuery(text)}
+                        />
+                        <div className="mx-1 h-6 w-px shrink-0 bg-gray-200" />
+                        <div className="relative flex h-full shrink-0 items-center gap-1.5 px-3.5 transition-colors hover:bg-gray-50">
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                                aria-label="Filter by status"
+                            >
+                                <option value="All">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="accepted">Accepted</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <ListFilter size={15} className="text-gray-600" />
+                            <span className="text-[12px] font-semibold text-gray-800">
+                                {filterStatus === 'All' ? 'Filter' : filterStatus.replace(/-/g, ' ')}
+                            </span>
+                            {filterStatus !== 'All' && <span className="h-1.5 w-1.5 rounded-full bg-[#843D9B]" />}
+                        </div>
                     </div>
-                    
-                    <div className="w-[1px] h-5 bg-gray-200 shrink-0"></div>
+                </div>
 
-                    <div className="relative shrink-0 flex items-center justify-center gap-1.5 h-full px-4 hover:bg-gray-50 transition-colors">
-                        <select 
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                        >
-                            <option value="All">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="accepted">Accepted</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                        <ListFilter size={14} className="text-[#3b4c68]" />
-                        <span className="text-[11px] font-bold text-[#1F2937]">Filters</span>
-                    </div>
+                {/* Tabs */}
+                <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-3 pt-3 md:px-6 lg:px-8">
+                    {TABS.map(({ id, label, icon: Icon }) => {
+                        const active = activeTab === id;
+                        return (
+                            <button
+                                key={id}
+                                onClick={() => setActiveTab(id)}
+                                className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-2 text-[12px] font-semibold transition-all ${
+                                    active
+                                        ? 'border-[#843D9B] bg-[#843D9B] text-white shadow-sm shadow-[#843D9B]/25'
+                                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                                }`}
+                            >
+                                <Icon size={14} /> {label}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
-            {/* 2. Tabs */}
-            <div className="px-4 py-3 flex gap-8 bg-white overflow-x-auto no-scrollbar shadow-sm">
-                <button 
-                    onClick={() => setActiveTab('orders')}
-                    className={`pb-2.5 flex items-center gap-1.5 text-[11px] font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'orders' ? 'text-[#843D9B] border-[#843D9B]' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
-                >
-                    <ShoppingBag size={14} fill={activeTab === 'orders' ? 'currentColor' : 'none'} className={activeTab === 'orders' ? 'text-[#843D9B]' : 'text-gray-500'} /> Orders
-                </button>
-                <button 
-                    onClick={() => setActiveTab('alterations')}
-                    className={`pb-2.5 flex items-center gap-1.5 text-[11px] font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'alterations' ? 'text-[#843D9B] border-[#843D9B]' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
-                >
-                    <Scissors size={14} /> Alterations
-                </button>
-                <button 
-                    onClick={() => setActiveTab('custom-designs')}
-                    className={`pb-2.5 flex items-center gap-1.5 text-[11px] font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'custom-designs' ? 'text-[#843D9B] border-[#843D9B]' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
-                >
-                    <PenTool size={14} /> Custom Designs
-                </button>
-                <button 
-                    onClick={() => setActiveTab('completed')}
-                    className={`pb-2.5 flex items-center gap-1.5 text-[11px] font-bold whitespace-nowrap border-b-2 transition-colors ${activeTab === 'completed' ? 'text-[#843D9B] border-[#843D9B]' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
-                >
-                    <CheckCircle2 size={14} /> Completed
-                </button>
-            </div>
-
-
             {/* 4. Orders List */}
-            <div className="px-4 md:px-6 lg:px-8 space-y-3.5 mb-6">
+            <div className="mb-6 px-4 pt-1 md:px-6 lg:px-8">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
                         <div className="w-10 h-10 border-4 border-[#843D9B] border-t-transparent rounded-full animate-spin mb-4" />
@@ -267,7 +267,7 @@ const OrdersPage = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-3.5">
+                    <div className="flex flex-col gap-3">
                         {activeTab === 'alterations' ? (
                             filteredData.map(alt => <AlterationCard key={alt._id} alteration={alt} onPaymentSuccess={() => { fetchAlterations(); fetchOrders(); }} />)
                         ) : activeTab === 'custom-designs' ? (

@@ -62,10 +62,17 @@ const NewMeasurementRequestAlert = () => {
   const pan = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 4,
+    // Keep the gesture: otherwise a parent scroll/gesture steals it mid-swipe and the thumb snaps back
+    onPanResponderTerminationRequest: () => false,
     onPanResponderMove: (_, g) => x.setValue(Math.max(0, Math.min(maxX.current, g.dx))),
     onPanResponderRelease: (_, g) => {
-      if (g.dx > Math.min(180, maxX.current * 0.85)) acceptRef.current();
-      else resetSwipe();
+      const reach = Math.max(0, Math.min(maxX.current, g.dx));
+      // A plain tap on the thumb also accepts; a swipe needs ~65% of the track
+      const isTap = Math.abs(g.dx) < 6 && Math.abs(g.dy) < 6;
+      if (isTap || reach >= maxX.current * 0.65) {
+        Animated.timing(x, { toValue: maxX.current, duration: 120, useNativeDriver: false }).start();
+        acceptRef.current();
+      } else resetSwipe();
     },
     onPanResponderTerminate: () => resetSwipe(),
   })).current;
@@ -138,7 +145,7 @@ const NewMeasurementRequestAlert = () => {
         }
         return prev;
       });
-      useMeasurementStore.getState().fetchRequests?.('pending');
+      useMeasurementStore.getState().refreshRequests?.();
     };
     if (socket) {
       socket.on('new_measurement_request', handleNewSocketRequest);
@@ -332,7 +339,7 @@ const NewMeasurementRequestAlert = () => {
           }}>
                             <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: textOpacity, alignItems: 'center', justifyContent: 'center' }]}>
                                 <Box className="flex items-center gap-2">
-                                    <Txt className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Swipe to Accept</Txt>
+                                    <Txt className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Swipe or tap to accept</Txt>
                                     <I icon={ArrowRight} size={12} className="text-white/40" />
                                 </Box>
                             </Animated.View>

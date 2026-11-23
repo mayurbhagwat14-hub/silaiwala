@@ -85,7 +85,7 @@ exports.getProfile = asyncHandler(async (req, res, next) => {
  * @access  Private (Customer)
  */
 exports.updateProfile = asyncHandler(async (req, res, next) => {
-  const { name, profileImage, addresses, email, phoneNumber, location } = req.body;
+  const { name, profileImage, addresses, email, phoneNumber, location, notificationPreferences } = req.body;
 
   // Update User data with string-only validation
   const userUpdate = {};
@@ -102,6 +102,19 @@ exports.updateProfile = asyncHandler(async (req, res, next) => {
   // Update Customer Profile data
   if (addresses) {
     await Customer.findOneAndUpdate({ user: req.user.id }, { addresses }, { new: true });
+  }
+
+  // Notification preferences: only known boolean keys are accepted.
+  if (notificationPreferences && typeof notificationPreferences === 'object') {
+    const prefUpdate = {};
+    ['orderUpdates', 'promotions', 'reminders'].forEach((key) => {
+      if (typeof notificationPreferences[key] === 'boolean') {
+        prefUpdate[`notificationPreferences.${key}`] = notificationPreferences[key];
+      }
+    });
+    if (Object.keys(prefUpdate).length > 0) {
+      await Customer.findOneAndUpdate({ user: req.user.id }, { $set: prefUpdate }, { new: true, upsert: true });
+    }
   }
 
   const updatedUser = await User.findById(req.user.id);

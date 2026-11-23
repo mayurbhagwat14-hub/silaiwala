@@ -64,7 +64,7 @@ const OrderHelpModal = ({ isOpen, onClose, order, settings }) => {
 
     const handleWhatsAppClick = () => {
         const bodyLines = [
-            `Hi SewZella Admin, I need help with my order.`,
+            `Hi Sewzella Admin, I need help with my order.`,
             `Order ID: ${orderIdDisplay}`,
             `Order Status: ${order?.status || 'In Progress'}`
         ].join('\n');

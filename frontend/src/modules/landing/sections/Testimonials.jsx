@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Star, Quote, MessageSquareHeart } from 'lucide-react';
 import api from '../../../utils/api';
 import { Reveal, SectionHeading } from '../components/landingShared';
-import { SERIF, fadeUp } from '../components/landingTokens';
+import { SANS, fadeUp } from '../components/landingTokens';
 
 const initials = (name = '') =>
   name
@@ -45,7 +45,7 @@ const Testimonials = () => {
             icon={MessageSquareHeart}
             title="Loved by people who"
             accent="love a perfect fit"
-            lede="Straight from customers who got their outfits made on SewZella."
+            lede="Straight from customers who got their outfits made on Sewzella."
           />
         </Reveal>
 
@@ -67,7 +67,7 @@ const Testimonials = () => {
                   <Star key={s} size={15} className={s < Math.round(t.rating) ? 'fill-[#F5A524] text-[#F5A524]' : 'text-[#E3DCE8]'} />
                 ))}
               </div>
-              <blockquote className="mt-4 flex-1 text-[17px] leading-relaxed text-[#2A2433]" style={{ fontFamily: SERIF }}>
+              <blockquote className="mt-4 flex-1 text-[17px] leading-relaxed text-[#2A2433]" style={{ fontFamily: SANS }}>
                 &ldquo;{t.comment}&rdquo;
               </blockquote>
               <figcaption className="mt-6 flex items-center gap-3 border-t border-[#EDE5F3] pt-5">

@@ -24,6 +24,9 @@ import {
 import api from '../../utils/api';
 import useBrandingStore from '../../store/brandingStore';
 import { sanitizeCmsHtml } from '../../utils/formatHtml';
+import CMSContentPage from '../../modules/customer/pages/CMSContent';
+
+const POLICY_SLUGS = ['terms', 'terms-of-service', 'terms-and-conditions', 'privacy', 'privacy-policy'];
 
 // Rich, comprehensive, verified policy document structures
 const LEGAL_DATA = {
@@ -44,8 +47,8 @@ const LEGAL_DATA = {
                 number: "01",
                 title: "Platform Acceptance & Scope",
                 content: `
-                    <p>Welcome to <strong>SewZella</strong> (referred to as "Platform", "we", "us", or "our"). By accessing, browsing, registering, or placing orders via our mobile application, website, or partner portals, you agree to be bound by these Terms and Conditions.</p>
-                    <p>SewZella operates an on-demand custom tailoring marketplace that bridges customers with verified master tailors, fashion designers, fabric suppliers, and logistics partners across India.</p>
+                    <p>Welcome to <strong>Sewzella</strong> (referred to as "Platform", "we", "us", or "our"). By accessing, browsing, registering, or placing orders via our mobile application, website, or partner portals, you agree to be bound by these Terms and Conditions.</p>
+                    <p>Sewzella operates an on-demand custom tailoring marketplace that bridges customers with verified master tailors, fashion designers, fabric suppliers, and logistics partners across India.</p>
                     <div class="callout-box">
                         <p><strong>Note for Partners:</strong> Tailors, boutiques, measurement executives, and delivery partners are also subject to their respective onboarding agreements and operational SLAs in addition to these terms.</p>
                     </div>
@@ -69,7 +72,7 @@ const LEGAL_DATA = {
                 number: "03",
                 title: "100% Perfect Fit Guarantee & Alterations",
                 content: `
-                    <p>Every stitched garment placed through SewZella is backed by our signature <strong>100% Perfect Fit Guarantee</strong>:</p>
+                    <p>Every stitched garment placed through Sewzella is backed by our signature <strong>100% Perfect Fit Guarantee</strong>:</p>
                     <ul>
                         <li>If the finished garment does not fit as per agreed measurements, you may request a <strong>free alteration within 7 days</strong> of delivery through the app.</li>
                         <li>Our delivery partner will collect the garment from your doorstep, return it to the artisan for precision adjustments, and re-deliver it at zero extra logistics cost.</li>
@@ -82,7 +85,7 @@ const LEGAL_DATA = {
                 number: "04",
                 title: "Pricing, Payments & Advance Structure",
                 content: `
-                    <p>All prices listed on SewZella are transparent with zero hidden charges. Tailoring charges comprise pattern making, cutting, stitching, finishing, quality check, and roundtrip pickup/delivery.</p>
+                    <p>All prices listed on Sewzella are transparent with zero hidden charges. Tailoring charges comprise pattern making, cutting, stitching, finishing, quality check, and roundtrip pickup/delivery.</p>
                     <ul>
                         <li><strong>Payment Modes:</strong> We accept UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, Net Banking, and select Cash-on-Delivery (COD) services.</li>
                         <li><strong>Advance & Balances:</strong> Custom couture orders may require an advance payment prior to fabric cutting, with any balance payable upon final quality approval or doorstep delivery.</li>
@@ -99,7 +102,7 @@ const LEGAL_DATA = {
                     <ul>
                         <li><strong>Before Fabric Cutting:</strong> You may cancel with a 100% refund at any point before the tailor commences fabric cutting. If fabric was already collected, a nominal return courier fee may apply.</li>
                         <li><strong>After Fabric Cutting:</strong> Once fabric has been cut to customer measurements, cancellation is not possible. If quality defects exist, our full alteration and remake guarantee applies.</li>
-                        <li><strong>Damaged or Lost Fabric:</strong> In the rare event fabric is damaged or misplaced while in transit, SewZella compensates up to the verified purchase value of the fabric.</li>
+                        <li><strong>Damaged or Lost Fabric:</strong> In the rare event fabric is damaged or misplaced while in transit, Sewzella compensates up to the verified purchase value of the fabric.</li>
                     </ul>
                 `
             },
@@ -135,7 +138,7 @@ const LEGAL_DATA = {
                 number: "01",
                 title: "Information We Collect",
                 content: `
-                    <p>To deliver custom tailoring services, SewZella collects only essential operational data:</p>
+                    <p>To deliver custom tailoring services, Sewzella collects only essential operational data:</p>
                     <ul>
                         <li><strong>Account Details:</strong> Full name, mobile number, email address, and profile picture.</li>
                         <li><strong>Measurement & Fitting Data:</strong> Body measurements, garment preferences, neck style choices, and fitting notes saved in your profile.</li>
@@ -202,10 +205,10 @@ const LEGAL_DATA = {
     }
 };
 
-const LegalPage = ({ type: propType, category = 'general' }) => {
+const PolicyPage = ({ type: propType, category = 'general' }) => {
     const { type: paramType } = useParams();
     const navigate = useNavigate();
-    const appName = useBrandingStore(state => state.appName) || 'SewZella';
+    const appName = useBrandingStore(state => state.appName) || 'Sewzella';
 
     // Determine whether user wants terms or privacy
     const rawType = (propType || paramType || 'terms-and-conditions').toLowerCase();
@@ -270,74 +273,42 @@ const LegalPage = ({ type: propType, category = 'general' }) => {
         <div 
             className="min-h-screen bg-[#FDFBFD] text-[#1A1A1A] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#843D9B] selection:text-white pb-28"
         >
-            {/* ═══ Top Modern Navigation Bar ═══ */}
-            <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-purple-100/70 shadow-xs">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
-                    <button 
-                        onClick={() => navigate(-1)} 
-                        className="inline-flex items-center gap-2 text-xs font-bold text-gray-700 hover:text-[#843D9B] p-2 -ml-2 rounded-xl hover:bg-purple-50 transition-all cursor-pointer"
+            {/* ═══ Header ═══ */}
+            <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-md">
+                <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3.5 sm:px-6">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100"
                         aria-label="Back"
                     >
-                        <ArrowLeft size={18} />
-                        <span className="hidden sm:inline">Back</span>
+                        <ArrowLeft size={20} />
                     </button>
-
-                    {/* Logo & Category Badge */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-base font-black tracking-tight text-[#843D9B] font-['Outfit',sans-serif]">
-                            {appName.toUpperCase()}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-purple-50 text-[#843D9B] border border-purple-200">
-                            Legal & Compliance
-                        </span>
-                    </div>
-
-                    <button 
-                        onClick={handleShare} 
-                        className="w-9 h-9 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#843D9B] flex items-center justify-center transition-all cursor-pointer border border-purple-200/60"
-                        title="Share Document"
+                    <h1 className="min-w-0 flex-1 truncate text-[16px] font-bold text-gray-900">Legal & Policies</h1>
+                    <button
+                        onClick={handleShare}
+                        className="flex h-10 w-10 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100"
+                        aria-label="Share Document"
                     >
-                        <Share2 size={16} />
+                        <Share2 size={18} />
                     </button>
                 </div>
             </header>
 
-            {/* ═══ Hero Header with Gradient & Badges ═══ */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-[#843D9B] via-[#742b8b] to-[#511364] text-white pt-10 pb-16 px-5 sm:px-8">
-                {/* Decorative background blurs */}
-                <div className="absolute -top-16 -right-16 w-80 h-80 rounded-full bg-pink-400/20 blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-16 -left-16 w-80 h-80 rounded-full bg-purple-300/20 blur-3xl pointer-events-none" />
-
-                <div className="max-w-3xl mx-auto relative z-10 text-center space-y-3">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-[11px] font-semibold text-purple-100 shadow-xs">
-                        <Scale size={13} className="text-pink-300" />
-                        <span>Official Transparency Commitment</span>
-                    </div>
-
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight leading-tight text-white">
-                        {activeDoc.title}
-                    </h1>
-
-                    <p className="text-xs sm:text-sm text-purple-100/90 font-normal max-w-lg mx-auto leading-relaxed">
-                        {activeDoc.subtitle}
+            {/* ═══ Title block ═══ */}
+            <section className="bg-gradient-to-b from-[#843D9B] to-[#6A2C80] px-5 pb-14 pt-8 text-white sm:px-8">
+                <div className="mx-auto max-w-3xl text-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{appName}</p>
+                    <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{activeDoc.title}</h2>
+                    <p className="mx-auto mt-2 max-w-md text-sm text-white/75">{activeDoc.subtitle}</p>
+                    <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-white/70">
+                        <Clock size={12} /> Effective {activeDoc.effectiveDate}
                     </p>
-
-                    <div className="flex items-center justify-center gap-2.5 pt-1 text-[11px] font-medium text-purple-200 flex-wrap">
-                        <span className="flex items-center gap-1.5 bg-black/20 px-3 py-1 rounded-full border border-white/10">
-                            <Clock size={12} className="text-pink-300" />
-                            Effective: {activeDoc.effectiveDate}
-                        </span>
-                        <span className="flex items-center gap-1.5 bg-black/20 px-3 py-1 rounded-full border border-white/10">
-                            <CheckCircle2 size={12} className="text-emerald-400" />
-                            {activeDoc.version}
-                        </span>
-                    </div>
                 </div>
             </section>
 
             {/* ═══ Floating Document Switcher Tab Pill ═══ */}
             <div className="max-w-md mx-auto -mt-6 px-4 relative z-20 w-full">
-                <div className="bg-white p-1.5 rounded-2xl shadow-lg shadow-purple-900/5 border border-purple-100 flex items-center gap-1">
+                <div className="bg-white p-1.5 rounded-2xl shadow-lg shadow-purple-900/5 border border-gray-100 flex items-center gap-1">
                     <button
                         onClick={() => { setActiveTab('terms'); setSearchQuery(''); }}
                         className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all text-center cursor-pointer flex items-center justify-center gap-1.5 ${
@@ -520,6 +491,19 @@ const LegalPage = ({ type: propType, category = 'general' }) => {
             </main>
         </div>
     );
+};
+
+/**
+ * Shared /<role>/legal/:type route. Terms & Privacy get the structured policy view;
+ * any other slug (contact-us, about-us, shipping-policy, ...) renders that CMS page.
+ */
+const LegalPage = ({ type: propType, category = 'general' }) => {
+    const { type: paramType } = useParams();
+    const rawType = (propType || paramType || 'terms-and-conditions').toLowerCase();
+    if (!POLICY_SLUGS.includes(rawType)) {
+        return <CMSContentPage slug={rawType} showBottomNav={category === 'customer'} />;
+    }
+    return <PolicyPage type={propType} category={category} />;
 };
 
 export default LegalPage;

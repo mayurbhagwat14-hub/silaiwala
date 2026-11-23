@@ -260,8 +260,8 @@ async function applyVerifiedPayment(order, { paymentType, razorpay_payment_id, r
 
        if (!order.advancePaymentAmount || order.advancePaymentAmount <= 0) {
            const settingsForAdv = await Settings.getSettings();
-           const advPct = getAdvancePct(settingsForAdv);
-           const { splitAdvanceRemaining } = require("../../../utils/checkoutPricing.js");
+           const { splitAdvanceRemaining, resolveAdvancePct } = require("../../../utils/checkoutPricing.js");
+           const advPct = resolveAdvancePct(settingsForAdv, { isReadyMade: (order.items || []).some((item) => !!item.product) });
            const split = splitAdvanceRemaining(order.totalAmount || 0, advPct);
            order.advancePaymentAmount = split.advanceAmount;
            order.remainingPaymentAmount = split.remainingAmount;
@@ -1336,10 +1336,9 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
   const gstAmount = serverPricing.taxes;
   const platformFee = serverPricing.platformFee;
   const verifiedDeliveryFee = serverPricing.delivery;
-  const stitchingAdvancePct = getAdvancePct(settings);
   // Store / ready-made = full amount up front; stitching services = configured advance %
-  const advancePctForOrder = isCartCheckout || isReadyMade ? 100 : stitchingAdvancePct;
-  const { splitAdvanceRemaining } = require("../../../utils/checkoutPricing.js");
+  const { splitAdvanceRemaining, resolveAdvancePct } = require("../../../utils/checkoutPricing.js");
+  const advancePctForOrder = resolveAdvancePct(settings, { isCartCheckout, isReadyMade });
   const { advanceAmount, remainingAmount } = splitAdvanceRemaining(finalAmount, advancePctForOrder);
 
   // 7. Generate transaction ID & compute scheduled visit time if provided
@@ -2312,6 +2311,14 @@ exports.calculatePriceSummary = asyncHandler(async (req, res, next) => {
   }
 
   const data = await computeCheckoutPricing(pricingItems, deliveryAddress, !!isCartCheckout, settings, customerMembership);
+
+  // Same advance rule createOrder applies, so the screens show exactly what Razorpay will charge
+  const { resolveAdvancePct, splitAdvanceRemaining } = require("../../../utils/checkoutPricing.js");
+  const isReadyMade = Array.isArray(items) && items.some((item) => !!item?.product);
+  data.advancePercentage = resolveAdvancePct(settings, { isCartCheckout: !!isCartCheckout, isReadyMade });
+  const split = splitAdvanceRemaining(data.total, data.advancePercentage);
+  data.advanceAmount = split.advanceAmount;
+  data.remainingAmount = split.remainingAmount;
 
   res.status(200).json({
     success: true,

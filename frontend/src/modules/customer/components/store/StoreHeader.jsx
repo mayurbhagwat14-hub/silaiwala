@@ -12,7 +12,7 @@ const StoreHeader = ({ searchQuery, setSearchQuery, onOpenFilter }) => {
     const { appName, logos } = useBrandingStore();
 
     const logoSrc = getImageUrl(logos?.customer) || logos?.customer || '/sewzella_logo.jpeg';
-    const displayName = appName || 'SewZella';
+    const displayName = appName || 'Sewzella';
 
     return (
         <div className="bg-white border-b border-slate-100 transition-all duration-300 shadow-2xs">

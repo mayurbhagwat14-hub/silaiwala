@@ -7,5 +7,5 @@ export const WEB_ORIGIN = SOCKET_URL; // the deployed web app (serves /public as
 export const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || '';
 export const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 export const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
-export const APP_NAME = 'SewZella';
+export const APP_NAME = 'Sewzella';
 export const REQUEST_TIMEOUT_MS = 20000;

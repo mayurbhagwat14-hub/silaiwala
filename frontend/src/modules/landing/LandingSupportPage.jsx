@@ -38,7 +38,7 @@ const CONTACT_FAQS = [
   },
   {
     q: "What is the 100% Perfect Fit Guarantee?",
-    a: "Every garment stitched on SewZella includes 7 days of free alteration support. If any adjustments are needed, our courier collects the outfit and returns it altered at zero logistics cost."
+    a: "Every garment stitched on Sewzella includes 7 days of free alteration support. If any adjustments are needed, our courier collects the outfit and returns it altered at zero logistics cost."
   },
   {
     q: "Can I provide my own fabric for stitching?",
@@ -46,7 +46,7 @@ const CONTACT_FAQS = [
   },
   {
     q: "How can I track my tailoring order in real time?",
-    a: "You can track every single milestone (Fabric Picked Up, Received at Boutique, Cutting, Stitching, Quality Check, Out for Delivery) live on your SewZella app dashboard."
+    a: "You can track every single milestone (Fabric Picked Up, Received at Boutique, Cutting, Stitching, Quality Check, Out for Delivery) live on your Sewzella app dashboard."
   }
 ];
 
@@ -105,7 +105,7 @@ const LandingSupportPage = () => {
   };
 
   const handleWhatsApp = () => {
-    openAdminWhatsApp("Hello SewZella Team, I would like to inquire about your custom tailoring services.");
+    openAdminWhatsApp("Hello Sewzella Team, I would like to inquire about your custom tailoring services.");
   };
 
   return (

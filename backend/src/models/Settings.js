@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const settingsSchema = new mongoose.Schema(
   {
     general: {
-      platformName: { type: String, default: "SewZella" },
+      platformName: { type: String, default: "Sewzella" },
       appLogos: {
         customer: { type: String, default: "" },
         tailor: { type: String, default: "" },
@@ -14,6 +14,15 @@ const settingsSchema = new mongoose.Schema(
       supportPhone: { type: String, default: "+91 1800 123 4567" },
       emergencyPhone: { type: String, default: "+91 9999999999" },
       currencyDefault: { type: String, default: "INR" },
+      // Social profile URLs shown in the landing-page footer (managed from Admin → CMS).
+      socialLinks: {
+        instagram: { type: String, default: "" },
+        facebook: { type: String, default: "" },
+        twitter: { type: String, default: "" },
+        youtube: { type: String, default: "" },
+        linkedin: { type: String, default: "" },
+        whatsapp: { type: String, default: "" },
+      },
     },
     maintenanceMode: {
       enabled: { type: Boolean, default: false },

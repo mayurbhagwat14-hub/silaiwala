@@ -72,6 +72,12 @@ const customerSchema = new mongoose.Schema(
     customerPlanExpiryDate: {
       type: Date,
     },
+    // Customer's notification choices (Profile → Notifications).
+    notificationPreferences: {
+      orderUpdates: { type: Boolean, default: true },
+      promotions: { type: Boolean, default: false },
+      reminders: { type: Boolean, default: true },
+    },
   },
   {
     timestamps: true,

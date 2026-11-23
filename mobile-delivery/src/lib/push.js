@@ -107,7 +107,7 @@ export function attachNotificationListeners() {
     const data = n.request.content.data || {};
     // web usePushNotifications: window.dispatchEvent(new CustomEvent('fcm_message', { detail: payload }))
     events.emit('fcm_message', { detail: { data, notification: { title: n.request.content.title, body: n.request.content.body } } });
-    const title = data.title || n.request.content.title || 'SewZella';
+    const title = data.title || n.request.content.title || 'Sewzella';
     const body = data.body || data.message || n.request.content.body || 'New Notification';
     const orderId = data.orderId || data.id || data.order;
     const status = data.status;

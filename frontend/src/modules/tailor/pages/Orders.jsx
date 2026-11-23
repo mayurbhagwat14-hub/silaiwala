@@ -1370,6 +1370,25 @@ const Orders = () => {
                                         >
                                             Details
                                         </button>
+                                        {!isNew && order.status !== 'cancelled' && (
+                                            <button
+                                                type="button"
+                                                aria-label="Chat with customer"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setUnreadChats(prev => ({ ...prev, [order._id]: 0 }));
+                                                    navigate(`/partner/orders/${order._id}/chat`);
+                                                }}
+                                                className="relative w-11 shrink-0 py-2.5 md:py-3 bg-white border border-gray-200 rounded-xl flex items-center justify-center shadow-sm hover:bg-gray-50"
+                                            >
+                                                <MessageSquare size={16} className="text-[#843D9B]" />
+                                                {unreadChats[order._id] > 0 && (
+                                                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 border-2 border-white text-[9px] font-black text-white flex items-center justify-center">
+                                                        {unreadChats[order._id] > 9 ? '9+' : unreadChats[order._id]}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        )}
                                         {isNew ? (
                                             <button 
                                                 onClick={() => handleStatusUpdate(order._id, 'accepted')}

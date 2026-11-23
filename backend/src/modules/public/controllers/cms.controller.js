@@ -83,7 +83,7 @@ exports.getTestimonials = async (req, res) => {
 
       const shortName = (full = "") => {
         const parts = String(full).trim().split(/\s+/).filter(Boolean);
-        if (!parts.length) return "SewZella customer";
+        if (!parts.length) return "Sewzella customer";
         return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.` : parts[0];
       };
 

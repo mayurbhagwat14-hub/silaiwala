@@ -201,7 +201,7 @@ const ProfilePage = () => {
                 {profile?.customerMembershipEnabled !== false && (() => {
         const activeMembership = profile?.membership;
         const hasActive = activeMembership?.isActive && activeMembership?.plan;
-        const planName = hasActive ? activeMembership.plan.name : 'SewZella Club';
+        const planName = hasActive ? activeMembership.plan.name : 'Sewzella Club';
         const daysRemaining = activeMembership?.daysRemaining ?? 0;
         return <Btn className={`block ${`mb-6 rounded-2xl p-4 text-white shadow-xl flex items-center justify-between group cursor-pointer relative overflow-hidden transition-all ${hasActive ? 'bg-gradient-to-r from-[#200c3b] via-[#3d115e] to-[#7B1FA2] border border-purple-400/30' : 'bg-[#25103E]'}`}`} onPress={() => navigate('/user/membership')}>
                             {/* Background glow */}

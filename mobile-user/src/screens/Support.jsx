@@ -19,13 +19,13 @@ const FALLBACK_FAQS = [{
   _id: 'faq-1',
   categoryTag: 'general',
   categoryLabel: 'General',
-  title: 'What is SewZella?',
-  content: '<p>SewZella is an all-in-one digital custom tailoring platform connecting you with verified master tailors, boutiques, and fashion designers. We manage doorstep fabric pickup, expert measurements, custom stitching, quality inspection, and doorstep delivery with a 100% Perfect Fit Guarantee.</p>'
+  title: 'What is Sewzella?',
+  content: '<p>Sewzella is an all-in-one digital custom tailoring platform connecting you with verified master tailors, boutiques, and fashion designers. We manage doorstep fabric pickup, expert measurements, custom stitching, quality inspection, and doorstep delivery with a 100% Perfect Fit Guarantee.</p>'
 }, {
   _id: 'faq-2',
   categoryTag: 'orders',
   categoryLabel: 'Orders & Delivery',
-  title: 'How do I place an order on SewZella?',
+  title: 'How do I place an order on Sewzella?',
   content: '<p>Placing an order is simple and takes just 4 steps:</p><ol className="list-decimal ml-5 space-y-1.5 mt-2"><li><strong>Select Service:</strong> Choose your garment type (Kurti, Suit, Lehenga, Blouse, Shirt, Alteration, etc.).</li><li><strong>Customize Design:</strong> Pick your neck styles, sleeves, linings, and upload reference design photos.</li><li><strong>Choose Measurement:</strong> Schedule a doorstep executive visit, send a sample garment, or use saved profile.</li><li><strong>Confirm & Pay:</strong> Provide your pickup address and pay securely online or via COD.</li></ol>'
 }, {
   _id: 'faq-3',
@@ -79,8 +79,8 @@ const FALLBACK_FAQS = [{
   _id: 'faq-11',
   categoryTag: 'general',
   categoryLabel: 'General',
-  title: 'Where is SewZella service available?',
-  content: '<p>SewZella operates across major urban cities and suburbs. Enable location in the app or enter your pin code on the home screen to check instant availability in your area.</p>'
+  title: 'Where is Sewzella service available?',
+  content: '<p>Sewzella operates across major urban cities and suburbs. Enable location in the app or enter your pin code on the home screen to check instant availability in your area.</p>'
 }];
 const CATEGORIES = [{
   id: 'all',
@@ -224,8 +224,8 @@ const Support = () => {
     setTimeout(() => setCopiedField(null), 2000);
   };
   const handleEmailClick = () => {
-    const subject = encodeURIComponent(`Support Request - ${appName || 'SewZella'}`);
-    const bodyLines = [`Hello Support Team,`, ``, `I need assistance with SewZella service:`, ``, `Issue details:`, `[Please describe your issue here]`, ``, `Thank you!`].join('\n');
+    const subject = encodeURIComponent(`Support Request - ${appName || 'Sewzella'}`);
+    const bodyLines = [`Hello Support Team,`, ``, `I need assistance with Sewzella service:`, ``, `Issue details:`, `[Please describe your issue here]`, ``, `Thank you!`].join('\n');
     Linking.openURL(`mailto:${supportEmail}?subject=${subject}&body=${encodeURIComponent(bodyLines)}`);
   };
   const handleCallClick = () => {
@@ -233,7 +233,7 @@ const Support = () => {
     Linking.openURL(`tel:${cleanPhone}`);
   };
   const handleWhatsAppClick = () => {
-    openAdminWhatsApp(`Hi ${appName || 'SewZella'} Admin, I need help with your service.`);
+    openAdminWhatsApp(`Hi ${appName || 'Sewzella'} Admin, I need help with your service.`);
   };
 
   // Filter FAQs by Category and Search Query

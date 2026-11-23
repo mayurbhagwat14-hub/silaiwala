@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { isUploadedBannerImage } from '../../../utils/bannerImage';
 import { uploadVideoInChunks } from '../../../utils/videoChunkUploader';
 import { SOCKET_URL } from '../../../config/constants';
+import SocialLinksPanel from '../components/SocialLinksPanel';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -87,7 +88,7 @@ const AdminCMS = () => {
         }
     }, [isLogsModalOpen]);
 
-    const tabs = ['Banners', 'Landing Categories', 'Notifications', 'Pages', 'FAQs', 'Measurement Video'];
+    const tabs = ['Banners', 'Landing Categories', 'Notifications', 'Pages', 'FAQs', 'Measurement Video', 'Social Links'];
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -946,6 +947,8 @@ const AdminCMS = () => {
                         </table>
                     </div>
                 )}
+
+                {selectedTab === 'Social Links' && <SocialLinksPanel />}
 
                 {selectedTab === 'Measurement Video' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

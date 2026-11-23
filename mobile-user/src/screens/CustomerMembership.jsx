@@ -110,7 +110,7 @@ const CustomerMembership = () => {
         key: key || 'rzp_test_placeholder',
         amount: amount,
         currency: currency || 'INR',
-        name: 'SewZella Club',
+        name: 'Sewzella Club',
         description: `${plan.name} Membership (${plan.durationDays || 30} days)`,
         order_id: orderId,
         handler: async function (response) {
@@ -186,7 +186,7 @@ const CustomerMembership = () => {
                     </Btn>
                     <Box>
                         <Txt className="text-sm font-black uppercase tracking-wider text-gray-900">Membership</Txt>
-                        <Txt className="text-[10px] text-gray-500 font-semibold">SewZella Club</Txt>
+                        <Txt className="text-[10px] text-gray-500 font-semibold">Sewzella Club</Txt>
                     </Box>
                 </Box>
                 <Box className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto my-auto">
@@ -211,7 +211,7 @@ const CustomerMembership = () => {
                         <I icon={ArrowLeft} size={20} className="text-gray-700" />
                     </Btn>
                     <Box>
-                        <Txt className="text-sm font-black uppercase tracking-wider text-gray-900">SewZella Club</Txt>
+                        <Txt className="text-sm font-black uppercase tracking-wider text-gray-900">Sewzella Club</Txt>
                         <Txt className="text-[10px] text-gray-500 font-semibold">VIP Privileges & Savings</Txt>
                     </Box>
                 </Box>
@@ -280,7 +280,7 @@ const CustomerMembership = () => {
                                 <Txt className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full mb-2">
                                     <I icon={Sparkles} size={11} /> Exclusive Club
                                 </Txt>
-                                <Txt className="text-xl font-black tracking-tight leading-snug">SewZella VIP Membership</Txt>
+                                <Txt className="text-xl font-black tracking-tight leading-snug">Sewzella VIP Membership</Txt>
                                 <Txt className="text-xs text-purple-100 font-medium mt-1 max-w-xs">
                                     Unlock zero delivery fees, instant discounts on stitching orders, and express priority matching.
                                 </Txt>
@@ -401,7 +401,7 @@ const CustomerMembership = () => {
                 {/* Assurance Footer */}
                 <Box className="pt-4 pb-8 text-center text-gray-400 text-[10px] space-y-1">
                     <Txt className="flex items-center justify-center gap-1 font-bold">
-                        <I icon={ShieldCheck} size={13} className="text-[#843D9B]" /> 100% Satisfaction Guaranteed with SewZella VIP Protection
+                        <I icon={ShieldCheck} size={13} className="text-[#843D9B]" /> 100% Satisfaction Guaranteed with Sewzella VIP Protection
                     </Txt>
                     <Txt>Cancel or upgrade anytime. Perks automatically apply at checkout.</Txt>
                 </Box>

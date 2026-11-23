@@ -481,7 +481,7 @@ const MeasurementGuideModal = ({
                                     </Btn>
 
                                     <Btn onPress={() => {
-                openAdminWhatsApp(`Hi ${appName || 'SewZella'} Admin, I need help with body measurements.`);
+                openAdminWhatsApp(`Hi ${appName || 'Sewzella'} Admin, I need help with body measurements.`);
               }} className="p-3.5 rounded-2xl border border-purple-100 bg-white hover:bg-purple-50/70 active:scale-95 transition-all text-left flex items-center sm:flex-col sm:items-start gap-2.5 cursor-pointer shadow-2xs group">
                                         <Box className="w-9 h-9 rounded-xl bg-purple-100 text-[#843D9B] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                             <I icon={MessageSquare} size={16} />

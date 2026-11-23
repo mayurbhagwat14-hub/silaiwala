@@ -98,11 +98,14 @@ const SelectTailorModal = ({ isOpen, onClose, serviceGroup, userLocation = null 
                   </Box>
                 </Box>
                 <Box className="flex-1 min-w-0">
-                  <Box className="flex items-center gap-1.5 flex-wrap">
-                    <Txt className="text-sm font-bold text-gray-900 truncate">{t.tailorName}</Txt>
-                    {isCheapest && <Txt className="text-[8px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">Lowest Price</Txt>}
-                    {isTopRated && <Txt className="text-[8px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">Top Rated</Txt>}
-                  </Box>
+                  {/* Shop name gets its own full line so it is always readable while choosing */}
+                  <Txt className="text-sm font-bold text-gray-900" numberOfLines={2}>{t.tailorName || 'Tailor Partner'}</Txt>
+                  {(isCheapest || isTopRated) && (
+                    <Box className="flex flex-row items-center gap-1.5 mt-0.5">
+                      {isCheapest && <Txt className="text-[8px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">Lowest Price</Txt>}
+                      {isTopRated && <Txt className="text-[8px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">Top Rated</Txt>}
+                    </Box>
+                  )}
                   <Box className="flex items-center gap-2 mt-1 flex-wrap">
                     <Box className="flex items-center gap-0.5 bg-amber-50 px-1.5 py-0.5 rounded">
                       <I icon={Star} size={11} color="#fbbf24" fill="#fbbf24" />

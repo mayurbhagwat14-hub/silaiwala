@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 
-import { SERIF, APP_LINKS, stagger, fadeUp, EASE } from './landingTokens';
+import { SANS, SERIF, APP_LINKS, stagger, fadeUp, EASE } from './landingTokens';
 
 /** Renders a lucide icon component passed as data (keeps icon lists declarative). */
 export const Glyph = ({ icon, ...props }) => {
@@ -62,12 +62,12 @@ export const AnimatedWords = ({ text, className = '', delay = 0, step = 0.06, in
 };
 
 /**
- * Brand lockup: logo mark in a soft tile + "Sew*Zella*" serif wordmark + tagline.
+ * Brand lockup: logo mark in a soft tile + "Sewzella" wordmark + tagline.
  * `size`: 'md' (navbar) | 'lg' (footer). The mark comes from Admin → Branding.
  */
-export const BrandLogo = ({ src, appName = 'SewZella', size = 'md', showTagline = true }) => {
-  const name = String(appName || 'SewZella').trim();
-  // Render the brand as "Sew" + italic "Zella"; any other app name is shown as-is.
+export const BrandLogo = ({ src, appName = 'Sewzella', size = 'md', showTagline = true }) => {
+  const name = String(appName || 'Sewzella').trim();
+  // Render the brand as "Sew" + italic "zella"; any other app name is shown as-is.
   const isSewZella = name.toLowerCase() === 'sewzella';
   const lg = size === 'lg';
   return (
@@ -90,7 +90,7 @@ export const BrandLogo = ({ src, appName = 'SewZella', size = 'md', showTagline 
         >
           {isSewZella ? (
             <>
-              Sew<em className="font-medium italic text-[#843D9B]">Zella</em>
+              Sew<em className="font-medium italic text-[#843D9B]">zella</em>
             </>
           ) : (
             name
@@ -133,7 +133,7 @@ export const Eyebrow = ({ icon, children, tone = 'light' }) => (
   </span>
 );
 
-/** Editorial section heading: eyebrow + serif title (italic accent) + lede, words rise in. */
+/** Editorial section heading: eyebrow + title (brand-colour accent) + lede, words rise in. */
 export const SectionHeading = ({ eyebrow, icon, title, accent, lede, align = 'center', tone = 'light' }) => (
   <motion.div variants={fadeUp} className={`max-w-2xl ${align === 'center' ? 'mx-auto text-center' : ''}`}>
     {eyebrow && <Eyebrow icon={icon} tone={tone}>{eyebrow}</Eyebrow>}
@@ -141,13 +141,13 @@ export const SectionHeading = ({ eyebrow, icon, title, accent, lede, align = 'ce
       className={`mt-4 text-[30px] font-semibold leading-[1.1] tracking-[-0.015em] sm:text-[40px] lg:text-[46px] ${
         tone === 'dark' ? 'text-white' : 'text-[#1A1523]'
       }`}
-      style={{ fontFamily: SERIF }}
+      style={{ fontFamily: SANS }}
     >
       <AnimatedWords text={title} />
       {accent && (
         <>
           {' '}
-          <em className={`font-medium italic ${tone === 'dark' ? 'text-[#E9D3F2]' : 'text-[#843D9B]'}`}>
+          <em className={`font-semibold not-italic ${tone === 'dark' ? 'text-[#E9D3F2]' : 'text-[#843D9B]'}`}>
             <AnimatedWords text={accent} delay={0.12} />
           </em>
         </>
@@ -189,7 +189,7 @@ export const StoreButtons = ({ tone = 'light', className = '' }) => {
         href={APP_LINKS.customer}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Get SewZella on Google Play"
+        aria-label="Get Sewzella on Google Play"
         className={`group ${base} bg-[#14101A] text-white hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(20,16,26,0.28)] ${
           tone === 'dark' ? 'ring-1 ring-white/20' : ''
         }`}

@@ -141,10 +141,13 @@ const distributeEarnings = async (orderId) => {
       if (existingAdvance) {
         tailorAdvanceReceived = Math.round(Number(existingAdvance.amount) || 0);
       } else {
-        const Settings = require("../models/Settings.js");
-        const settings = (await Settings.findOne()) || (await Settings.create({}));
-        const advancePct = settings?.walletConfig?.advancePercentage || 30;
-        tailorAdvanceReceived = Math.round(tailorShare * (advancePct / 100));
+        // Same fraction the advance credit used (order.controller): what the customer actually
+        // paid as advance on this order — never today's admin %, which may have changed since.
+        const orderTotal = Number(order.totalAmount) || 0;
+        const paidFraction = orderTotal > 0
+          ? Math.min(1, (Number(order.advancePaymentAmount) || 0) / orderTotal)
+          : 0;
+        tailorAdvanceReceived = Math.round(tailorShare * paidFraction);
       }
       tailorShare = Math.max(0, tailorShare - tailorAdvanceReceived);
     }

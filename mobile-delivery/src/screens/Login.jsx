@@ -252,7 +252,7 @@ const DeliveryLogin = () => {
             {/* Footer Navigation */}
             <Box className="mt-6 text-center w-full">
                 <Txt className="text-xs font-medium text-[#64748B]">
-                    New to SewZella Delivery?{' '}
+                    New to Sewzella Delivery?{' '}
                     <Txt onPress={() => navigate("/delivery/signup")} className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer">
                         Register Now
                     </Txt>

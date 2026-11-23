@@ -55,6 +55,19 @@ export async function registerForPush(userId) {
         vibrationPattern: [0, 200, 100, 200],
         lightColor: '#843D9B',
       });
+      // New visit requests ring loudly even when the app is closed. The backend sends those
+      // pushes on this channel id; the sound file is bundled by the expo-notifications plugin.
+      await Notifications.setNotificationChannelAsync('new_requests', {
+        name: 'New measurement requests',
+        // eslint-disable-next-line import/namespace -- exported at runtime (NotificationChannelManager.types)
+        importance: Notifications.AndroidImportance.MAX,
+        sound: 'alert.mp3',
+        vibrationPattern: [0, 400, 200, 400, 200, 400],
+        enableVibrate: true,
+        // eslint-disable-next-line import/namespace -- exported at runtime (NotificationChannelManager.types)
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        lightColor: '#843D9B',
+      });
     }
     let { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') {
@@ -107,7 +120,7 @@ export function attachNotificationListeners() {
     const data = n.request.content.data || {};
     // web usePushNotifications: window.dispatchEvent(new CustomEvent('fcm_message', { detail: payload }))
     events.emit('fcm_message', { detail: { data, notification: { title: n.request.content.title, body: n.request.content.body } } });
-    const title = data.title || n.request.content.title || 'SewZella';
+    const title = data.title || n.request.content.title || 'Sewzella';
     const body = data.body || data.message || n.request.content.body || 'New Notification';
     const orderId = data.orderId || data.id || data.order;
     const status = data.status;

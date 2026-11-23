@@ -218,7 +218,7 @@ const offlineOrderSchema = new mongoose.Schema(
     pickupAddress: {
       type: String,
       trim: true,
-      default: "SewZella Central Store (Admin Workshop)",
+      default: "Sewzella Central Store (Admin Workshop)",
     },
     source: {
       type: String,

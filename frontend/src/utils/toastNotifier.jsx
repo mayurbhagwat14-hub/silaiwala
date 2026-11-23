@@ -163,7 +163,7 @@ if (toast && !toast.__dedupePatched) {
  */
 export const showDeduplicatedToast = ({
   id,
-  title = 'SewZella Notification',
+  title = 'Sewzella Notification',
   message = '',
   type = 'info', // 'success', 'info', 'order', 'status'
   icon

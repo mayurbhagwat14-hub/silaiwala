@@ -36,14 +36,14 @@ const FALLBACK_FAQS = [
         _id: 'faq-1',
         categoryTag: 'general',
         categoryLabel: 'General',
-        title: 'What is SewZella?',
-        content: '<p>SewZella is an all-in-one digital custom tailoring platform connecting you with verified master tailors, boutiques, and fashion designers. We manage doorstep fabric pickup, expert measurements, custom stitching, quality inspection, and doorstep delivery with a 100% Perfect Fit Guarantee.</p>'
+        title: 'What is Sewzella?',
+        content: '<p>Sewzella is an all-in-one digital custom tailoring platform connecting you with verified master tailors, boutiques, and fashion designers. We manage doorstep fabric pickup, expert measurements, custom stitching, quality inspection, and doorstep delivery with a 100% Perfect Fit Guarantee.</p>'
     },
     {
         _id: 'faq-2',
         categoryTag: 'orders',
         categoryLabel: 'Orders & Delivery',
-        title: 'How do I place an order on SewZella?',
+        title: 'How do I place an order on Sewzella?',
         content: '<p>Placing an order is simple and takes just 4 steps:</p><ol className="list-decimal ml-5 space-y-1.5 mt-2"><li><strong>Select Service:</strong> Choose your garment type (Kurti, Suit, Lehenga, Blouse, Shirt, Alteration, etc.).</li><li><strong>Customize Design:</strong> Pick your neck styles, sleeves, linings, and upload reference design photos.</li><li><strong>Choose Measurement:</strong> Schedule a doorstep executive visit, send a sample garment, or use saved profile.</li><li><strong>Confirm & Pay:</strong> Provide your pickup address and pay securely online or via COD.</li></ol>'
     },
     {
@@ -106,8 +106,8 @@ const FALLBACK_FAQS = [
         _id: 'faq-11',
         categoryTag: 'general',
         categoryLabel: 'General',
-        title: 'Where is SewZella service available?',
-        content: '<p>SewZella operates across major urban cities and suburbs. Enable location in the app or enter your pin code on the home screen to check instant availability in your area.</p>'
+        title: 'Where is Sewzella service available?',
+        content: '<p>Sewzella operates across major urban cities and suburbs. Enable location in the app or enter your pin code on the home screen to check instant availability in your area.</p>'
     }
 ];
 
@@ -125,7 +125,8 @@ const FAQAccordion = ({ item, isExpanded, onToggle, searchQuery }) => {
 
     const highlightText = (text, query) => {
         if (!query || !query.trim()) return text;
-        const parts = text.split(new RegExp(`(${query})`, 'gi'));
+        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
         return parts.map((part, i) => 
             part.toLowerCase() === query.toLowerCase() ? (
                 <mark key={i} className="bg-yellow-200 text-gray-900 rounded-xs px-0.5 font-bold">
@@ -136,67 +137,47 @@ const FAQAccordion = ({ item, isExpanded, onToggle, searchQuery }) => {
     };
 
     return (
-        <div 
-            className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${
-                isExpanded 
-                    ? 'border-[#843D9B]/30 shadow-lg shadow-purple-500/5 ring-1 ring-[#843D9B]/10' 
-                    : 'border-gray-100/90 shadow-xs hover:border-purple-200 hover:shadow-md'
-            }`}
-        >
+        <div className="border-b border-gray-100 last:border-b-0">
             <button
                 type="button"
-                className={`w-full flex items-center justify-between p-4.5 sm:p-5 text-left cursor-pointer transition-colors ${
-                    isExpanded ? 'bg-purple-50/30' : 'hover:bg-purple-50/15'
-                }`}
+                className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors hover:bg-gray-50/70"
                 onClick={onToggle}
+                aria-expanded={isExpanded}
             >
-                <div className="flex items-start gap-3 pr-3">
-                    <span className="mt-0.5 text-xs font-black text-[#843D9B] bg-purple-100/60 w-5 h-5 rounded-full flex items-center justify-center shrink-0">
-                        Q
-                    </span>
-                    <span className={`text-xs sm:text-sm font-bold leading-snug transition-colors ${
-                        isExpanded ? 'text-[#843D9B]' : 'text-gray-900'
-                    }`}>
-                        {highlightText(item.title, searchQuery)}
-                    </span>
-                </div>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
-                    isExpanded ? 'bg-[#843D9B] text-white rotate-180' : 'bg-gray-100 text-gray-400'
-                }`}>
-                    <ChevronDown size={16} />
-                </div>
+                <span className={`text-[13.5px] font-semibold leading-snug ${isExpanded ? 'text-[#843D9B]' : 'text-gray-900'}`}>
+                    {highlightText(item.title, searchQuery)}
+                </span>
+                <ChevronDown
+                    size={18}
+                    className={`shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#843D9B]' : 'text-gray-400'}`}
+                />
             </button>
 
             {isExpanded && (
-                <div className="px-5 pb-5 pt-3 text-xs sm:text-sm text-gray-600 leading-relaxed border-t border-purple-50/80 bg-white animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div 
-                        className="space-y-2.5 break-words font-medium text-gray-700 [overflow-wrap:anywhere]" 
-                        dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(item.content) }} 
+                <div className="px-4 pb-4 text-[13px] leading-relaxed text-gray-600">
+                    <div
+                        className="space-y-2 break-words [overflow-wrap:anywhere] [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_strong]:font-semibold [&_strong]:text-gray-800 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"
+                        dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(item.content) }}
                     />
 
-                    {/* Feedback Prompt */}
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+                    <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
                         <span>Was this helpful?</span>
                         {feedback ? (
-                            <span className="text-emerald-600 font-bold flex items-center gap-1">
-                                <CheckCircle2 size={13} /> Thank you for your feedback!
+                            <span className="flex items-center gap-1 font-semibold text-emerald-600">
+                                <CheckCircle2 size={13} /> Thanks for your feedback
                             </span>
                         ) : (
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setFeedback('yes'); }}
-                                    className="px-2.5 py-1 rounded-md bg-gray-50 hover:bg-emerald-50 hover:text-emerald-700 border border-gray-100 font-bold transition-all active:scale-95 cursor-pointer"
-                                >
-                                    👍 Yes
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setFeedback('no'); }}
-                                    className="px-2.5 py-1 rounded-md bg-gray-50 hover:bg-rose-50 hover:text-rose-700 border border-gray-100 font-bold transition-all active:scale-95 cursor-pointer"
-                                >
-                                    👎 No
-                                </button>
+                            <div className="flex items-center gap-1.5">
+                                {['Yes', 'No'].map((v) => (
+                                    <button
+                                        key={v}
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setFeedback(v); }}
+                                        className="rounded-lg border border-gray-200 px-3 py-1 font-semibold text-gray-600 transition-colors hover:border-[#843D9B] hover:text-[#843D9B]"
+                                    >
+                                        {v}
+                                    </button>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -278,11 +259,11 @@ const Support = () => {
     };
 
     const handleEmailClick = () => {
-        const subject = encodeURIComponent(`Support Request - ${appName || 'SewZella'}`);
+        const subject = encodeURIComponent(`Support Request - ${appName || 'Sewzella'}`);
         const bodyLines = [
             `Hello Support Team,`,
             ``,
-            `I need assistance with SewZella service:`,
+            `I need assistance with Sewzella service:`,
             ``,
             `Issue details:`,
             `[Please describe your issue here]`,
@@ -298,7 +279,7 @@ const Support = () => {
     };
 
     const handleWhatsAppClick = () => {
-        openAdminWhatsApp(`Hi ${appName || 'SewZella'} Admin, I need help with your service.`);
+        openAdminWhatsApp(`Hi ${appName || 'Sewzella'} Admin, I need help with your service.`);
     };
 
     // Filter FAQs by Category and Search Query
@@ -317,58 +298,69 @@ const Support = () => {
         setExpandedFaqId(prev => prev === id ? null : id);
     };
 
-    return (
-        <div className="min-h-screen bg-[#F8F9FD] pb-32 font-sans text-gray-900">
-            {/* ═══ Top Hero Header ═══ */}
-            <div className="relative bg-gradient-to-br from-[#843D9B] via-[#702d84] to-[#591d6c] text-white pt-8 pb-14 px-4 sm:px-6 rounded-b-[2.5rem] shadow-xl overflow-hidden">
-                {/* Subtle Ambient Glow */}
-                <div className="absolute -top-12 -right-12 w-64 h-64 bg-pink-400/20 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute bottom-0 -left-12 w-56 h-56 bg-purple-300/15 rounded-full blur-2xl pointer-events-none" />
+    const quickActions = [
+        { id: 'whatsapp', label: 'WhatsApp', sub: 'Chat with us', icon: MessageCircle, onClick: handleWhatsAppClick, tone: 'bg-emerald-50 text-emerald-600' },
+        { id: 'call', label: 'Call Us', sub: '9 AM – 9 PM', icon: PhoneCall, onClick: handleCallClick, tone: 'bg-[#843D9B]/10 text-[#843D9B]' },
+        { id: 'email', label: 'Email', sub: 'Reply in 2–4 hrs', icon: Mail, onClick: handleEmailClick, tone: 'bg-sky-50 text-sky-600' },
+    ];
 
-                <div className="max-w-xl mx-auto relative z-10">
-                    {/* Header Top Row */}
-                    <div className="flex items-center justify-between mb-5">
+    const contactRows = [
+        { id: 'phone', icon: Phone, label: 'Helpline', value: supportPhone },
+        { id: 'email', icon: Mail, label: 'Email', value: supportEmail },
+    ];
+
+    return (
+        <div className="min-h-screen bg-[#F7F5FA] pb-32 font-sans text-gray-900">
+            {/* ═══ Header ═══ */}
+            <div className="relative overflow-hidden rounded-b-[28px] bg-[#5E2373] px-4 pb-16 pt-4 text-white sm:px-6">
+                {/* Soft layered background */}
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_100%_0%,#A657BF_0%,transparent_55%),radial-gradient(90%_80%_at_0%_100%,#7A2F93_0%,transparent_60%)]" />
+                <div className="pointer-events-none absolute -right-10 top-10 h-40 w-40 rounded-full border border-white/10" />
+                <div className="pointer-events-none absolute -right-2 top-20 h-24 w-24 rounded-full border border-white/10" />
+
+                <div className="relative mx-auto max-w-xl">
+                    {/* Top bar */}
+                    <div className="flex items-center justify-between">
                         <button
                             type="button"
                             onClick={() => navigate(-1)}
-                            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center backdrop-blur-md cursor-pointer border border-white/10 text-white"
+                            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/20 backdrop-blur-md transition-colors hover:bg-white/25"
                             aria-label="Go Back"
                         >
-                            <ArrowLeft size={20} />
+                            <ArrowLeft size={18} />
                         </button>
-                        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/15 text-xs font-bold tracking-wide text-purple-100">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                            Help & Support
+                        <span className="text-[14px] font-semibold tracking-wide text-white/90">Help Center</span>
+                        <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10.5px] font-semibold ring-1 ring-white/20">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online
+                        </span>
+                    </div>
+
+                    {/* Greeting */}
+                    <div className="mt-6 flex items-center gap-3.5 px-0.5">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-md">
+                            <Headphones size={22} />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="text-[21px] font-semibold leading-tight tracking-tight">How can we help you?</h1>
+                            <p className="mt-0.5 text-[12.5px] text-white/70">The {appName || 'Sewzella'} team is here for you</p>
                         </div>
                     </div>
 
-                    {/* Hero Title & Subtitle */}
-                    <div className="text-center space-y-1.5 mb-5">
-                        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                            How can we help you?
-                        </h1>
-                        <p className="text-xs sm:text-sm text-purple-100/90 font-medium max-w-sm mx-auto leading-relaxed">
-                            Search questions or reach out to our support team directly.
-                        </p>
-                    </div>
-
-                    {/* Live Search Input Bar */}
-                    <div className="relative max-w-md mx-auto">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                            <Search size={18} />
-                        </span>
+                    <div className="relative mt-5">
+                        <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#843D9B]" />
                         <input
                             type="text"
-                            placeholder="Search questions, orders, measurements..."
+                            placeholder="Search help topics"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-10 py-3.5 bg-white text-gray-900 text-xs sm:text-sm font-semibold rounded-2xl shadow-lg shadow-purple-900/20 outline-none focus:ring-3 focus:ring-pink-300 transition-all placeholder:text-gray-400"
+                            className="h-12 w-full rounded-2xl bg-white pl-11 pr-10 text-sm font-medium text-gray-900 shadow-xl shadow-black/15 outline-none placeholder:font-normal placeholder:text-gray-400 focus:ring-4 focus:ring-white/25"
                         />
                         {searchQuery && (
                             <button
                                 type="button"
                                 onClick={() => setSearchQuery('')}
-                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:text-gray-600"
+                                aria-label="Clear search"
                             >
                                 <X size={16} />
                             </button>
@@ -377,220 +369,120 @@ const Support = () => {
                 </div>
             </div>
 
-            {/* ═══ Main Body Content ═══ */}
-            <div className="max-w-xl mx-auto px-4 sm:px-6 -mt-6 space-y-6 relative z-20">
-
-                {/* ═══ Contact Options (Styled exactly like Order Help Modal) ═══ */}
-                <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-xl space-y-3">
-                    
-                    {/* 1. Phone Support Card */}
-                    <div className="bg-purple-50/50 border border-purple-100/80 rounded-2xl p-4 transition-all hover:bg-purple-50 hover:shadow-sm">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#843D9B] text-white flex items-center justify-center shrink-0 shadow-sm">
-                                    <Phone size={18} />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">
-                                            Support Helpline
-                                        </h3>
-                                        <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                            Active
-                                        </span>
-                                    </div>
-                                    <p className="text-sm font-bold text-gray-800 mt-0.5 font-mono">
-                                        {supportPhone}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-3 pt-3 border-t border-purple-100 flex items-center gap-2">
+            <div className="relative z-10 mx-auto -mt-9 max-w-xl space-y-6 px-4 sm:px-6">
+                {/* ═══ Contact card ═══ */}
+                <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <div className="grid grid-cols-3 gap-2.5">
+                        {quickActions.map(({ id, label, sub, icon: Icon, onClick, tone }) => (
                             <button
+                                key={id}
                                 type="button"
-                                onClick={handleWhatsAppClick}
-                                className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                                onClick={onClick}
+                                className="flex flex-col items-center rounded-xl border border-gray-100 px-2 py-3.5 text-center transition-all hover:border-gray-200 hover:shadow-sm active:scale-[0.98]"
                             >
-                                <MessageCircle size={14} />
-                                <span>WhatsApp Admin</span>
+                                <span className={`flex h-11 w-11 items-center justify-center rounded-full ${tone}`}>
+                                    <Icon size={20} />
+                                </span>
+                                <span className="mt-2 text-[13px] font-semibold text-gray-900">{label}</span>
+                                <span className="mt-0.5 text-[10.5px] text-gray-500">{sub}</span>
                             </button>
-                            <button
-                                type="button"
-                                onClick={handleCallClick}
-                                className="py-2.5 px-3.5 bg-white border border-purple-200 hover:bg-purple-100/50 active:scale-95 text-gray-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
-                                title="Call Support"
-                            >
-                                <PhoneCall size={14} className="text-gray-500" />
-                                <span>Call</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleCopy(supportPhone, 'phone')}
-                                className="py-2.5 px-3.5 bg-white border border-purple-200 hover:bg-purple-100/50 active:scale-95 text-gray-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
-                                title="Copy Phone Number"
-                            >
-                                {copiedField === 'phone' ? (
-                                    <>
-                                        <Check size={14} className="text-emerald-600" />
-                                        <span className="text-emerald-600 font-bold">Copied</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Copy size={14} className="text-gray-500" />
-                                        <span>Copy</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
+                        ))}
                     </div>
 
-                    {/* 2. Email Support Card */}
-                    <div className="bg-indigo-50/40 border border-indigo-100 rounded-2xl p-4 transition-all hover:bg-indigo-50/70 hover:shadow-sm">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                                    <Mail size={18} />
-                                </div>
+                    <div className="mt-4 divide-y divide-gray-100 rounded-xl bg-gray-50">
+                        {contactRows.map(({ id, icon: Icon, label, value }) => (
+                            <div key={id} className="flex items-center gap-3 px-3.5 py-3">
+                                <Icon size={16} className="shrink-0 text-gray-400" />
                                 <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">
-                                            Email Support
-                                        </h3>
-                                        <span className="text-[9px] font-bold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md">
-                                            24h Response
-                                        </span>
-                                    </div>
-                                    <p className="text-sm font-bold text-gray-800 mt-0.5 truncate">
-                                        {supportEmail}
-                                    </p>
+                                    <p className="text-[10.5px] font-medium uppercase tracking-wider text-gray-400">{label}</p>
+                                    <p className="truncate text-[13.5px] font-semibold text-gray-800">{value}</p>
                                 </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleCopy(value, id)}
+                                    className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#843D9B] transition-colors hover:bg-[#843D9B]/5"
+                                >
+                                    {copiedField === id ? <><Check size={13} className="text-emerald-600" /><span className="text-emerald-600">Copied</span></> : <><Copy size={13} />Copy</>}
+                                </button>
                             </div>
-                        </div>
-
-                        <div className="mt-3 pt-3 border-t border-indigo-100 flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={handleEmailClick}
-                                className="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
-                            >
-                                <Mail size={14} />
-                                <span>Send Email</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleCopy(supportEmail, 'email')}
-                                className="py-2.5 px-3.5 bg-white border border-indigo-200 hover:bg-indigo-100/50 active:scale-95 text-gray-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
-                                title="Copy Support Email"
-                            >
-                                {copiedField === 'email' ? (
-                                    <>
-                                        <Check size={14} className="text-emerald-600" />
-                                        <span className="text-emerald-600 font-bold">Copied</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Copy size={14} className="text-gray-500" />
-                                        <span>Copy</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
+                        ))}
                     </div>
 
-                    {/* Operating Hours Note */}
-                    <div className="bg-gray-50 rounded-2xl p-3 border border-gray-100 flex items-start gap-2.5 text-[11px] text-gray-500">
-                        <Clock size={15} className="text-gray-400 shrink-0 mt-0.5" />
-                        <div>
-                            <span className="font-bold text-gray-700">Response Hours: </span>
-                            Helpline available 9:00 AM – 9:00 PM IST. Emails replied within 2-4 hours.
-                        </div>
-                    </div>
+                    <p className="mt-3 flex items-center gap-1.5 px-1 text-[11.5px] text-gray-500">
+                        <Clock size={13} className="shrink-0 text-gray-400" />
+                        Helpline open 9:00 AM – 9:00 PM IST, all days.
+                    </p>
+                </section>
 
-                </div>
-
-                {/* ═══ FAQ Category Filter Chips ═══ */}
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between px-1">
-                        <div className="flex items-center gap-2">
-                            <HelpCircle size={16} className="text-[#843D9B]" />
-                            <h2 className="text-sm font-black text-gray-900 tracking-tight">
-                                Frequently Asked Questions
-                            </h2>
-                        </div>
-                        <span className="text-[11px] font-bold text-gray-400">
-                            {filteredFaqs.length} {filteredFaqs.length === 1 ? 'Answer' : 'Answers'}
+                {/* ═══ FAQs ═══ */}
+                <section className="space-y-3">
+                    <div className="flex items-end justify-between px-1">
+                        <h2 className="text-base font-bold text-gray-900">Frequently asked questions</h2>
+                        <span className="text-xs text-gray-400">
+                            {filteredFaqs.length} {filteredFaqs.length === 1 ? 'result' : 'results'}
                         </span>
                     </div>
 
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
-                        {CATEGORIES.map(cat => {
-                            const IconComponent = cat.icon;
+                    <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1">
+                        {CATEGORIES.map((cat) => {
                             const isSelected = selectedCategory === cat.id;
                             return (
                                 <button
                                     key={cat.id}
                                     type="button"
                                     onClick={() => { setSelectedCategory(cat.id); setExpandedFaqId(null); }}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer ${
+                                    className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all ${
                                         isSelected
-                                            ? 'bg-[#843D9B] text-white shadow-sm shadow-purple-500/20'
-                                            : 'bg-white text-gray-600 border border-gray-100 hover:border-purple-200 hover:text-[#843D9B]'
+                                            ? 'border-[#843D9B] bg-[#843D9B] text-white'
+                                            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                                     }`}
                                 >
-                                    <IconComponent size={14} className={isSelected ? 'text-white' : 'text-gray-400'} />
                                     {cat.label}
                                 </button>
                             );
                         })}
                     </div>
-                </div>
 
-                {/* ═══ FAQ Accordions List ═══ */}
-                <div className="space-y-3">
                     {isLoading ? (
-                        <div className="space-y-3">
-                            {[1, 2, 3, 4].map(i => (
-                                <div key={i} className="h-16 bg-white rounded-2xl border border-gray-100 animate-pulse" />
+                        <div className="space-y-2">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="h-14 animate-pulse rounded-xl border border-gray-100 bg-white" />
                             ))}
                         </div>
                     ) : filteredFaqs.length === 0 ? (
-                        <div className="text-center py-10 px-6 bg-white rounded-3xl border border-gray-100 shadow-sm space-y-3">
-                            <div className="w-12 h-12 rounded-full bg-purple-50 text-[#843D9B] flex items-center justify-center mx-auto">
+                        <div className="space-y-3 rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center">
+                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#843D9B]/10 text-[#843D9B]">
                                 <Search size={22} />
                             </div>
-                            <h3 className="text-sm font-bold text-gray-900">No matching answers found</h3>
-                            <p className="text-xs text-gray-500 max-w-xs mx-auto">
-                                Try adjusting your search query or contact our helpline directly.
-                            </p>
+                            <h3 className="text-sm font-bold text-gray-900">No matching answers</h3>
+                            <p className="mx-auto max-w-xs text-xs text-gray-500">Try different words, or contact us using the options above.</p>
                             <button
                                 type="button"
                                 onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
-                                className="px-4 py-2 bg-purple-50 text-[#843D9B] text-xs font-bold rounded-xl hover:bg-purple-100 transition-colors cursor-pointer"
+                                className="rounded-lg px-4 py-2 text-xs font-semibold text-[#843D9B] hover:bg-[#843D9B]/5"
                             >
-                                Clear Filters
+                                Clear filters
                             </button>
                         </div>
                     ) : (
-                        filteredFaqs.map(faq => (
-                            <FAQAccordion
-                                key={faq._id || faq.slug}
-                                item={faq}
-                                isExpanded={expandedFaqId === (faq._id || faq.slug)}
-                                onToggle={() => handleToggleFaq(faq._id || faq.slug)}
-                                searchQuery={searchQuery}
-                            />
-                        ))
+                        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                            {filteredFaqs.map((faq) => (
+                                <FAQAccordion
+                                    key={faq._id || faq.slug}
+                                    item={faq}
+                                    isExpanded={expandedFaqId === (faq._id || faq.slug)}
+                                    onToggle={() => handleToggleFaq(faq._id || faq.slug)}
+                                    searchQuery={searchQuery}
+                                />
+                            ))}
+                        </div>
                     )}
-                </div>
+                </section>
 
-                {/* ═══ Guarantee Badge Footer ═══ */}
-                <div className="pt-2 flex items-center justify-center gap-2 text-[11px] text-gray-500 font-medium">
-                    <ShieldCheck size={14} className="text-[#843D9B] shrink-0" />
-                    <span>100% Perfect Fit & Safe Doorstep Service Guarantee</span>
+                <div className="flex items-center justify-center gap-2 pt-1 text-[11.5px] text-gray-500">
+                    <ShieldCheck size={14} className="shrink-0 text-[#843D9B]" />
+                    <span>Perfect Fit Guarantee · Safe doorstep service</span>
                 </div>
-
             </div>
 
             <BottomNav />

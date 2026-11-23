@@ -1,86 +1,118 @@
-import React, { useState } from 'react';
-import { Bell, ArrowLeft } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowLeft, Bell, Package, Tag, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import api from '../../../utils/api';
+
+const DEFAULTS = { orderUpdates: true, promotions: false, reminders: true };
+
+const OPTIONS = [
+    { key: 'orderUpdates', icon: Package, title: 'Order Updates', desc: 'Order status, pickup, delivery and tailor updates.' },
+    { key: 'promotions', icon: Tag, title: 'Promotions & Offers', desc: 'Sales, new coupons and discounts.' },
+    { key: 'reminders', icon: Clock, title: 'Reminders', desc: 'Pending cart items, measurement profiles and more.' },
+];
+
+const Toggle = ({ checked, onChange, disabled, label }) => (
+    <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        disabled={disabled}
+        onClick={onChange}
+        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-50 ${checked ? 'bg-[#843D9B]' : 'bg-gray-300'}`}
+    >
+        <span
+            className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all duration-200 ${checked ? 'left-6' : 'left-1'}`}
+        />
+    </button>
+);
 
 const NotificationSettings = () => {
     const navigate = useNavigate();
-    const [settings, setSettings] = useState({
-        orderUpdates: true,
-        promotions: false,
-        reminders: true,
-        systemAlerts: true
-    });
+    const [settings, setSettings] = useState(DEFAULTS);
+    const [isLoading, setIsLoading] = useState(true);
+    const [savingKey, setSavingKey] = useState(null);
 
-    const toggleSetting = (key) => {
-        setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+    // Load the saved preferences so the page reflects what the user chose last time.
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            try {
+                const res = await api.get('/customers/profile');
+                const saved = res.data?.data?.profile?.notificationPreferences;
+                if (active && saved) setSettings({ ...DEFAULTS, ...saved });
+            } catch (err) {
+                if (active) toast.error('Could not load your notification settings');
+            } finally {
+                if (active) setIsLoading(false);
+            }
+        })();
+        return () => { active = false; };
+    }, []);
+
+    const toggleSetting = async (key) => {
+        const next = !settings[key];
+        setSettings((prev) => ({ ...prev, [key]: next }));
+        setSavingKey(key);
+        try {
+            await api.patch('/customers/profile', { notificationPreferences: { [key]: next } });
+        } catch (err) {
+            setSettings((prev) => ({ ...prev, [key]: !next }));
+            toast.error('Could not save. Please try again.');
+        } finally {
+            setSavingKey(null);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 md:p-6 font-sans">
-            {/* Header */}
-            <div className="sticky top-0 z-50 bg-primary md:bg-transparent md:mb-8 px-4 py-4 flex items-center gap-4 text-white md:text-gray-900 border-b border-white/10 md:border-0 backdrop-blur-md">
-                <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-2xl md:bg-white md:shadow-sm hover:bg-white/10 md:hover:bg-gray-50 transition-all">
-                    <ArrowLeft size={20} />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-sm md:text-2xl font-black md:tracking-tight italic uppercase md:not-italic md:normal-case">Notifications</h1>
-                </div>
-            </div>
-
-            <div className="max-w-4xl mx-auto px-4 md:px-0">
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="w-12 h-12 bg-pink-50 rounded-full flex items-center justify-center">
-                            <Bell size={24} className="text-pink-500" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-black text-gray-900">Notification Preferences</h2>
-                            <p className="text-xs text-gray-500 font-bold mt-1">Manage what you want to be notified about</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50">
-                            <div>
-                                <h3 className="text-sm font-bold text-gray-900">Order Updates</h3>
-                                <p className="text-xs text-gray-500 mt-1">Notifications about your order status, delivery, and tailors.</p>
-                            </div>
-                            <button 
-                                onClick={() => toggleSetting('orderUpdates')}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${settings.orderUpdates ? 'bg-green-500' : 'bg-gray-300'}`}
-                            >
-                                <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${settings.orderUpdates ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
-
-                        <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50">
-                            <div>
-                                <h3 className="text-sm font-bold text-gray-900">Promotions & Offers</h3>
-                                <p className="text-xs text-gray-500 mt-1">Receive updates about sales, new coupons, and discounts.</p>
-                            </div>
-                            <button 
-                                onClick={() => toggleSetting('promotions')}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${settings.promotions ? 'bg-green-500' : 'bg-gray-300'}`}
-                            >
-                                <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${settings.promotions ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
-
-                        <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50">
-                            <div>
-                                <h3 className="text-sm font-bold text-gray-900">Reminders</h3>
-                                <p className="text-xs text-gray-500 mt-1">Reminders for pending cart items, measurement profiles, etc.</p>
-                            </div>
-                            <button 
-                                onClick={() => toggleSetting('reminders')}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${settings.reminders ? 'bg-green-500' : 'bg-gray-300'}`}
-                            >
-                                <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${settings.reminders ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
+        <div className="min-h-screen bg-[#F7F5FA] pb-20 font-sans text-gray-900">
+            <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/90 backdrop-blur-md">
+                <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3.5">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100"
+                        aria-label="Back"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 className="text-[17px] font-bold leading-tight">Notifications</h1>
+                        <p className="text-xs text-gray-500">Choose what you want to hear about</p>
                     </div>
                 </div>
-            </div>
+            </header>
+
+            <main className="mx-auto max-w-xl px-4 py-5">
+                <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                    {OPTIONS.map(({ key, icon: Icon, title, desc }) => (
+                        <div key={key} className="flex items-center gap-3.5 border-b border-gray-100 px-4 py-4 last:border-b-0">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#843D9B]/10 text-[#843D9B]">
+                                <Icon size={18} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+                                <p className="mt-0.5 text-xs leading-snug text-gray-500">{desc}</p>
+                            </div>
+                            {isLoading ? (
+                                <div className="h-7 w-12 animate-pulse rounded-full bg-gray-200" />
+                            ) : (
+                                <Toggle
+                                    label={title}
+                                    checked={!!settings[key]}
+                                    disabled={savingKey === key}
+                                    onChange={() => toggleSetting(key)}
+                                />
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <p className="mt-4 flex items-start gap-2 px-1 text-xs leading-relaxed text-gray-500">
+                    <Bell size={14} className="mt-0.5 shrink-0 text-gray-400" />
+                    Important alerts about payments, OTPs and account security are always sent.
+                </p>
+            </main>
         </div>
     );
 };

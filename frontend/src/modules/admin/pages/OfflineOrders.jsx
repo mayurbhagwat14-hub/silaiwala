@@ -248,7 +248,7 @@ const AdminOfflineOrders = () => {
     const [deliveryPartners, setDeliveryPartners] = useState([]);
     const [selectedDeliveryPartnerId, setSelectedDeliveryPartnerId] = useState('');
     const [isAssigningPartner, setIsAssigningPartner] = useState(false);
-    const [assignPickupAddress, setAssignPickupAddress] = useState('SewZella Central Store (Admin Workshop)');
+    const [assignPickupAddress, setAssignPickupAddress] = useState('Sewzella Central Store (Admin Workshop)');
     const [assignPickupCoords, setAssignPickupCoords] = useState(null);
     const [isFetchingGPS, setIsFetchingGPS] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -981,7 +981,7 @@ const AdminOfflineOrders = () => {
             const data = res.data.data;
             setSelectedOrder(data);
             setSelectedTailorId(data.shopTailor?._id || data.shopTailor || '');
-            setAssignPickupAddress(data.pickupAddress || 'SewZella Central Store (Admin Workshop)');
+            setAssignPickupAddress(data.pickupAddress || 'Sewzella Central Store (Admin Workshop)');
             if (data.pickupLocation?.coordinates?.length >= 2) {
                 setAssignPickupCoords({
                     lng: data.pickupLocation.coordinates[0],

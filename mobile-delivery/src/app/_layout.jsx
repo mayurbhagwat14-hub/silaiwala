@@ -38,7 +38,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: '#F7F8FC' }}>
         <ErrorBoundary>
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F7F8FC' }, animation: 'none', freezeOnBlur: true }} />
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F7F8FC' }, animation: 'none' }} />
           <NavPathTracker />
           <AppManagers />
         </ErrorBoundary>

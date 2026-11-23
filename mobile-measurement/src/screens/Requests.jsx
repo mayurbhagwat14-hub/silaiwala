@@ -1,8 +1,10 @@
 // Port of modules/measurement-executive/pages/Requests.jsx (converted with scripts/web2rn.js, then reviewed)
 import { useNavigate } from '../lib/nav';
 import Spin from '../components/ui/Spin';
-import { Linking } from 'react-native';
-import React, { useEffect, useState } from "react";
+import { AppState, Linking } from 'react-native';
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from 'expo-router';
+import socket from '../utils/socket';
 import useMeasurementStore from "../store/measurementExecutiveStore";
 import { MapPin, Clock, Navigation, User, FileText, CheckCircle, XCircle, RefreshCw } from "lucide-react-native";
 import toast from '../lib/toast';
@@ -19,11 +21,33 @@ const Requests = () => {
   const [activeTab, setActiveTab] = useState('pending');
   useEffect(() => {
     fetchRequests(activeTab);
-  }, [activeTab]);
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep the list live: new / reassigned / claimed requests, returning to the screen, and a
+  // slow poll as a safety net (a reassigned request must leave this executive's Pending list).
+  useFocusEffect(useCallback(() => {
+    const refresh = () => useMeasurementStore.getState().refreshRequests();
+    refresh();
+    const events = ['new_measurement_request', 'measurement_request_claimed', 'order_status_updated'];
+    events.forEach(ev => socket.on(ev, refresh));
+    const interval = setInterval(() => {
+      if (AppState.currentState === 'active') refresh();
+    }, 20000);
+    const appSub = AppState.addEventListener('change', state => {
+      if (state === 'active') refresh();
+    });
+    return () => {
+      events.forEach(ev => socket.off(ev, refresh));
+      clearInterval(interval);
+      appSub.remove();
+    };
+  }, []));
+
   const handleAccept = async id => {
     try {
       await acceptRequest(id);
       toast.success('Request accepted!');
+      setActiveTab('active');
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to accept request');
     }

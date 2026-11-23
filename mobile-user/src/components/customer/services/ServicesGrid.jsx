@@ -43,10 +43,6 @@ const ServiceCard = ({ service, onSelectTailor, isGrouped = false }) => {
           <Btn className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow-sm z-10" onPress={() => {}}>
             <I icon={Heart} size={14} color="#9ca3af" />
           </Btn>
-          <Box className="absolute bottom-2 left-2 bg-white/95 px-2 py-0.5 rounded shadow-sm flex items-center gap-1 z-10">
-            <I icon={Star} size={10} color="#facc15" fill="#facc15" />
-            <Txt className="text-[10px] font-bold">{service.rating ? Number(service.rating).toFixed(1) : '4.8'}</Txt>
-          </Box>
           {isGrouped && tailorsCount > 0 && (
             <Box className="absolute top-2 left-2 bg-black/65 px-2 py-0.5 rounded-full flex items-center gap-1 z-10 shadow-sm">
               <I icon={Users} size={10} color="#fff" />
@@ -65,6 +61,11 @@ const ServiceCard = ({ service, onSelectTailor, isGrouped = false }) => {
           </Box>
           <Txt className="text-[10px] text-gray-500 line-clamp-2 mb-2">{service.description}</Txt>
           <Box className="flex items-center gap-2 mb-2 flex-wrap">
+            {/* Rating sits in the info row (it used to float over the photo and cover content) */}
+            <Box className="flex items-center gap-0.5 bg-amber-50 px-1.5 py-0.5 rounded">
+              <I icon={Star} size={10} color="#facc15" fill="#facc15" />
+              <Txt className="text-[9px] font-bold text-amber-700">{service.rating ? Number(service.rating).toFixed(1) : '4.8'}</Txt>
+            </Box>
             <Box className="flex items-center gap-1">
               <I icon={Clock} size={10} color="#6b7280" />
               <Txt className="text-[9px] text-gray-500">Est. {service.deliveryTime || '2-4 Days'}</Txt>

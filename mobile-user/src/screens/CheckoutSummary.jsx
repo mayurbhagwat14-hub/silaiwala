@@ -130,6 +130,7 @@ const CheckoutSummary = () => {
     gstPercentage: 0
   });
   const [isLoadingPricing, setIsLoadingPricing] = useState(true);
+  const [instructions, setInstructions] = useState('');
 
   // Fetch Bulk Order Details
   useEffect(() => {
@@ -251,7 +252,11 @@ const CheckoutSummary = () => {
     };
   }, [currentPricing, appliedCoupon, discountAmount, baseTotal]);
   const finalTotal = Math.round(Number(displayPricing?.total) || 0);
-  const effectiveAdvancePct = requireFullPayment ? 100 : advancePercentage || 30;
+  // The server tells us the exact advance rule it will charge (same rule as createOrder);
+  // the local guess is only used until the price summary arrives.
+  const effectiveAdvancePct = Number.isFinite(Number(currentPricing?.advancePercentage)) && currentPricing?.advancePercentage != null
+    ? Number(currentPricing.advancePercentage)
+    : (requireFullPayment ? 100 : (advancePercentage || 30));
   const {
     advanceAmount
   } = splitAdvanceRemaining(finalTotal, effectiveAdvancePct);
@@ -627,7 +632,7 @@ const CheckoutSummary = () => {
                     </Box>
                 </Box>
             </Box>
-            <Scroll className="flex-1" contentClassName="pb-32">
+            <Scroll className="flex-1" contentClassName="pb-48">
 
             <Box className="max-w-xl mx-auto p-3 sm:p-4 space-y-3.5 animate-in fade-in duration-500">
 
@@ -824,6 +829,7 @@ const CheckoutSummary = () => {
                 {hasTailorAtHome && <MeasurementSchedulePicker value={measurementSchedule} onChange={setMeasurementSchedule} />}
 
                 {/* 4. Coupon / Offers + Bill Details */}
+                {!isCartAlteration && isLoadingPricing && <Box className="bg-white rounded-3xl h-16 border border-gray-100 shadow-xs" />}
                 {!isCartAlteration && !isLoadingPricing && <CouponOfferSection orderAmount={baseTotal} checkoutType={couponCheckoutType} appliedCoupon={appliedCoupon} onApplied={setAppliedCoupon} onRemoved={clearAppliedCoupon} />}
 
                 {isCartAlteration ? <Box className="bg-primary/5 border border-primary/10 rounded-3xl p-5 text-center">
@@ -841,9 +847,9 @@ const CheckoutSummary = () => {
                         <I icon={FileText} size={18} className="text-primary" />
                         <Txt>Special Instructions (Optional)</Txt>
                     </Txt>
-                    <Box className="relative">
-                        <Input rows={3} maxLength={150} placeholder="Add any special instructions for the tailor..." className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-medium text-gray-800 focus:outline-none focus:border-primary focus:bg-white transition-all resize-none" multiline />
-                        <Txt className="absolute bottom-3 right-3 text-[10px] text-gray-400 font-semibold">0/150</Txt>
+                    <Box>
+                        <Input rows={3} maxLength={150} value={instructions} onChangeText={setInstructions} placeholder="Add any special instructions for the tailor..." className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-medium text-gray-800 min-h-[84px]" multiline textAlignVertical="top" />
+                        <Txt className="text-right mt-1 text-[10px] text-gray-400 font-semibold">{instructions.length}/150</Txt>
                     </Box>
                 </Box>
 
@@ -857,24 +863,18 @@ const CheckoutSummary = () => {
                 <Box className="max-w-xl mx-auto flex items-center justify-between gap-4">
                     
                     {/* Left: Total & Advance Amounts */}
-                    <Box className="text-left">
-                        <Box className="flex items-baseline gap-2">
-                            <Txt className="text-xs text-gray-500 font-semibold">Total Amount</Txt>
-                            <Txt className="text-lg sm:text-xl font-black text-gray-900">
-                                ₹{finalTotal.toLocaleString('en-IN')}
-                            </Txt>
-                        </Box>
+                    <Box className="flex-1 min-w-0 text-left">
+                        <Txt className="text-[11px] text-gray-500 font-semibold" numberOfLines={1}>Total Amount</Txt>
+                        <Txt className="text-lg font-black text-gray-900" numberOfLines={1}>
+                            {isLoadingPricing ? '₹ —' : `₹${finalTotal.toLocaleString('en-IN')}`}
+                        </Txt>
                         {discountAmount > 0 && <Txt className="text-[10px] text-emerald-600 font-bold">
                                 Coupon saved ₹{discountAmount.toLocaleString('en-IN')}
                             </Txt>}
-                        <Box className="flex items-baseline gap-1.5">
-                            <Txt className="text-xs text-primary font-bold">
-                                {effectiveAdvancePct >= 100 ? 'Payable now' : `Advance (${effectiveAdvancePct}%)`}
-                            </Txt>
-                            <Txt className="text-sm font-extrabold text-primary">
-                                ₹{advanceAmount.toLocaleString('en-IN')}
-                            </Txt>
-                        </Box>
+                        <Txt className="text-[11px] text-primary font-bold" numberOfLines={1}>
+                            {effectiveAdvancePct >= 100 ? 'Payable now' : `Advance (${effectiveAdvancePct}%)`}{' '}
+                            <Txt className="text-[12px] font-extrabold text-primary">{isLoadingPricing ? '—' : `₹${advanceAmount.toLocaleString('en-IN')}`}</Txt>
+                        </Txt>
                     </Box>
 
                     {/* Middle: Secure Payment Badge (Desktop) */}
@@ -884,7 +884,7 @@ const CheckoutSummary = () => {
                     </Box>
 
                     {/* Right: Solid Purple Place Order Button */}
-                    <Btn onPress={handlePayment} disabled={isProcessing || !selectedAddress} className="py-3.5 px-6 sm:px-8 bg-primary hover:bg-primary/90 active:bg-primary/80 text-white font-extrabold rounded-2xl text-base shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer">
+                    <Btn onPress={handlePayment} disabled={isProcessing || isLoadingPricing || !selectedAddress} className="shrink-0 py-3.5 px-5 bg-primary hover:bg-primary/90 active:bg-primary/80 text-white font-extrabold rounded-2xl text-sm shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer">
                         {isProcessing ? <><Spin size={18} color="#fff" /><Txt>Submitting...</Txt></> : <>
                                 <Txt>Place Order</Txt>
                                 <I icon={ArrowRight} size={18} />

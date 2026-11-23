@@ -1,56 +1,68 @@
 import React from 'react';
-import { Star, MapPin, ChevronRight, BadgeCheck, Sparkles, Store } from 'lucide-react';
+import { Star, MapPin, ChevronRight, BadgeCheck, Sparkles, Store, Scissors, SlidersHorizontal } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import useTailorStore from '../../../store/tailorStore';
 import useLocationStore from '../../../store/locationStore';
 import { useRequireAuth } from '../../../hooks/useRequireAuth';
-import { HomeSection, SectionTitle } from './home/homeUi';
+import { HomeSection } from './home/homeUi';
 import { SERIF, rise } from './home/homeTokens';
 
 const TailorSkeleton = () => (
-  <div className="flex gap-3 rounded-[22px] bg-white p-3 ring-1 ring-[#EFE8F4]">
-    <div className="h-[72px] w-[72px] shrink-0 animate-pulse rounded-2xl bg-[#F3EEF6]" />
-    <div className="flex-1 space-y-2 py-1">
+  <div className="overflow-hidden rounded-[24px] bg-white ring-1 ring-[#EFE8F4]">
+    <div className="h-44 animate-pulse bg-[#F3EEF6]" />
+    <div className="space-y-2 p-4">
       <div className="h-4 w-2/3 animate-pulse rounded-full bg-[#F3EEF6]" />
       <div className="h-3 w-1/2 animate-pulse rounded-full bg-[#F3EEF6]" />
-      <div className="h-3 w-1/3 animate-pulse rounded-full bg-[#F3EEF6]" />
     </div>
   </div>
 );
 
-/** Shows exactly the photo the tailor uploaded — never a stock/placeholder photo. */
+/**
+ * Shows exactly the photo the tailor uploaded — never a stock/placeholder photo.
+ * A blurred copy fills the frame so logos and portrait shots both look intentional.
+ */
 const ShopPhoto = ({ src, name }) => {
   const [failed, setFailed] = React.useState(false);
   React.useEffect(() => setFailed(false), [src]);
   const initial = (name || 'T').trim().charAt(0).toUpperCase();
   if (!src || failed) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#F4F3F6] to-[#E8E5EC]">
-        <span className="text-[34px] font-semibold text-[#1A1523]" style={{ fontFamily: SERIF }}>{initial}</span>
+      <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#843D9B] to-[#4A1560]">
+        <Scissors size={90} className="absolute -bottom-4 -right-3 rotate-12 text-white/10" />
+        <span className="text-[54px] font-semibold text-white/90" style={{ fontFamily: SERIF }}>{initial}</span>
       </div>
     );
   }
   return (
-    <img
-      src={src}
-      alt={name || 'Tailor shop'}
-      loading="lazy"
-      onError={() => setFailed(true)}
-      className="h-full w-full object-contain"
-    />
+    <>
+      <img src={src} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70 blur-xl" />
+      <img
+        src={src}
+        alt={name || 'Tailor shop'}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="relative h-full w-full object-contain"
+      />
+    </>
   );
 };
 
-/** Only real data is shown — no placeholder ratings, distances or prices. */
+/** Big listing card: photo on top, details below — only real data, no placeholder ratings or prices. */
 const TailorCard = ({ tailor, index, onOpen }) => {
   const rating = Number(tailor.rating) || 0;
   const reviews = Number(tailor.totalReviews) || 0;
   const hasReviews = reviews > 0 && rating > 0;
   const basePrice = Number(tailor.basePrice) || 0;
   const isVerified = tailor.registrationStatus === 'verified' || tailor.isVerified === true;
-  const topRated = hasReviews && rating >= 4.5 && reviews >= 5;
-  const specialities = (Array.isArray(tailor.specializations) ? tailor.specializations : []).filter(Boolean).slice(0, 2);
+  const specialities = (Array.isArray(tailor.specializations) ? tailor.specializations : [])
+    .map((x) => String(x).trim())
+    .filter(Boolean)
+    .slice(0, 3);
+  const place = tailor.location?.city || tailor.location?.address?.split(',')[0] || '';
+  const distance = tailor.distance ? String(tailor.distance).replace(' away', '') : '';
+  const distanceNum = distance.replace(/\s*km/i, '');
+  const name = tailor.shopName || tailor.user?.name || 'Tailor';
 
   return (
     <motion.div
@@ -65,68 +77,57 @@ const TailorCard = ({ tailor, index, onOpen }) => {
       <Link
         to={`/user/tailor/${tailor._id}`}
         onClick={(e) => onOpen(e, tailor._id)}
-        className="group block rounded-[24px] bg-white p-3.5 ring-1 ring-[#ECEAEF] shadow-[0_14px_30px_-24px_rgba(20,16,26,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_40px_-24px_rgba(20,16,26,0.5)] active:scale-[0.99]"
+        className="group block overflow-hidden rounded-[24px] bg-white ring-1 ring-[#EEECF1] shadow-[0_14px_30px_-22px_rgba(20,16,26,0.5)] transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
       >
-       <div className="flex gap-3.5">
-        <div className="relative h-[100px] w-[100px] shrink-0 overflow-hidden rounded-[18px] bg-white ring-1 ring-[#ECEAEF]">
-          <ShopPhoto src={tailor.user?.profileImage} name={tailor.shopName || tailor.user?.name} />
-        </div>
-
-        <div className="min-w-0 flex-1 py-0.5">
-          <div className="flex items-center gap-1.5">
-            <h3 className="truncate text-[17px] font-semibold text-[#1A1523]" style={{ fontFamily: SERIF }}>
-              {tailor.shopName || tailor.user?.name || 'Tailor'}
-            </h3>
-            {isVerified && <BadgeCheck size={16} className="shrink-0 fill-[#843D9B] text-white" aria-label="Verified" />}
-          </div>
-
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-[#6B6575]">
-            {hasReviews ? (
-              <span className="flex items-center gap-1">
-                <Star size={12} className="fill-[#F5A524] text-[#F5A524]" />
-                <span className="font-bold text-[#1A1523]">{rating.toFixed(1)}</span>
-                <span>({reviews})</span>
-              </span>
-            ) : null}
-            {topRated && (
-              <span className="rounded-full bg-[#F3E9F8] px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-[#843D9B]">Top rated</span>
-            )}
-            {hasReviews ? null : (
-              <span className="flex items-center gap-1 font-semibold text-[#843D9B]">
-                <Sparkles size={11} /> New on SewZella
-              </span>
-            )}
-            {tailor.distance && (
-              <span className="flex items-center gap-1">
-                <MapPin size={11} /> {tailor.distance.replace(' away', '')}
-              </span>
-            )}
-          </div>
-
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            {basePrice > 0 && (
-              <span className="rounded-lg bg-[#1A1523] px-2 py-1 text-[10.5px] font-bold text-white">From ₹{basePrice}</span>
-            )}
-            {specialities.map((s) => (
-              <span key={s} className="max-w-[140px] truncate rounded-lg bg-[#F6F4F8] px-2 py-1 text-[10.5px] font-medium text-[#5E5768]">
-                {s}
-              </span>
-            ))}
-          </div>
-
-          {tailor.bio && (
-            <p className="mt-2 line-clamp-2 text-[11.5px] leading-snug text-[#8A8293]">{tailor.bio}</p>
+        <div className="relative h-44 overflow-hidden bg-[#F4EEF8] sm:h-48">
+          <ShopPhoto src={tailor.user?.profileImage} name={name} />
+          {specialities[0] && (
+            <span className="absolute left-3 top-3 max-w-[60%] truncate rounded-full bg-black/55 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+              {specialities[0]}
+            </span>
+          )}
+          {distance && (
+            <span className="absolute right-3 top-3 flex flex-col items-center rounded-xl bg-white/95 px-2.5 py-1 leading-none shadow-sm">
+              <span className="text-[13px] font-extrabold text-gray-900">{distanceNum}</span>
+              <span className="mt-0.5 text-[8px] font-bold uppercase text-gray-500">km</span>
+            </span>
+          )}
+          {isVerified && (
+            <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[10.5px] font-bold text-[#843D9B] shadow-sm">
+              <BadgeCheck size={13} className="fill-[#843D9B] text-white" /> Verified
+            </span>
           )}
         </div>
-       </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-dashed border-[#ECEAEF] pt-3">
-          <span className="text-[11.5px] font-medium text-[#8A8293]">
-            {isVerified ? 'Verified tailor · ' : ''}Custom stitching
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#F4F3F6] px-3.5 py-1.5 text-[11.5px] font-bold text-[#1A1523] ring-1 ring-[#E6E3EA] transition-colors group-hover:bg-[#1A1523] group-hover:text-white">
-            View shop <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-          </span>
+        <div className="p-4">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="min-w-0 truncate text-[16px] font-semibold leading-tight text-gray-900">{name}</h3>
+            {hasReviews ? (
+              <span className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2 py-0.5 text-[12px] font-bold text-white">
+                {rating.toFixed(1)} <Star size={11} className="fill-white" />
+              </span>
+            ) : (
+              <span className="flex shrink-0 items-center gap-1 rounded-lg bg-[#843D9B]/10 px-2 py-0.5 text-[11px] font-bold text-[#843D9B]">
+                <Sparkles size={11} /> New
+              </span>
+            )}
+          </div>
+          <p className="mt-1 truncate text-[13px] text-gray-500">
+            {specialities.length ? specialities.join(' · ') : 'Custom stitching & alterations'}
+          </p>
+          <div className="mt-3 flex items-center justify-between gap-2 border-t border-dashed border-gray-200 pt-3 text-[12px]">
+            <span className="flex min-w-0 items-center gap-1 truncate text-gray-500">
+              <MapPin size={12} className="shrink-0" />
+              <span className="truncate">{place || 'Near you'}{hasReviews ? ` · ${reviews} review${reviews > 1 ? 's' : ''}` : ''}</span>
+            </span>
+            {basePrice > 0 ? (
+              <span className="shrink-0 font-semibold text-gray-900">from ₹{basePrice.toLocaleString('en-IN')}</span>
+            ) : (
+              <span className="flex shrink-0 items-center gap-0.5 font-semibold text-[#843D9B]">
+                View shop <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+              </span>
+            )}
+          </div>
         </div>
       </Link>
     </motion.div>
@@ -207,28 +208,27 @@ const PopularTailors = () => {
 
   return (
     <HomeSection>
-      <SectionTitle
-        title="Tailors"
-        accent="near you"
-        subtitle={safeTailors.length > 0 ? `${safeTailors.length} tailor${safeTailors.length > 1 ? 's' : ''} around you` : 'Skilled experts in your area'}
-        to="/user/tailors"
-      />
-
       {safeTailors.length > 0 && (
-        <div className="mb-3.5 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 md:-mx-6 md:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <Link
+            to="/user/tailors"
+            className="flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[12.5px] font-semibold text-gray-800 ring-1 ring-[#E6E3EA]"
+          >
+            <SlidersHorizontal size={15} /> Filters
+          </Link>
           {FILTERS.map((f) => (
             <button
               key={f.id}
               type="button"
               onClick={() => setFilter(f.id)}
               className={`relative isolate shrink-0 rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors ${
-                filter === f.id ? 'text-white' : 'bg-white text-[#5E5768] ring-1 ring-[#E6E3EA]'
+                filter === f.id ? 'text-white' : 'bg-white text-gray-700 ring-1 ring-[#E6E3EA]'
               }`}
             >
               {filter === f.id && (
                 <motion.span
                   layoutId="tailor-filter"
-                  className="absolute inset-0 -z-10 rounded-full bg-[#1A1523]"
+                  className="absolute inset-0 -z-10 rounded-full bg-[#843D9B]"
                   transition={{ type: 'spring', stiffness: 420, damping: 32 }}
                 />
               )}
@@ -238,9 +238,21 @@ const PopularTailors = () => {
         </div>
       )}
 
+      <div className="mb-3.5 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400">
+            {safeTailors.length > 0 ? `${safeTailors.length} tailor${safeTailors.length > 1 ? 's' : ''} near you` : 'Tailors near you'}
+          </p>
+          <h2 className="mt-0.5 text-[18px] font-semibold leading-tight text-gray-900">Featured Tailors</h2>
+        </div>
+        <Link to="/user/tailors" className="flex shrink-0 items-center gap-0.5 text-[12.5px] font-semibold text-[#843D9B]">
+          See all <ChevronRight size={15} />
+        </Link>
+      </div>
+
       {loading ? (
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {[0, 1, 2].map((i) => <TailorSkeleton key={i} />)}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {[0, 1].map((i) => <TailorSkeleton key={i} />)}
         </div>
       ) : safeTailors.length > 0 && displayTailors.length === 0 ? (
         <div className="rounded-[22px] bg-white px-5 py-6 text-center ring-1 ring-[#EFE8F4]">
@@ -261,7 +273,7 @@ const PopularTailors = () => {
           </Link>
         </div>
       ) : (
-        <motion.div layout className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <motion.div layout className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <AnimatePresence mode="sync" initial={false}>
             {displayTailors.map((tailor, index) => (
               <TailorCard key={tailor._id} tailor={tailor} index={index} onOpen={handleTailorClick} />

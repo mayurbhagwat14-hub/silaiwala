@@ -7,13 +7,13 @@ import BottomNav from '../components/BottomNav';
 const DEFAULT_FAQS = [
     {
         slug: 'what-is-sewzella',
-        title: 'What is SewZella?',
-        content: '<p>SewZella is an all-in-one digital tailoring marketplace that connects customers with verified expert tailors, boutiques, and fashion designers. We handle fabric pickup, professional body measurements, custom stitching, quality checks, and doorstep delivery — bringing premium tailor-made clothing directly to your home with a Perfect Fit Guarantee.</p>'
+        title: 'What is Sewzella?',
+        content: '<p>Sewzella is an all-in-one digital tailoring marketplace that connects customers with verified expert tailors, boutiques, and fashion designers. We handle fabric pickup, professional body measurements, custom stitching, quality checks, and doorstep delivery — bringing premium tailor-made clothing directly to your home with a Perfect Fit Guarantee.</p>'
     },
     {
         slug: 'can-i-choose-my-own-tailor',
         title: 'Can I choose my own tailor?',
-        content: '<p>Yes, absolutely! SewZella allows you to browse verified local tailors and boutiques, view their ratings, specialized craftsmanship (e.g., Suits, Sarees, Lehengas, Alterations), pricing, and portfolio before making a selection. You can pick your preferred tailor or let our smart system automatically match you with the highest-rated expert near you.</p>'
+        content: '<p>Yes, absolutely! Sewzella allows you to browse verified local tailors and boutiques, view their ratings, specialized craftsmanship (e.g., Suits, Sarees, Lehengas, Alterations), pricing, and portfolio before making a selection. You can pick your preferred tailor or let our smart system automatically match you with the highest-rated expert near you.</p>'
     },
     {
         slug: 'can-i-track-my-order',
@@ -43,7 +43,7 @@ const DEFAULT_FAQS = [
     {
         slug: 'how-do-i-provide-my-measurements',
         title: 'How do I provide my measurements?',
-        content: '<p>You have three flexible options:</p><ul className="list-disc ml-5 space-y-1.5 mt-2"><li><strong>Doorstep Executive Visit:</strong> Schedule a visit by a professional SewZella measurement executive.</li><li><strong>Sample Garment Pickup:</strong> Send a perfect-fitting sample garment along with your fabric during pickup.</li><li><strong>Saved Profile:</strong> Save and manage your custom body measurements directly in your app profile.</li></ul>'
+        content: '<p>You have three flexible options:</p><ul className="list-disc ml-5 space-y-1.5 mt-2"><li><strong>Doorstep Executive Visit:</strong> Schedule a visit by a professional Sewzella measurement executive.</li><li><strong>Sample Garment Pickup:</strong> Send a perfect-fitting sample garment along with your fabric during pickup.</li><li><strong>Saved Profile:</strong> Save and manage your custom body measurements directly in your app profile.</li></ul>'
     },
     {
         slug: 'is-my-payment-secure',
@@ -52,8 +52,8 @@ const DEFAULT_FAQS = [
     },
     {
         slug: 'where-is-sewzella-available',
-        title: 'Where is SewZella available?',
-        content: '<p>SewZella is rapidly expanding across major cities. Enter your pin code or enable location services in the app to see all tailors and pickup services active in your area.</p>'
+        title: 'Where is Sewzella available?',
+        content: '<p>Sewzella is rapidly expanding across major cities. Enter your pin code or enable location services in the app to see all tailors and pickup services active in your area.</p>'
     },
     {
         slug: 'which-payment-methods-are-accepted',

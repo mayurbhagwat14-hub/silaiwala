@@ -565,7 +565,7 @@ const MeasurementGuideModal = ({ isOpen, onClose, onSelectAddMeasurements, onBoo
 
                                     <button
                                         onClick={() => {
-                                            openAdminWhatsApp(`Hi ${appName || 'SewZella'} Admin, I need help with body measurements.`);
+                                            openAdminWhatsApp(`Hi ${appName || 'Sewzella'} Admin, I need help with body measurements.`);
                                         }}
                                         className="p-3.5 rounded-2xl border border-purple-100 bg-white hover:bg-purple-50/70 active:scale-95 transition-all text-left flex items-center sm:flex-col sm:items-start gap-2.5 cursor-pointer shadow-2xs group"
                                     >

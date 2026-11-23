@@ -60,7 +60,8 @@ module.exports = {
       ],
       ['expo-location', { locationWhenInUsePermission: 'Allow Sewzella to use your location to show nearby measurement requests and guide you to customers.' }],
       ['expo-image-picker', { photosPermission: 'Allow Sewzella to access your photos to upload measurement and profile images.', cameraPermission: 'Allow Sewzella to use the camera to capture measurement and profile photos.', microphonePermission: false }],
-      ['expo-notifications', { color: '#843D9B' }],
+      // alert.mp3 is bundled into res/raw so the "new_requests" channel can ring with the app closed
+      ['expo-notifications', { color: '#843D9B', sounds: ['./assets/sounds/alert.mp3'] }],
       // R8 minify is off: with it on, Room/WorkManager (via Firebase) crashed at launch (WorkDatabase_Impl stripped).
       ['expo-build-properties', { android: { usesCleartextTraffic: false, enableMinifyInReleaseBuilds: false, enableShrinkResourcesInReleaseBuilds: false } }],
     ],

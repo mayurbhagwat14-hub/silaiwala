@@ -1,6 +1,11 @@
 const Notification = require("../models/Notification.js");
 const { tryGetIO } = require("../config/socket.js");
 
+// Push types that must ring like a call: Android channel id (created by the app) + bundled sound name
+const RINGING_TYPES = {
+  NEW_MEASUREMENT_REQUEST: { channelId: "new_requests", sound: "alert" },
+};
+
 /**
  * Service to create and send real-time notifications
  * @param {Object} options - Notification options
@@ -212,7 +217,9 @@ const sendNotification = async (options) => {
           body: message,
           data: {
             ...data,
-            type: type || 'SYSTEM'
+            type: type || 'SYSTEM',
+            // New visit requests ring on the measurement app's loud channel even when it is closed
+            ...(RINGING_TYPES[type] ? { channelId: RINGING_TYPES[type].channelId, sound: RINGING_TYPES[type].sound } : {})
           },
           isUrgent: true
         });

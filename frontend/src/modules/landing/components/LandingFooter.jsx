@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Facebook, Twitter, Youtube, MapPin, Phone, Mail, ArrowUpRight } from 'lucide-react';
+import { Instagram, Facebook, Twitter, Youtube, Linkedin, MessageCircle, MapPin, Phone, Mail, ArrowUpRight } from 'lucide-react';
 import useBrandingStore from '../../../store/brandingStore';
 import { StoreButtons, Glyph, BrandLogo } from './landingShared';
-import { SANS, SERIF } from './landingTokens';
+import { SANS } from './landingTokens';
 
 const COLUMNS = [
   {
@@ -36,15 +36,19 @@ const COLUMNS = [
   },
 ];
 
-const SOCIALS = [
-  { icon: Instagram, href: 'https://instagram.com/sewzella', label: 'Instagram' },
-  { icon: Facebook, href: 'https://facebook.com/sewzella', label: 'Facebook' },
-  { icon: Twitter, href: 'https://twitter.com/sewzella', label: 'X (Twitter)' },
-  { icon: Youtube, href: 'https://youtube.com/@sewzella', label: 'YouTube' },
+// Links come from Admin → CMS → Social Links; a platform with no URL set is hidden.
+const SOCIAL_PLATFORMS = [
+  { key: 'instagram', icon: Instagram, label: 'Instagram' },
+  { key: 'facebook', icon: Facebook, label: 'Facebook' },
+  { key: 'twitter', icon: Twitter, label: 'X (Twitter)' },
+  { key: 'youtube', icon: Youtube, label: 'YouTube' },
+  { key: 'linkedin', icon: Linkedin, label: 'LinkedIn' },
+  { key: 'whatsapp', icon: MessageCircle, label: 'WhatsApp' },
 ];
 
 const LandingFooter = () => {
-  const { appName, logos, supportEmail, supportPhone } = useBrandingStore();
+  const { appName, logos, supportEmail, supportPhone, socialLinks } = useBrandingStore();
+  const socials = SOCIAL_PLATFORMS.map((p) => ({ ...p, href: (socialLinks?.[p.key] || '').trim() })).filter((p) => p.href);
   const phoneDisplay = supportPhone || '+91 9429692921';
   const emailDisplay = supportEmail || 'support@silaiwala.com';
   const cleanPhone = phoneDisplay.replace(/[^+\d]/g, '');
@@ -60,15 +64,16 @@ const LandingFooter = () => {
             <Link to="/" className="inline-flex items-center">
               <BrandLogo src={logos.customer} appName={appName} size="lg" />
             </Link>
-            <p className="mt-5 text-[22px] leading-snug text-[#1A1523]" style={{ fontFamily: SERIF }}>
-              Stitching dreams, <em className="text-[#843D9B]">one perfect fit</em> at a time.
+            <p className="mt-5 text-[22px] leading-snug text-[#1A1523]" style={{ fontFamily: SANS }}>
+              Stitching dreams, <span className="text-[#843D9B]">one perfect fit</span> at a time.
             </p>
             <p className="mt-3 text-[13.5px] leading-relaxed text-[#6B6575]">
               Verified tailors, doorstep pickup and live progress updates, all in one app.
             </p>
             <StoreButtons className="mt-6" />
+            {socials.length > 0 && (
             <div className="mt-6 flex gap-2.5">
-              {SOCIALS.map(({ icon, href, label }) => (
+              {socials.map(({ icon, href, label }) => (
                 <a
                   key={label}
                   href={href}
@@ -81,6 +86,7 @@ const LandingFooter = () => {
                 </a>
               ))}
             </div>
+            )}
           </div>
 
           {/* Link columns + contact */}
@@ -134,14 +140,6 @@ const LandingFooter = () => {
             <Link to="/page/accessibility" className="transition-colors hover:text-[#843D9B]">Accessibility</Link>
           </div>
         </div>
-
-        <p
-          aria-hidden="true"
-          className="pointer-events-none mt-8 select-none whitespace-nowrap text-center text-[21vw] font-semibold leading-[0.8] tracking-[-0.04em] text-transparent [-webkit-text-stroke:1px_rgba(132,61,155,0.18)] lg:text-[200px]"
-          style={{ fontFamily: SERIF }}
-        >
-          SewZella
-        </p>
       </div>
     </footer>
   );

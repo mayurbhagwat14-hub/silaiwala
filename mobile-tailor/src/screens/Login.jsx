@@ -304,7 +304,7 @@ const TailorLogin = () => {
             {/* Footer - Register link matching mockup */}
             <Box className="mt-6 text-center w-full">
                 <Txt className="text-xs font-medium text-[#64748B]">
-                    New to SewZella Tailor?{' '}
+                    New to Sewzella Tailor?{' '}
                     <Txt onPress={() => navigate("/partner/signup")} className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer">
                         Register Now
                     </Txt>

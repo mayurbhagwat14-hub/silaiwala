@@ -874,16 +874,21 @@ exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
       // 1. Fetch Admin Settings for Wallet Config
       const Settings = require("../../../models/Settings.js");
       const adminSettings = await Settings.findOne() || await Settings.create({});
-      const advancePercentage = adminSettings.walletConfig?.advancePercentage || 30;
       
-      // 2. Calculate partial payments
+      // 2. Keep the split the customer saw at checkout. Only orders created without a valid
+      //    split get one now — with the same rule as checkout/createOrder (resolveAdvancePct).
+      const total = Math.round(Number(order.totalAmount) || 0);
+      const adv = Math.round(Number(order.advancePaymentAmount) || 0);
+      const rem = Math.round(Number(order.remainingPaymentAmount) || 0);
       if (order.isBridalConsultation) {
-          order.advancePaymentAmount = order.totalAmount;
+          order.advancePaymentAmount = total;
           order.remainingPaymentAmount = 0;
-      } else {
-          const calculatedAdvance = Math.round(order.totalAmount * (advancePercentage / 100));
-          order.advancePaymentAmount = calculatedAdvance > 0 ? calculatedAdvance : Math.round(order.totalAmount * 0.3);
-          order.remainingPaymentAmount = order.totalAmount - order.advancePaymentAmount;
+      } else if (!(adv > 0 && adv + rem === total)) {
+          const { resolveAdvancePct, splitAdvanceRemaining } = require("../../../utils/checkoutPricing.js");
+          const isReadyMade = (order.items || []).some((item) => !!item.product);
+          const split = splitAdvanceRemaining(total, resolveAdvancePct(adminSettings, { isReadyMade }));
+          order.advancePaymentAmount = split.advanceAmount;
+          order.remainingPaymentAmount = split.remainingAmount;
       }
       order.advancePaymentStatus = "pending";
       order.remainingPaymentStatus = "pending";
