@@ -138,7 +138,7 @@ const StorePage = () => {
 
             {/* 4. 🔥 Trending Fabrics Section */}
             <ProductGrid 
-                sectionTitle={<span>🔥 Trending Fabrics</span>}
+                sectionTitle={<span>Trending Fabrics</span>}
                 onViewAll={() => setActiveCategory({ name: "All", id: null })}
                 filters={{ storeSection: "Trending", ...filters }} 
                 categoryId={activeCategory.id} 
@@ -150,7 +150,7 @@ const StorePage = () => {
 
             {/* 6. ⭐ Best Sellers & 🆕 New Arrivals */}
             <ProductGrid 
-                sectionTitle={<span>⭐ Best Sellers <span className="text-slate-300 font-normal">|</span> <span className="text-[#843D9B]">🆕 New Arrivals</span></span>}
+                sectionTitle={<span>Best Sellers <span className="text-slate-300 font-normal">|</span> <span className="text-[#843D9B]">New Arrivals</span></span>}
                 onViewAll={() => setActiveCategory({ name: "All", id: null })}
                 filters={{ storeSection: "Best Sellers", ...filters }} 
                 categoryId={null} 
@@ -162,7 +162,7 @@ const StorePage = () => {
 
             {/* 7. 💜 Recommended For You */}
             <ProductGrid 
-                sectionTitle={<span>💜 Recommended For You</span>}
+                sectionTitle={<span>Recommended For You</span>}
                 onViewAll={() => setActiveCategory({ name: "All", id: null })}
                 filters={{ storeSection: "Recommended", ...filters }} 
                 categoryId={null} 
@@ -174,7 +174,7 @@ const StorePage = () => {
 
             {/* 8. 🛍️ Explore All Products (Shows EVERYTHING) */}
             <ProductGrid 
-                sectionTitle={<span>🛍️ Explore All Products</span>}
+                sectionTitle={<span>Explore All Products</span>}
                 filters={filters} 
                 categoryId={activeCategory.id} 
                 categoryName={activeCategory.name} 

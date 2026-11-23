@@ -652,7 +652,7 @@ const OrderTracking = () => {
                     <div className="bg-white rounded-3xl p-4 border border-emerald-100 flex items-center justify-between shadow-sm">
                         <div>
                             <p className="text-xs font-black text-emerald-700 uppercase tracking-wider">Order Delivery OTP</p>
-                            <p className="text-[11px] text-gray-500 mt-0.5">Share with partner to receive order</p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">{order.deliveryMethod === 'tailor' ? 'Share with your tailor when they hand over the order' : 'Share with partner to receive order'}</p>
                         </div>
                         <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-200">
                             <span className="text-xl font-black tracking-widest text-emerald-700">{order.dropoffDeliveryOtp}</span>
@@ -854,6 +854,60 @@ const OrderTracking = () => {
                     </div>
                 )}
 
+                {/* Fabric self drop-off: customer shows this code, tailor enters it to confirm receipt */}
+                {order.status === 'waiting-for-customer-dropoff' && (
+                    <div className="bg-white rounded-3xl p-5 border border-[#843D9B]/15 shadow-sm space-y-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-[#843D9B]/10 text-[#843D9B] flex items-center justify-center shrink-0">
+                                <Store size={20} />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="text-sm font-black text-gray-900">Drop your fabric at the shop</h3>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    {tailorInfo?.shopName || 'Your tailor'}
+                                    {tailorInfo?.shopAddress ? ` · ${tailorInfo.shopAddress}` : ''}
+                                </p>
+                            </div>
+                        </div>
+
+                        {order.dropoffDeliveryOtp ? (
+                            <div className="rounded-2xl bg-[#843D9B]/5 border border-[#843D9B]/15 p-4 text-center">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[#843D9B]">Your drop-off code</p>
+                                <p className="mt-1 text-3xl font-black tracking-[0.35em] text-gray-900">{order.dropoffDeliveryOtp}</p>
+                                <p className="mt-1.5 text-[11px] text-gray-500">Show this code to the tailor when you hand over the fabric. They enter it to confirm.</p>
+                            </div>
+                        ) : (
+                            <p className="text-xs text-gray-500">The tailor will confirm once they receive your fabric.</p>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => navigate(`/user/orders/${id}/journey`)}
+                                className="py-2.5 rounded-xl bg-[#843D9B] text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95"
+                            >
+                                <MapPin size={14} /> Directions
+                            </button>
+                            {tailorInfo?.phoneNumber ? (
+                                <a
+                                    href={`tel:${tailorInfo.phoneNumber}`}
+                                    className="py-2.5 rounded-xl border border-gray-200 text-gray-800 text-xs font-bold flex items-center justify-center gap-1.5"
+                                >
+                                    <Phone size={14} /> Call tailor
+                                </a>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => navigate(`/user/orders/${id}/chat`)}
+                                    className="py-2.5 rounded-xl border border-gray-200 text-gray-800 text-xs font-bold flex items-center justify-center gap-1.5"
+                                >
+                                    <MessageSquare size={14} /> Chat
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Waiting for Tailor Acceptance Card */}
                 {order.status === 'pending' && (
                     <div className="bg-white rounded-3xl p-6 border border-amber-100 shadow-sm flex flex-col items-center text-center space-y-3 animate-in fade-in duration-300">
@@ -944,7 +998,7 @@ const OrderTracking = () => {
                     return null;
                 })()}
 
-                {order.status === 'ready-for-delivery' && order.remainingPaymentStatus === 'pending' && order.remainingPaymentAmount > 0 && (
+                {(order.status === 'ready-for-delivery' || (order.status === 'out-for-delivery' && order.deliveryMethod === 'tailor')) && order.remainingPaymentStatus === 'pending' && order.remainingPaymentAmount > 0 && (
                     <div className="bg-white rounded-3xl p-5 border border-emerald-100 shadow-sm flex flex-col items-center text-center space-y-3">
                         <h3 className="text-sm font-bold text-gray-900">Final Balance Payment</h3>
                         <p className="text-xs text-gray-600 max-w-xs">

@@ -21,9 +21,7 @@ const CustomerLiveJourney = () => {
     const [eta, setEta] = useState('');
     const [error, setError] = useState(null);
     const [isArrived, setIsArrived] = useState(false);
-    const [isUpdating, setIsUpdating] = useState(false);
     const [showOtpModal, setShowOtpModal] = useState(false);
-    const [otp, setOtp] = useState('');
 
     const mapRef = useRef(null);
     const watchIdRef = useRef(null);
@@ -49,6 +47,26 @@ const CustomerLiveJourney = () => {
         };
         fetchOrder();
     }, [id]);
+
+    // The tailor confirms the drop-off by entering the customer's code; follow that live.
+    useEffect(() => {
+        const token = getToken();
+        if (!token || !id) return undefined;
+        const socket = io(SOCKET_URL, { auth: { token } });
+        socket.emit('join_order_room', id);
+        const onUpdate = (data = {}) => {
+            const sameOrder = String(data._id || '') === String(id) || (order?.orderId && data.orderId === order.orderId);
+            if (!sameOrder) return;
+            if (data.status && data.status !== 'waiting-for-customer-dropoff') {
+                navigate(`/user/orders/${id}/track`, { replace: true });
+            }
+        };
+        socket.on('order_status_updated', onUpdate);
+        return () => {
+            socket.off('order_status_updated', onUpdate);
+            socket.disconnect();
+        };
+    }, [id, order?.orderId, navigate]);
 
     useEffect(() => {
         if (!order || !isLoaded) return;
@@ -150,28 +168,8 @@ const CustomerLiveJourney = () => {
         );
     };
 
-    const handleMarkDelivered = () => {
+    const handleShowCode = () => {
         setShowOtpModal(true);
-    };
-
-    const submitOtp = async (e) => {
-        if (e) e.preventDefault();
-        if (!otp || otp.length !== 6) {
-            alert("Please enter a valid 6-digit OTP");
-            return;
-        }
-
-        setIsUpdating(true);
-        try {
-            const targetStatus = ['ready-for-pickup', 'ready-for-delivery'].includes(order.status) ? 'product-delivered' : 'fabric-received';
-            await api.patch(`/orders/${order._id}/status`, { status: targetStatus, otp });
-            setShowOtpModal(false);
-            navigate(`/user/orders/${order._id}/track`, { replace: true });
-        } catch (err) {
-            console.error(err);
-            alert(err.response?.data?.message || "Failed to update status. Incorrect OTP?");
-            setIsUpdating(false);
-        }
     };
 
     if (loadError) return <div>Error loading maps</div>;
@@ -199,7 +197,7 @@ const CustomerLiveJourney = () => {
                 </button>
                 <div className="text-center">
                     <h2 className="text-[14px] font-black tracking-tight text-gray-900">Your Journey to Tailor</h2>
-                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">{['ready-for-pickup', 'ready-for-delivery'].includes(order.status) ? 'Product Pickup' : 'Live GPS Broadcast'}</p>
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Fabric drop-off</p>
                 </div>
                 <div className="w-10"></div>
             </div>
@@ -283,19 +281,16 @@ const CustomerLiveJourney = () => {
                     </div>
                     <div>
                         <h3 className="text-sm font-black text-gray-900">{order.tailor?.shopName || 'Tailor Shop'}</h3>
-                        <p className="text-xs text-gray-500 line-clamp-1">{order.tailor?.location?.address || 'Indore, Madhya Pradesh (Fallback Address)'}</p>
+                        <p className="text-xs text-gray-500 line-clamp-2">{order.tailor?.shopAddress || order.tailor?.location?.address || 'Shop address not added yet — call the tailor'}</p>
                     </div>
                 </div>
 
                 <button 
-                    onClick={handleMarkDelivered}
-                    disabled={isUpdating}
-                    className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-60 bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/25"
+                    onClick={handleShowCode}
+                    className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/25"
                 >
-                    {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 size={20} />}
-                    {['ready-for-pickup', 'ready-for-delivery'].includes(order.status) ? 
-                        (isArrived ? 'Confirm Product Received' : 'Proceeding to Shop (Collect Product)') : 
-                        (isArrived ? 'Confirm Fabric Dropped' : 'Proceeding to Shop (Click to Complete)')}
+                    <CheckCircle2 size={20} />
+                    {isArrived ? 'At the shop — show drop-off code' : 'Show drop-off code'}
                 </button>
             </div>
 
@@ -314,29 +309,22 @@ const CustomerLiveJourney = () => {
                             <CheckCircle2 size={24} />
                         </div>
                         
-                        <h3 className="text-xl font-black text-gray-900 mb-2">Dropoff Verification</h3>
-                        <p className="text-sm text-gray-500 font-medium mb-6">
-                            Please ask the Tailor for the 6-digit delivery OTP to confirm you have dropped off the fabric.
+                        <h3 className="text-xl font-black text-gray-900 mb-2">Your drop-off code</h3>
+                        <p className="text-sm text-gray-500 font-medium mb-5">
+                            Show this code to the tailor when you hand over the fabric. They enter it in their app to confirm — this screen updates automatically.
                         </p>
-                        
-                        <form onSubmit={submitOtp}>
-                            <input
-                                type="text"
-                                placeholder="Enter 6-digit OTP"
-                                maxLength={6}
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                                className="w-full bg-gray-50 border-2 border-gray-100 px-4 py-4 rounded-2xl text-center text-2xl font-black tracking-[0.5em] mb-4 focus:outline-none focus:border-primary focus:bg-white transition-all"
-                            />
-                            
-                            <button 
-                                type="submit"
-                                disabled={isUpdating || otp.length !== 6}
-                                className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-60 bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/25"
-                            >
-                                {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Complete'}
-                            </button>
-                        </form>
+
+                        <div className="w-full bg-gray-50 border-2 border-gray-100 px-4 py-5 rounded-2xl text-center text-3xl font-black tracking-[0.45em] text-gray-900 mb-4">
+                            {order.dropoffDeliveryOtp || '— — —'}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowOtpModal(false)}
+                            className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-wider bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/25"
+                        >
+                            Done
+                        </button>
                     </div>
                 </div>
             )}

@@ -17,27 +17,27 @@ const AIMeasurementCard = () => {
         {
             id: 'ai-measurement',
             badge: 'NEW',
-            badgeClass: 'bg-pink-100 text-pink-600',
+            badgeClass: 'bg-[#1A1523] text-white',
             title: 'AI MEASUREMENT',
             description: 'Get accurate body measurements in 30 seconds. No measuring tape required!',
             buttonText: 'TRY NOW',
             onAction: () => toast('AI Measurement coming soon!'),
             image: mannequinGraphic,
             imageAlt: 'AI Measurement Mannequin',
-            gradient: 'from-[#F6EFFD] via-[#F1E4FA] to-[#EAD5F7]',
+            gradient: 'from-white via-[#FBFAFC] to-[#F4F1F6]',
             imgClass: 'w-full h-full object-contain relative z-10 drop-shadow-md scale-110'
         },
         {
             id: 'doorstep-measurement',
             badge: 'FREE VISIT',
-            badgeClass: 'bg-purple-100 text-[#843D9B]',
+            badgeClass: 'bg-[#F1E4F7] text-[#843D9B]',
             title: 'DOORSTEP MEASURE',
             description: 'Book master tailor visit at home for perfect fitting & free fabric pickup!',
             buttonText: 'BOOK VISIT',
             onAction: () => navigate('/user/services'),
             image: measurementGraphic,
             imageAlt: 'Doorstep Tailor Measurement',
-            gradient: 'from-[#F8EEFD] via-[#F3E2FA] to-[#EBD3F8]',
+            gradient: 'from-white via-[#FBFAFC] to-[#F4F1F6]',
             imgClass: 'w-full h-full object-contain relative z-10 drop-shadow-md scale-110'
         }
     ];
@@ -80,10 +80,10 @@ const AIMeasurementCard = () => {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
-                className={`bg-gradient-to-r ${currentSlide.gradient} rounded-2xl sm:rounded-3xl border border-purple-100/80 px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-sm relative overflow-hidden transition-colors duration-500`}
+                className={`bg-gradient-to-r ${currentSlide.gradient} rounded-2xl sm:rounded-3xl border border-[#ECEAEF] px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-sm relative overflow-hidden transition-colors duration-500`}
             >
                 {/* Background ambient glow */}
-                <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-purple-300/30 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-[#E9E4EE]/60 rounded-full blur-2xl pointer-events-none" />
                 <div className="absolute left-1/2 top-0 w-16 h-16 bg-white/40 rounded-full blur-xl pointer-events-none" />
 
                 <AnimatePresence mode="wait" initial={false}>
@@ -110,7 +110,7 @@ const AIMeasurementCard = () => {
                             </p>
                             <button 
                                 onClick={currentSlide.onAction}
-                                className="mt-1.5 bg-[#843D9B] hover:bg-[#682498] text-white px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-black flex items-center gap-1 shadow-sm shadow-[#843D9B]/25 active:scale-95 transition-all uppercase tracking-wide cursor-pointer"
+                                className="mt-1.5 bg-[#1A1523] hover:bg-black text-white px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-black flex items-center gap-1 shadow-sm active:scale-95 transition-all uppercase tracking-wide cursor-pointer"
                             >
                                 {currentSlide.buttonText} <ArrowRight size={10} />
                             </button>
@@ -139,8 +139,8 @@ const AIMeasurementCard = () => {
                             onClick={() => setCurrentIndex(idx)}
                             className={`transition-all duration-300 rounded-full cursor-pointer border-0 p-0 ${
                                 idx === currentIndex
-                                    ? 'w-4 h-1 bg-[#843D9B] shadow-sm'
-                                    : 'w-1 h-1 bg-purple-300 hover:bg-purple-400'
+                                    ? 'w-4 h-1 bg-[#1A1523]'
+                                    : 'w-1 h-1 bg-[#D6D2DB] hover:bg-[#B8B2BF]'
                             }`}
                         />
                     ))}

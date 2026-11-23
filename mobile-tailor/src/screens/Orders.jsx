@@ -170,6 +170,9 @@ const Orders = () => {
 
   // Dispatch Delivery Modal State
   const [dispatchOrder, setDispatchOrder] = useState(null);
+  // Customer self drop-off: tailor types the customer's drop-off code to confirm receipt
+  const [fabricCodeOrder, setFabricCodeOrder] = useState(null);
+  const [fabricCode, setFabricCode] = useState('');
   const [isDispatching, setIsDispatching] = useState(false);
   const [updatingOrders, setUpdatingOrders] = useState({});
   const [dispatchingMethod, setDispatchingMethod] = useState(null);
@@ -285,6 +288,15 @@ const Orders = () => {
       }));
     }
   };
+  const submitFabricCode = async () => {
+    if (!fabricCodeOrder || !/^\d{6}$/.test(fabricCode)) return;
+    const result = await handleStatusUpdate(fabricCodeOrder._id, 'fabric-received', { otp: fabricCode });
+    if (result?.success) {
+      setFabricCodeOrder(null);
+      setFabricCode('');
+    }
+  };
+
   const handleDispatchAction = async method => {
     if (!dispatchOrder) return;
     setDispatchingMethod(method);
@@ -431,6 +443,9 @@ const Orders = () => {
       if (data.pickupDeliveryOtp !== undefined) patch.pickupDeliveryOtp = data.pickupDeliveryOtp;
       if (data.dropoffOtpVerified !== undefined) patch.dropoffOtpVerified = data.dropoffOtpVerified;
       if (data.pickupOtpVerified !== undefined) patch.pickupOtpVerified = data.pickupOtpVerified;
+      if (data.paymentStatus !== undefined) patch.paymentStatus = data.paymentStatus;
+      if (data.advancePaymentStatus !== undefined) patch.advancePaymentStatus = data.advancePaymentStatus;
+      if (data.remainingPaymentStatus !== undefined) patch.remainingPaymentStatus = data.remainingPaymentStatus;
       const matches = o => data._id && String(o._id) === String(data._id) || data.orderId && o.orderId === data.orderId;
       if (Object.keys(patch).length > 0) {
         setSelectedOrder(prev => prev && matches(prev) ? {
@@ -951,7 +966,7 @@ const Orders = () => {
                                 {order.pickupDeliveryOtp}
                             </Box>
                         </Box>}
-                    {order.dropoffDeliveryOtp && order.dropoffOtpVerified !== true && (['fabric-picked-up', 'fabric-ready-for-pickup', 'waiting-for-customer-dropoff', 'fabric-delivered'].includes(order.status) || order.pickupDeliveryStatus === 'reached-dropoff') && <Box className="mb-4 p-4 bg-green-50 rounded-3xl border border-green-100 flex items-center justify-between">
+                    {order.dropoffDeliveryOtp && order.dropoffOtpVerified !== true && (['fabric-picked-up', 'fabric-ready-for-pickup', 'fabric-delivered'].includes(order.status) || order.pickupDeliveryStatus === 'reached-dropoff') && <Box className="mb-4 p-4 bg-green-50 rounded-3xl border border-green-100 flex items-center justify-between">
                             <Box>
                                 <Txt className="text-[11px] font-black uppercase text-green-700 tracking-wider">Fabric Receive OTP</Txt>
                                 <Txt className="text-[12px] text-gray-600 font-medium">Share this with the delivery partner to accept fabric</Txt>
@@ -1315,6 +1330,11 @@ const Orders = () => {
                                                         </Btn>;
                 }
                 return <Btn onPress={e => {
+                  if (order.status === 'waiting-for-customer-dropoff') {
+                    setFabricCode('');
+                    setFabricCodeOrder(order);
+                    return;
+                  }
                   if (nextStep.current === 'quality-check' || order.status === 'ready-for-pickup' && order.deliveryMethod !== 'self' || order.status === 'ready-for-delivery' && order.deliveryMethod !== 'self') {
                     setDispatchOrder({
                       order,
@@ -1346,11 +1366,30 @@ const Orders = () => {
         }} />
             </FullScreenModal>
 
+            {/* Receive Fabric (customer self drop-off) */}
+            <Dialog visible={!!fabricCodeOrder} onClose={() => setFabricCodeOrder(null)} className="relative bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+                {fabricCodeOrder && <Box className="flex flex-col">
+                    <Box className="flex flex-row items-center justify-between mb-3">
+                        <Txt className="text-lg font-black text-gray-900">Receive fabric</Txt>
+                        <Btn onPress={() => setFabricCodeOrder(null)} className="p-2 bg-gray-100 rounded-full">
+                            <I icon={X} size={18} className="text-gray-600" />
+                        </Btn>
+                    </Box>
+                    <Txt className="text-xs text-gray-500 font-medium mb-4">
+                        Ask the customer for the 6-digit drop-off code shown in their app (order #{fabricCodeOrder.orderId}).
+                    </Txt>
+                    <Input value={fabricCode} onChangeText={t => setFabricCode(String(t).replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" maxLength={6} autoFocus placeholder="••••••" className="w-full bg-gray-50 border-2 border-gray-100 px-4 py-4 rounded-2xl text-center text-2xl font-black tracking-[0.5em] mb-4" />
+                    <Btn onPress={submitFabricCode} disabled={fabricCode.length !== 6 || updatingOrders[fabricCodeOrder._id]} className="w-full py-3.5 rounded-2xl bg-gray-900 flex items-center justify-center disabled:opacity-50">
+                        {updatingOrders[fabricCodeOrder._id] ? <Spin className="w-4 h-4 animate-spin text-white" /> : <Txt className="text-sm font-black uppercase tracking-wider text-white">Confirm fabric received</Txt>}
+                    </Btn>
+                </Box>}
+            </Dialog>
+
             {/* Delivery Dispatch Modal */}
             {dispatchOrder && <Dialog visible={!!(dispatchOrder)} onClose={() => setDispatchOrder(null)} className={`relative bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl`}>
 <Box className="flex-shrink flex flex-col overflow-hidden">
                         <Box className="flex items-center justify-between mb-4">
-                            <Txt className="text-lg font-black text-gray-900">Assign Delivery Partner</Txt>
+                            <Txt className="text-lg font-black text-gray-900">How will this order reach the customer?</Txt>
                             <Btn onPress={() => !isDispatching && setDispatchOrder(null)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600">
                                 <I icon={X} size={18} />
                             </Btn>
@@ -1365,6 +1404,16 @@ const Orders = () => {
                                 <Box>
                                     <Txt className="text-sm font-black text-blue-900 mb-0.5 group-hover:text-blue-700">Broadcast to Partners</Txt>
                                     <Txt className="text-[10px] font-bold text-blue-600/70">Send request to all available delivery agents.</Txt>
+                                </Box>
+                            </Btn>
+
+                            <Btn onPress={() => handleDispatchAction('tailor')} disabled={isDispatching} className="w-full p-4 border border-emerald-100 bg-emerald-50 rounded-2xl flex items-center gap-4 disabled:opacity-60">
+                                <Box className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                                    {isDispatching && dispatchingMethod === 'tailor' ? <Spin className="w-5 h-5 animate-spin text-emerald-600" /> : <I icon={Navigation} size={20} className="text-emerald-600" />}
+                                </Box>
+                                <Box className="flex-1">
+                                    <Txt className="text-sm font-black text-emerald-900 mb-0.5">Deliver it myself</Txt>
+                                    <Txt className="text-[10px] font-bold text-emerald-600/70">You take it to the customer. They show a code; you enter it to finish.</Txt>
                                 </Box>
                             </Btn>
 

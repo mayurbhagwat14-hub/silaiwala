@@ -1637,6 +1637,12 @@ exports.getOrderDetails = asyncHandler(async (req, res, next) => {
         order.tailor.totalReviews = tailorDoc.totalReviews || 120;
         order.tailor.experienceInYears = tailorDoc.experienceInYears || 5;
         order.tailor.tailorProfileId = tailorDoc._id;
+        // Shop address — the customer needs it for fabric self drop-off
+        if (tailorDoc.location?.address) {
+          order.tailor.shopAddress = [tailorDoc.location.address, tailorDoc.location.city, tailorDoc.location.pincode]
+            .filter(Boolean)
+            .join(", ");
+        }
         if (!order.tailor.profileImage && tailorDoc.user?.profileImage) {
           order.tailor.profileImage = tailorDoc.user.profileImage;
         }
@@ -1727,10 +1733,13 @@ exports.getOrderDetails = asyncHandler(async (req, res, next) => {
 
   const isCustomer = order.customer?._id?.toString() === req.user.id;
   const isTailor = order.tailor?._id?.toString() === req.user.id;
+  // Self drop-off: the customer shows the code at the shop and the tailor types it in,
+  // so here (unlike a partner drop-off) the customer holds it and the tailor must not see it.
+  const isSelfDropoff = order.status === "waiting-for-customer-dropoff";
 
-  if (isCustomer && isFabricPhase) {
+  if (isCustomer && isFabricPhase && !isSelfDropoff) {
     order.dropoffDeliveryOtp = undefined;
-  } else if (isTailor && !isFabricPhase) {
+  } else if (isTailor && (!isFabricPhase || isSelfDropoff)) {
     order.dropoffDeliveryOtp = undefined;
   }
 
@@ -2348,105 +2357,28 @@ exports.broadcastCustomerLocation = asyncHandler(async (req, res, next) => {
  * @access  Private (Customer)
  */
 exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
-  const { status, otp } = req.body;
-  const order = await Order.findById(req.params.id).select('+dropoffDeliveryOtp +pickupDeliveryOtp');
-  
+  const order = await Order.findById(req.params.id).select('customer status');
+
   if (!order) {
     return next(new ErrorResponse("Order not found", 404));
   }
 
-  // Ensure only the customer of this order can update status
   if (order.customer.toString() !== req.user.id) {
     return next(new ErrorResponse("Not authorized to update status for this order", 401));
   }
 
-  if (status === 'fabric-received') {
-      if (!otp) {
-          return next(new ErrorResponse("OTP is required to confirm dropoff", 400));
-      }
-      if (order.dropoffDeliveryOtp !== otp && !(isDefaultOtpEnabled() && otp === "123456")) {
-          return next(new ErrorResponse("Invalid OTP", 400));
-      }
-      order.dropoffOtpVerified = true;
-      order.otpVerifiedAt = new Date();
-      order.dropoffDeliveryOtp = null; // Invalidate OTP after use
-  }
-  
-  if (status === 'product-delivered') {
-      if (!otp) {
-          return next(new ErrorResponse("OTP is required to confirm pickup", 400));
-      }
-      if (order.pickupDeliveryOtp !== otp && !(isDefaultOtpEnabled() && otp === "123456")) {
-          return next(new ErrorResponse("Invalid OTP", 400));
-      }
-
-      // Payment Gate: Ensure payment is confirmed before marking as delivered
-      const isPaymentConfirmed = order.paymentStatus === 'paid' || 
-          (order.remainingPaymentStatus === 'paid' && order.advancePaymentStatus === 'paid');
-      if (!isPaymentConfirmed) {
-          return next(new ErrorResponse("Payment must be completed before marking as delivered", 400));
-      }
-
-      order.pickupOtpVerified = true;
-      order.otpVerifiedAt = new Date();
-      order.pickupDeliveryOtp = null; // Invalidate OTP after use
-      order.deliveredAt = new Date();
-  }
-
-  if (order.status !== status) {
-      order.status = status;
-      order.trackingHistory.push({
-        status,
-        timestamp: new Date(),
-        message: `Order status updated to ${status.replace(/-/g, ' ')}`
-      });
-      await order.save();
-  }
-
-  // Socket: notify tailor and customer about status change
-  try {
-    const { getIO } = require("../../../config/socket.js");
-    const io = getIO();
-    if (io) {
-      const statusPayload = {
-        orderId: order.orderId,
-        _id: order._id,
-        status: order.status,
-        acceptedAt: order.acceptedAt,
-        pickupDeliveryStatus: order.pickupDeliveryStatus,
-        dropoffDeliveryStatus: order.dropoffDeliveryStatus,
-        deliveryStatus: order.deliveryStatus,
-        pickupDeliveryOtp: order.pickupDeliveryOtp,
-        dropoffDeliveryOtp: order.dropoffDeliveryOtp,
-        pickupOtpVerified: order.pickupOtpVerified,
-        dropoffOtpVerified: order.dropoffOtpVerified,
-      };
-      io.to(`user_${order.tailor}`).emit('order_status_updated', statusPayload);
-      io.to(`user_${order.customer}`).emit('order_status_updated', statusPayload);
-      io.to(`order_${order._id}`).emit('order_status_updated', statusPayload);
-      
-      if (status === 'product-delivered' || status === 'delivered') {
-        io.to(`order_${order._id}`).emit('delivery_completed', { orderId: order._id });
-        const orderRoom = `order_${order._id}`;
-        setTimeout(() => {
-          io.in(orderRoom).socketsLeave(orderRoom);
-        }, 1000);
-      }
-    }
-    if (order.tailor) {
-      await sendNotification({
-        recipient: order.tailor,
-        type: "ORDER_STATUS_UPDATED",
-        title: "Order Status Updated",
-        message: `Order #${order.orderId} status updated to ${status.replace(/-/g, ' ')}.`,
-        data: { orderId: order._id, targetUrl: "/partner/orders" }
-      });
-    }
-  } catch (err) {
-    console.error("Socket emission failed in updateOrderStatus:", err.message);
-  }
-
-  res.status(200).json({ success: true, data: order });
+  // Customers never move an order themselves. Every self hand-over is confirmed by the
+  // other side entering the customer's code:
+  //  • fabric self drop-off → the tailor enters the customer's drop-off code
+  //  • tailor self-delivery → the tailor enters the customer's delivery code
+  // Letting the customer set a status (even with an OTP they can see) would let them
+  // mark fabric received / order delivered on their own.
+  return next(
+    new ErrorResponse(
+      "Show your code to the tailor — they confirm the hand-over in their app.",
+      403
+    )
+  );
 });
 
 /**
@@ -2537,9 +2469,13 @@ exports.completeTailorSelfDelivery = asyncHandler(async (req, res, next) => {
         console.log(`💵 Tailor COD wallet updated (+₹${order.remainingPaymentAmount}). New Balance: ₹${tailorProfile.codWalletBalance}`);
       }
     } else if (paymentMethod === 'online' || paymentMethod === 'qr') {
-      order.remainingPaymentMethod = 'online';
-      order.remainingPaymentStatus = 'paid';
-      order.paymentStatus = 'paid';
+      // Online money is only trusted once Razorpay has verified it (customer pays in the app,
+      // verifyPayment / webhook marks remainingPaymentStatus = 'paid'). The tailor cannot
+      // declare an online payment on the customer's behalf.
+      return next(new ErrorResponse(
+        `Online payment not received yet. Ask the customer to pay ₹${order.remainingPaymentAmount} in their app, or collect cash.`,
+        400
+      ));
     } else {
       return next(new ErrorResponse("Payment method is required. Remaining amount: ₹" + order.remainingPaymentAmount, 400));
     }

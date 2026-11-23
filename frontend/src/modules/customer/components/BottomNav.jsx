@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { Shirt, ShoppingBag, ClipboardList, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const NavItem = ({ to, icon: Icon, label }) => {
+const NavItem = ({ to, icon, label }) => {
+    const Icon = icon;
     const location = useLocation();
     
     let isActive = false;
@@ -48,24 +49,34 @@ const NavItem = ({ to, icon: Icon, label }) => {
         <Link
             to={to}
             aria-label={label}
-            className="flex flex-col items-center gap-0.5 relative min-w-[56px] py-0.5"
+            aria-current={isActive ? 'page' : undefined}
+            className="group flex min-w-0 flex-1 flex-col items-center gap-1 pb-1 pt-2"
         >
-            {isActive && (
-                <motion.span 
-                    layoutId="customerBottomNavActive"
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-[#843D9B] rounded-full z-10" 
+            {/* Material-style indicator: soft pill behind the active icon */}
+            <motion.span
+                whileTap={{ scale: 0.88 }}
+                className="relative isolate flex h-8 w-14 items-center justify-center"
+            >
+                {isActive && (
+                    <motion.span
+                        layoutId="customerBottomNavActive"
+                        className="absolute inset-0 -z-10 rounded-full bg-[#F1E4F7]"
+                        transition={{ type: 'spring', stiffness: 460, damping: 36 }}
+                    />
+                )}
+                <Icon
+                    size={21}
+                    strokeWidth={isActive ? 2.3 : 1.8}
+                    className={`transition-colors duration-200 ${
+                        isActive ? 'text-[#843D9B]' : 'text-[#8E8699] group-hover:text-[#5E5768]'
+                    }`}
                 />
-            )}
-            <div className={`p-1.5 rounded-xl transition-all duration-300 flex items-center justify-center relative ${
-                isActive
-                    ? 'bg-[#843D9B] text-white shadow-md shadow-[#843D9B]/30 scale-105'
-                    : 'text-gray-400 active:scale-90 hover:text-gray-600'
-            }`}>
-                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-            </div>
-            <span className={`text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
-                isActive ? 'text-[#843D9B]' : 'text-gray-400'
-            }`}>
+            </motion.span>
+            <span
+                className={`truncate text-[11px] leading-none transition-colors duration-200 ${
+                    isActive ? 'font-bold text-[#843D9B]' : 'font-medium text-[#8E8699]'
+                }`}
+            >
                 {label}
             </span>
         </Link>
@@ -74,8 +85,12 @@ const NavItem = ({ to, icon: Icon, label }) => {
 
 const BottomNav = () => {
     return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] rounded-t-2xl pt-2.5 pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] px-4">
-            <div className="max-w-md mx-auto flex items-center justify-between">
+        <nav
+            aria-label="Main"
+            className="md:hidden fixed inset-x-0 bottom-0 z-50 border-t border-[#EEE9F2] bg-white/95 shadow-[0_-6px_20px_-12px_rgba(42,15,56,0.18)] backdrop-blur-xl"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)' }}
+        >
+            <div className="mx-auto flex max-w-md items-stretch px-2">
                 <NavItem to="/user" icon={Shirt} label="Services" />
                 <NavItem to="/user/store" icon={ShoppingBag} label="Store" />
                 <NavItem to="/user/orders" icon={ClipboardList} label="Orders" />

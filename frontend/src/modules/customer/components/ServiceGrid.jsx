@@ -1,86 +1,47 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { SectionTitle } from './home/homeUi';
 
 const ServiceGrid = () => {
     const navigate = useNavigate();
 
     const services = [
-        {
-            title: 'Tailors',
-            subtitle: 'Expert Professionals',
-            imgSrc: '/icons/service_icon_0.png',
-            path: '/user/tailors'
-        },
-        {
-            title: 'Stitching',
-            subtitle: 'Perfectly Crafted',
-            imgSrc: '/icons/service_icon_1.png',
-            path: '/user/services'
-        },
-        {
-            title: 'Style Add-ons',
-            subtitle: 'Elevate Your Look',
-            imgSrc: '/icons/service_icon_2.png',
-            path: '/user/embellishments'
-        },
-        {
-            title: 'Bridal',
-            subtitle: 'Made For Your Day',
-            imgSrc: '/icons/service_icon_3.png',
-            path: '/user/tailors?service=bridal'
-        }
+        { title: 'Tailors', subtitle: 'Expert pros', imgSrc: '/icons/service_icon_0.png', path: '/user/tailors' },
+        { title: 'Stitching', subtitle: 'Perfectly crafted', imgSrc: '/icons/service_icon_1.png', path: '/user/services' },
+        { title: 'Add-ons', subtitle: 'Elevate your look', imgSrc: '/icons/service_icon_2.png', path: '/user/embellishments' },
+        { title: 'Bridal', subtitle: 'For your big day', imgSrc: '/icons/service_icon_3.png', path: '/user/tailors?service=bridal' },
     ];
 
     return (
-        <div className="px-4 md:px-6 lg:px-8 mt-3 mb-5">
-            {/* Header Section */}
-            <div className="flex items-center justify-between mb-3 relative">
-                <div className="flex-1 flex justify-center items-center">
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-[#843D9B] opacity-60 font-black text-xs italic">//</span>
-                        <h2 className="text-xs sm:text-sm font-black text-[#682498] uppercase tracking-[0.18em]">WHAT WE OFFER</h2>
-                        <span className="text-[#843D9B] opacity-60 font-black text-xs italic">//</span>
-                    </div>
-                </div>
-                <button 
-                    onClick={() => navigate('/user/what-we-offer')}
-                    className="absolute right-0 text-[10px] sm:text-xs font-black text-[#843D9B] hover:text-[#682498] flex items-center gap-0.5 uppercase tracking-wider cursor-pointer"
-                >
-                    View All <ArrowRight size={12} />
-                </button>
-            </div>
+        <div className="px-4 md:px-6 lg:px-8 mb-2">
+            <SectionTitle title="What we" accent="offer" to="/user/what-we-offer" />
 
-            {/* 4 Category Icons Row */}
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-4">
-                {services.map((service, index) => (
-                    <motion.div
-                        key={index}
-                        whileTap={{ scale: 0.95 }}
+            <div className="grid grid-cols-4 gap-2 sm:gap-4">
+                {services.map((service) => (
+                    <motion.button
+                        key={service.title}
+                        type="button"
+                        whileTap={{ scale: 0.94 }}
                         onClick={() => navigate(service.path)}
-                        className="flex flex-col items-center gap-1 cursor-pointer group"
+                        className="group flex min-w-0 flex-col items-center gap-1.5"
                     >
-                        <div className="w-[76px] h-[76px] sm:w-[92px] sm:h-[92px] flex items-center justify-center transition-transform group-hover:scale-105">
-                            <img 
-                                src={service.imgSrc} 
-                                alt={service.title} 
+                        <span className="flex h-[64px] w-[64px] items-center justify-center rounded-[20px] bg-[#F7F6F9] ring-1 ring-[#ECEAEF] transition-transform duration-300 group-hover:-translate-y-0.5 sm:h-[80px] sm:w-[80px]">
+                            <img
+                                src={service.imgSrc}
+                                alt=""
                                 loading="lazy"
                                 decoding="async"
-                                width="76"
-                                height="76"
-                                className="w-full h-full object-contain" 
+                                width="56"
+                                height="56"
+                                className="h-[56px] w-[56px] object-contain sm:h-[70px] sm:w-[70px]"
                             />
-                        </div>
-                        <div className="flex flex-col items-center text-center">
-                            <span className="text-[10px] sm:text-xs font-bold text-gray-900 leading-tight text-center whitespace-nowrap">
-                                {service.title}
-                            </span>
-                            <span className="text-[8px] sm:text-[9px] font-medium text-gray-500 leading-tight text-center mt-0.5">
-                                {service.subtitle}
-                            </span>
-                        </div>
-                    </motion.div>
+                        </span>
+                        <span className="flex max-w-full flex-col items-center text-center">
+                            <span className="truncate text-[12px] font-semibold leading-tight text-[#1A1523]">{service.title}</span>
+                            <span className="truncate text-[9.5px] font-medium leading-tight text-[#8C8794]">{service.subtitle}</span>
+                        </span>
+                    </motion.button>
                 ))}
             </div>
         </div>

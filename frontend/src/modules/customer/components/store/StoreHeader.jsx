@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ShoppingBag, Heart, SlidersHorizontal, Camera, Mic } from 'lucide-react';
+import { Search, ShoppingBag, Heart, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useCartStore from '../../../../store/cartStore';
 import useWishlistStore from '../../../../store/wishlistStore';
@@ -88,16 +88,8 @@ const StoreHeader = ({ searchQuery, setSearchQuery, onOpenFilter }) => {
                         placeholder="Search fabrics, suits, designs..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-50/80 border border-slate-200/80 rounded-full py-2.5 pl-10 pr-20 text-xs font-semibold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400 shadow-inner"
+                        className="w-full bg-slate-50/80 border border-slate-200/80 rounded-full py-2.5 pl-10 pr-4 text-xs font-semibold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400 shadow-inner"
                     />
-                    <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center gap-2.5">
-                        <button type="button" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">
-                            <Camera size={18} />
-                        </button>
-                        <button type="button" className="text-slate-400 hover:text-primary transition-colors cursor-pointer">
-                            <Mic size={18} />
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>

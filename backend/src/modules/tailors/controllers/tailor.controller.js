@@ -582,6 +582,20 @@ const TAILOR_HISTORY_STATUSES = [
   "cancelled",
 ];
 
+/**
+ * OTPs the customer holds must never reach the tailor, otherwise the tailor could confirm
+ * the hand-over alone. Customer self drop-off: the customer shows the code and the tailor
+ * enters it. Tailor self-delivery: same, at the customer's door.
+ */
+const hideCustomerHeldOtps = (o) => {
+  if (!o) return o;
+  const customerHoldsDropoffOtp =
+    o.status === 'waiting-for-customer-dropoff' ||
+    (o.status === 'out-for-delivery' && o.deliveryMethod === 'tailor');
+  if (customerHoldsDropoffOtp) delete o.dropoffDeliveryOtp;
+  return o;
+};
+
 exports.getOrders = asyncHandler(async (req, res, next) => {
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   res.setHeader("Pragma", "no-cache");
@@ -674,6 +688,7 @@ exports.getOrders = asyncHandler(async (req, res, next) => {
 
   const modifiedOrders = orders.map(order => {
     const o = order.toObject ? order.toObject({ virtuals: true }) : order;
+    hideCustomerHeldOtps(o);
     o.reportedIssue = issueMap[o._id.toString()] || null;
     o.vendorLatitude = vendorLatitude;
     o.vendorLongitude = vendorLongitude;
@@ -789,14 +804,14 @@ exports.getDeliveryDetails = asyncHandler(async (req, res, next) => {
  * @access  Private (Tailor)
  */
 exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
-  const { status, message, autoAssign, deliveryMethod } = req.body;
+  const { status, message, autoAssign, deliveryMethod, otp } = req.body;
   const allowedStatuses = ["accepted", "order-received", "fabric-selected", "fabric-received", "measurement-verification", "cutting", "stitching", "finishing", "quality-check", "ready-for-pickup", "ready-for-delivery", "out-for-delivery", "delivered", "product-delivered", "order-completed", "cancelled", "ready", "in-progress"];
 
   if (!allowedStatuses.includes(status)) {
     return next(new ErrorResponse("Invalid status update", 400));
   }
 
-  const order = await Order.findOne({ _id: req.params.id, tailor: req.user.id });
+  const order = await Order.findOne({ _id: req.params.id, tailor: req.user.id }).select('+dropoffDeliveryOtp');
 
   if (!order) {
     return next(new ErrorResponse("Order not found or not assigned to you", 404));
@@ -904,6 +919,23 @@ exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
           )
         );
       }
+    }
+
+    // Customer self drop-off: the customer shows their drop-off code, the tailor enters it.
+    if (order.status === "waiting-for-customer-dropoff") {
+      const code = String(otp || "").trim();
+      if (!/^\d{6}$/.test(code)) {
+        return next(new ErrorResponse("Enter the 6-digit code shown in the customer's app to confirm you received the fabric", 400));
+      }
+      const matches =
+        (order.dropoffDeliveryOtp && order.dropoffDeliveryOtp === code) ||
+        (isDefaultOtpEnabled() && code === "123456");
+      if (!matches) {
+        return next(new ErrorResponse("Invalid code. Ask the customer for the drop-off code shown in their app.", 400));
+      }
+      order.dropoffOtpVerified = true;
+      order.otpVerifiedAt = new Date();
+      order.dropoffDeliveryOtp = null;
     }
   }
 
@@ -1117,9 +1149,10 @@ exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
     .select('+pickupDeliveryOtp +dropoffDeliveryOtp')
     .lean();
 
+  const responseOrder = updatedOrder || (order.toObject ? order.toObject() : order);
   res.status(200).json({
     success: true,
-    data: updatedOrder || order,
+    data: hideCustomerHeldOtps(responseOrder),
   });
 });
 

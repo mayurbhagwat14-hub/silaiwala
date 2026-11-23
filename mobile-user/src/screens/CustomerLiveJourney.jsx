@@ -1,4 +1,5 @@
-// Port of modules/customer/pages/CustomerLiveJourney.jsx — foreground GPS watch, Directions REST route, location broadcast, OTP dialog.
+// Port of modules/customer/pages/CustomerLiveJourney.jsx — foreground GPS watch, Directions REST route, location broadcast,
+// drop-off code dialog (the customer shows the code; the tailor enters it in their app to confirm receipt).
 import React, { useState, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -6,13 +7,15 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { ChevronLeft, MapPin, CheckCircle2, XCircle } from 'lucide-react-native';
 import { useParams, useNavigate } from '../lib/nav';
 import api from '../lib/api';
-import { alert } from '../lib/alert';
+import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../lib/config';
+import { getToken } from '../lib/auth';
 import { watchPosition } from '../lib/location';
 import { getDirections } from '../lib/directions';
 import Screen from '../components/common/Screen';
 import Spin from '../components/ui/Spin';
 import { Dialog } from '../components/ui/Sheet';
-import { Box, Txt, Btn, I, Input } from '../components/ui/primitives';
+import { Box, Txt, Btn, I } from '../components/ui/primitives';
 
 const ll = (c) => ({ latitude: c.lat, longitude: c.lng });
 
@@ -26,9 +29,7 @@ const CustomerLiveJourney = () => {
   const [eta, setEta] = useState('');
   const [error, setError] = useState(null);
   const [isArrived, setIsArrived] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otp, setOtp] = useState('');
   const mapRef = useRef(null);
   const arrivedRef = useRef(false);
 
@@ -43,6 +44,25 @@ const CustomerLiveJourney = () => {
       }
     })();
   }, [id]);
+
+  // Leave this screen as soon as the tailor confirms the drop-off with the customer's code
+  useEffect(() => {
+    const token = getToken();
+    if (!token || !id) return undefined;
+    const socket = io(SOCKET_URL, { auth: { token } });
+    socket.emit('join_order_room', id);
+    const onUpdate = (data = {}) => {
+      const sameOrder = String(data._id || '') === String(id) || (order?.orderId && data.orderId === order.orderId);
+      if (sameOrder && data.status && data.status !== 'waiting-for-customer-dropoff') {
+        navigate(`/user/orders/${id}/track`, { replace: true });
+      }
+    };
+    socket.on('order_status_updated', onUpdate);
+    return () => {
+      socket.off('order_status_updated', onUpdate);
+      socket.disconnect();
+    };
+  }, [id, order?.orderId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const vendor = order
     ? { lat: order.vendorLatitude ? Number(order.vendorLatitude) : 22.7196, lng: order.vendorLongitude ? Number(order.vendorLongitude) : 75.8577 }
@@ -87,23 +107,6 @@ const CustomerLiveJourney = () => {
     return stop;
   }, [order]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const submitOtp = async () => {
-    if (!otp || otp.length !== 6) {
-      alert('Please enter a valid 6-digit OTP');
-      return;
-    }
-    setIsUpdating(true);
-    try {
-      const targetStatus = ['ready-for-pickup', 'ready-for-delivery'].includes(order.status) ? 'product-delivered' : 'fabric-received';
-      await api.patch(`/orders/${order._id}/status`, { status: targetStatus, otp });
-      setShowOtpModal(false);
-      navigate(`/user/orders/${order._id}/track`, { replace: true });
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status. Incorrect OTP?');
-      setIsUpdating(false);
-    }
-  };
-
   if (error) {
     return (
       <Screen className="bg-gray-50">
@@ -127,7 +130,6 @@ const CustomerLiveJourney = () => {
     );
   }
 
-  const isPickup = ['ready-for-pickup', 'ready-for-delivery'].includes(order.status);
   const start = currentLocation || { lat: 20.5937, lng: 78.9629 };
 
   return (
@@ -139,7 +141,7 @@ const CustomerLiveJourney = () => {
           </Btn>
           <Box className="items-center">
             <Txt className="text-[14px] font-black tracking-tight text-gray-900">Your Journey to Tailor</Txt>
-            <Txt className="text-[10px] font-bold text-primary uppercase tracking-widest">{isPickup ? 'Product Pickup' : 'Live GPS Broadcast'}</Txt>
+            <Txt className="text-[10px] font-bold text-primary uppercase tracking-widest">Fabric drop-off</Txt>
           </Box>
           <Box className="w-10" />
         </Box>
@@ -181,12 +183,12 @@ const CustomerLiveJourney = () => {
             </Box>
             <Box className="flex-1">
               <Txt className="text-sm font-black text-gray-900">{order.tailor?.shopName || 'Tailor Shop'}</Txt>
-              <Txt className="text-xs text-gray-500 line-clamp-1">{order.tailor?.location?.address || 'Indore, Madhya Pradesh (Fallback Address)'}</Txt>
+              <Txt className="text-xs text-gray-500 line-clamp-1">{order.tailor?.shopAddress || order.tailor?.location?.address || 'Shop address not added yet — call the tailor'}</Txt>
             </Box>
           </Box>
-          <Btn onPress={() => setShowOtpModal(true)} disabled={isUpdating} className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-60 bg-primary text-white shadow-lg shadow-primary/25">
-            {isUpdating ? <Spin size={20} color="#fff" /> : <I icon={CheckCircle2} size={20} />}
-            <Txt>{isPickup ? (isArrived ? 'Confirm Product Received' : 'Proceeding to Shop (Collect Product)') : (isArrived ? 'Confirm Fabric Dropped' : 'Proceeding to Shop (Click to Complete)')}</Txt>
+          <Btn onPress={() => setShowOtpModal(true)} className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 bg-primary text-white shadow-lg shadow-primary/25">
+            <I icon={CheckCircle2} size={20} />
+            <Txt>{isArrived ? 'At the shop — show drop-off code' : 'Show drop-off code'}</Txt>
           </Btn>
         </Box>
       </Box>
@@ -198,12 +200,13 @@ const CustomerLiveJourney = () => {
         <Box className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
           <I icon={CheckCircle2} size={24} color="#843D9B" />
         </Box>
-        <Txt className="text-xl font-black text-gray-900 mb-2">Dropoff Verification</Txt>
-        <Txt className="text-sm text-gray-500 font-medium mb-6">Please ask the Tailor for the 6-digit delivery OTP to confirm you have dropped off the fabric.</Txt>
-        <Input placeholder="Enter 6-digit OTP" maxLength={6} keyboardType="number-pad" value={otp} onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
-          className="w-full bg-gray-50 border-2 border-gray-100 px-4 py-4 rounded-2xl text-center text-2xl font-black tracking-[0.5em] mb-4" />
-        <Btn onPress={submitOtp} disabled={isUpdating || otp.length !== 6} className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-60 bg-primary text-white shadow-lg shadow-primary/25">
-          {isUpdating ? <Spin size={20} color="#fff" /> : <Txt>Verify & Complete</Txt>}
+        <Txt className="text-xl font-black text-gray-900 mb-2">Your drop-off code</Txt>
+        <Txt className="text-sm text-gray-500 font-medium mb-5">Show this code to the tailor when you hand over the fabric. They enter it in their app to confirm — this screen updates automatically.</Txt>
+        <Box className="w-full bg-gray-50 border-2 border-gray-100 px-4 py-5 rounded-2xl items-center mb-4">
+          <Txt className="text-3xl font-black tracking-[0.45em] text-gray-900">{order.dropoffDeliveryOtp || '— — —'}</Txt>
+        </Box>
+        <Btn onPress={() => setShowOtpModal(false)} className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-wider flex items-center justify-center bg-primary text-white shadow-lg shadow-primary/25">
+          <Txt>Done</Txt>
         </Btn>
       </Dialog>
     </Screen>

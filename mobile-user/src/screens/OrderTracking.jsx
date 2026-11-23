@@ -690,7 +690,7 @@ const OrderTracking = () => {
                 {order.dropoffDeliveryOtp && order.dropoffOtpVerified === false && ['ready-for-delivery', 'out-for-delivery', 'delivered', 'ready'].includes(order.status) && <Box className="bg-white rounded-3xl p-4 border border-emerald-100 flex items-center justify-between shadow-sm">
                         <Box>
                             <Txt className="text-xs font-black text-emerald-700 uppercase tracking-wider">Order Delivery OTP</Txt>
-                            <Txt className="text-[11px] text-gray-500 mt-0.5">Share with partner to receive order</Txt>
+                            <Txt className="text-[11px] text-gray-500 mt-0.5">{order.deliveryMethod === 'tailor' ? 'Share with your tailor when they hand over the order' : 'Share with partner to receive order'}</Txt>
                         </Box>
                         <Box className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-200">
                             <Txt className="text-xl font-black tracking-widest text-emerald-700">{order.dropoffDeliveryOtp}</Txt>
@@ -856,6 +856,36 @@ const OrderTracking = () => {
                         </Box>
                     </Box>}
 
+                {/* Fabric self drop-off: customer shows this code, tailor enters it to confirm receipt */}
+                {order.status === 'waiting-for-customer-dropoff' && <Box className="bg-white rounded-3xl p-5 border border-[#843D9B]/15 shadow-sm flex flex-col gap-4">
+                        <Box className="flex flex-row items-start gap-3">
+                            <Box className="w-11 h-11 rounded-2xl bg-[#843D9B]/10 flex items-center justify-center">
+                                <I icon={Store} size={20} className="text-[#843D9B]" />
+                            </Box>
+                            <Box className="flex-1 flex flex-col">
+                                <Txt className="text-sm font-black text-gray-900">Drop your fabric at the shop</Txt>
+                                <Txt className="text-xs text-gray-500 mt-0.5">
+                                    {(tailorInfo?.shopName || 'Your tailor') + (tailorInfo?.shopAddress ? ` · ${tailorInfo.shopAddress}` : '')}
+                                </Txt>
+                            </Box>
+                        </Box>
+                        {order.dropoffDeliveryOtp ? <Box className="rounded-2xl bg-[#843D9B]/5 border border-[#843D9B]/15 p-4 flex flex-col items-center">
+                                <Txt className="text-[10px] font-black uppercase tracking-widest text-[#843D9B]">Your drop-off code</Txt>
+                                <Txt className="mt-1 text-3xl font-black tracking-[0.35em] text-gray-900">{order.dropoffDeliveryOtp}</Txt>
+                                <Txt className="mt-1.5 text-[11px] text-gray-500 text-center">Show this code to the tailor when you hand over the fabric. They enter it to confirm.</Txt>
+                            </Box> : <Txt className="text-xs text-gray-500">The tailor will confirm once they receive your fabric.</Txt>}
+                        <Box className="flex flex-row gap-2">
+                            <Btn onPress={() => navigate(`/user/orders/${id}/journey`)} className="flex-1 py-2.5 rounded-xl bg-[#843D9B] flex flex-row items-center justify-center gap-1.5">
+                                <I icon={MapPin} size={14} className="text-white" />
+                                <Txt className="text-white text-xs font-bold">Directions</Txt>
+                            </Btn>
+                            <Btn onPress={() => tailorInfo?.phoneNumber ? Linking.openURL(`tel:${tailorInfo.phoneNumber}`) : navigate(`/user/orders/${id}/chat`)} className="flex-1 py-2.5 rounded-xl border border-gray-200 flex flex-row items-center justify-center gap-1.5">
+                                <I icon={tailorInfo?.phoneNumber ? Phone : MessageSquare} size={14} className="text-gray-800" />
+                                <Txt className="text-gray-800 text-xs font-bold">{tailorInfo?.phoneNumber ? 'Call tailor' : 'Chat'}</Txt>
+                            </Btn>
+                        </Box>
+                    </Box>}
+
                 {/* Waiting for Tailor Acceptance Card */}
                 {order.status === 'pending' && <Box className="bg-white rounded-3xl p-6 border border-amber-100 shadow-sm flex flex-col items-center text-center space-y-3 animate-in fade-in duration-300">
                         <Box className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 relative">
@@ -926,7 +956,7 @@ const OrderTracking = () => {
         return null;
       })()}
 
-                {order.status === 'ready-for-delivery' && order.remainingPaymentStatus === 'pending' && order.remainingPaymentAmount > 0 && <Box className="bg-white rounded-3xl p-5 border border-emerald-100 shadow-sm flex flex-col items-center text-center space-y-3">
+                {(order.status === 'ready-for-delivery' || (order.status === 'out-for-delivery' && order.deliveryMethod === 'tailor')) && order.remainingPaymentStatus === 'pending' && order.remainingPaymentAmount > 0 && <Box className="bg-white rounded-3xl p-5 border border-emerald-100 shadow-sm flex flex-col items-center text-center space-y-3">
                         <Txt className="text-sm font-bold text-gray-900">Final Balance Payment</Txt>
                         <Txt className="text-xs text-gray-600 max-w-xs">
                             Your order is ready! Pay the remaining balance of ₹{order.remainingPaymentAmount}.

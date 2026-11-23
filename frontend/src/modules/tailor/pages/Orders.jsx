@@ -138,6 +138,9 @@ const Orders = () => {
 
     // Dispatch Delivery Modal State
     const [dispatchOrder, setDispatchOrder] = useState(null);
+    // Customer self drop-off: tailor types the customer's drop-off code to confirm receipt
+    const [fabricCodeOrder, setFabricCodeOrder] = useState(null);
+    const [fabricCode, setFabricCode] = useState('');
     const [isDispatching, setIsDispatching] = useState(false);
     const [updatingOrders, setUpdatingOrders] = useState({});
     const [dispatchingMethod, setDispatchingMethod] = useState(null);
@@ -234,6 +237,16 @@ const Orders = () => {
             toast.error(error.response?.data?.message || 'Failed to update status');
         } finally {
             setUpdatingOrders(prev => ({ ...prev, [orderId]: false }));
+        }
+    };
+
+    const submitFabricCode = async (e) => {
+        e?.preventDefault?.();
+        if (!fabricCodeOrder || !/^\d{6}$/.test(fabricCode)) return;
+        const result = await handleStatusUpdate(fabricCodeOrder._id, 'fabric-received', { otp: fabricCode });
+        if (result?.success) {
+            setFabricCodeOrder(null);
+            setFabricCode('');
         }
     };
 
@@ -381,6 +394,9 @@ const Orders = () => {
             if (data.pickupDeliveryOtp !== undefined) patch.pickupDeliveryOtp = data.pickupDeliveryOtp;
             if (data.dropoffOtpVerified !== undefined) patch.dropoffOtpVerified = data.dropoffOtpVerified;
             if (data.pickupOtpVerified !== undefined) patch.pickupOtpVerified = data.pickupOtpVerified;
+            if (data.paymentStatus !== undefined) patch.paymentStatus = data.paymentStatus;
+            if (data.advancePaymentStatus !== undefined) patch.advancePaymentStatus = data.advancePaymentStatus;
+            if (data.remainingPaymentStatus !== undefined) patch.remainingPaymentStatus = data.remainingPaymentStatus;
 
             const matches = (o) =>
                 (data._id && String(o._id) === String(data._id)) ||
@@ -1057,7 +1073,7 @@ const Orders = () => {
                         </div>
                     )}
                     {order.dropoffDeliveryOtp && order.dropoffOtpVerified !== true && (
-                        ['fabric-picked-up', 'fabric-ready-for-pickup', 'waiting-for-customer-dropoff', 'fabric-delivered'].includes(order.status) ||
+                        ['fabric-picked-up', 'fabric-ready-for-pickup', 'fabric-delivered'].includes(order.status) ||
                         order.pickupDeliveryStatus === 'reached-dropoff'
                     ) && (
                         <div className="mb-4 p-4 bg-green-50 rounded-3xl border border-green-100 flex items-center justify-between">
@@ -1487,6 +1503,11 @@ const Orders = () => {
                                                     <button 
                                                         onClick={(e) => {
                                                             e.stopPropagation();
+                                                            if (order.status === 'waiting-for-customer-dropoff') {
+                                                                setFabricCode('');
+                                                                setFabricCodeOrder(order);
+                                                                return;
+                                                            }
                                                             if (nextStep.current === 'quality-check' || (order.status === 'ready-for-pickup' && order.deliveryMethod !== 'self') || (order.status === 'ready-for-delivery' && order.deliveryMethod !== 'self')) {
                                                                 setDispatchOrder({ order, targetStatus: nextStep.next });
                                                             } else {
@@ -1534,6 +1555,43 @@ const Orders = () => {
                 </div>
             )}
 
+            {/* Receive Fabric (customer self drop-off) */}
+            {fabricCodeOrder && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={() => !updatingOrders[fabricCodeOrder._id] && setFabricCodeOrder(null)}
+                    />
+                    <form onSubmit={submitFabricCode} className="relative bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-lg font-black text-gray-900">Receive fabric</h3>
+                            <button type="button" onClick={() => setFabricCodeOrder(null)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600">
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 font-medium mb-4">
+                            Ask the customer for the 6-digit drop-off code shown in their app (order #{fabricCodeOrder.orderId}).
+                        </p>
+                        <input
+                            autoFocus
+                            inputMode="numeric"
+                            maxLength={6}
+                            value={fabricCode}
+                            onChange={(e) => setFabricCode(e.target.value.replace(/\D/g, ''))}
+                            placeholder="••••••"
+                            className="w-full bg-gray-50 border-2 border-gray-100 px-4 py-4 rounded-2xl text-center text-2xl font-black tracking-[0.5em] mb-4 focus:outline-none focus:border-gray-900 focus:bg-white"
+                        />
+                        <button
+                            type="submit"
+                            disabled={fabricCode.length !== 6 || updatingOrders[fabricCodeOrder._id]}
+                            className="w-full py-3.5 rounded-2xl text-sm font-black uppercase tracking-wider bg-gray-900 text-white disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {updatingOrders[fabricCodeOrder._id] ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm fabric received'}
+                        </button>
+                    </form>
+                </div>
+            )}
+
             {/* Delivery Dispatch Modal */}
             {dispatchOrder && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -1543,7 +1601,7 @@ const Orders = () => {
                     />
                     <div className="relative bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-black text-gray-900">Assign Delivery Partner</h3>
+                            <h3 className="text-lg font-black text-gray-900">How will this order reach the customer?</h3>
                             <button onClick={() => !isDispatching && setDispatchOrder(null)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600">
                                 <X size={18} />
                             </button>
@@ -1562,6 +1620,20 @@ const Orders = () => {
                                 <div>
                                     <h4 className="text-sm font-black text-blue-900 mb-0.5 group-hover:text-blue-700">Broadcast to Partners</h4>
                                     <p className="text-[10px] font-bold text-blue-600/70">Send request to all available delivery agents.</p>
+                                </div>
+                            </button>
+
+                            <button 
+                                onClick={() => handleDispatchAction('tailor')}
+                                disabled={isDispatching}
+                                className="w-full p-4 border border-emerald-100 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-200 rounded-2xl flex items-center gap-4 transition-all text-left group disabled:opacity-60"
+                            >
+                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm shrink-0">
+                                    {isDispatching && dispatchingMethod === 'tailor' ? <Loader2 className="w-5 h-5 animate-spin text-emerald-600" /> : <Navigation size={20} />}
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-black text-emerald-900 mb-0.5 group-hover:text-emerald-700">Deliver it myself</h4>
+                                    <p className="text-[10px] font-bold text-emerald-600/70">You take it to the customer. They show a code; you enter it to finish.</p>
                                 </div>
                             </button>
 

@@ -1,24 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, ShoppingCart, X, Navigation, ChevronDown } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import useCartStore from '../../../store/cartStore';
-import useAuthStore from '../../../store/authStore';
-import useUserStore from '../../../store/userStore';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bell, Search, X, Navigation, ChevronDown } from 'lucide-react';
 import LocationModal from './LocationModal';
-import useCheckoutStore from '../../../store/checkoutStore';
 import useLocationStore from '../../../store/locationStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import AnimatedSearchBar from './AnimatedSearchBar';
 import { useNotifications } from '../context/NotificationContext';
-import toast from 'react-hot-toast';
 
-const HomeHeader = ({ user }) => {
+const HomeHeader = () => {
     const [showNotifications, setShowNotifications] = useState(false);
-    const { items: productCartItems } = useCartStore(state => state);
-    const { serviceItems } = useCheckoutStore(state => state);
-    const cartCount = (productCartItems || []).length + (serviceItems || []).length;
     const { notifications = [], unreadCount, markAsRead, markAllRead } = useNotifications();
-    const navigate = useNavigate();
+
+    // Search stays tucked away until the search icon is tapped
+    const [showSearch, setShowSearch] = useState(false);
+    const searchRef = useRef(null);
+    const toggleSearch = () => setShowSearch((v) => !v);
 
     const [showLocationModal, setShowLocationModal] = useState(false);
     const { address: location } = useLocationStore();
@@ -42,9 +37,11 @@ const HomeHeader = ({ user }) => {
 
     return (
         <>
-            <div className="bg-[#843D9B] pt-4 md:pt-6 pb-6 px-4 md:px-6 relative z-20 w-full overflow-hidden">
+            <div className="bg-[#843D9B] pt-4 md:pt-6 pb-5 px-4 md:px-6 relative z-20 w-full overflow-hidden rounded-b-[28px] shadow-[0_12px_28px_-14px_rgba(74,21,96,0.55)]">
+                {/* soft highlight so the curved edge reads as a designed surface */}
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_15%_0%,rgba(255,255,255,0.18),transparent_60%)]" />
                 {/* Top Row: Location & Icons */}
-                <div className="flex justify-between items-center mb-5">
+                <div className="relative flex justify-between items-center">
                     <div className="flex items-center gap-3 cursor-pointer group flex-1 min-w-0 pr-4" onClick={() => setShowLocationModal(true)}>
                         <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/15 border border-white/40 shrink-0">
                             <Navigation size={18} className="text-white" />
@@ -70,29 +67,57 @@ const HomeHeader = ({ user }) => {
                             )}
                         </button>
 
-                        <Link
-                            to={(serviceItems || []).length > 0 && (productCartItems || []).length === 0 ? "/user/checkout/summary" : "/user/cart"}
-                            onClick={() => useCheckoutStore.getState().setBuyNowMode(false)}
-                            aria-label="Shopping Cart"
-                            className="w-10 h-10 bg-white/10 rounded-xl text-white border border-white/20 flex items-center justify-center relative active:scale-95 transition-transform"
+                        <button
+                            type="button"
+                            onClick={toggleSearch}
+                            aria-label={showSearch ? 'Close search' : 'Search'}
+                            aria-expanded={showSearch}
+                            className={`w-10 h-10 rounded-xl border flex items-center justify-center relative active:scale-95 transition-all ${
+                                showSearch ? 'bg-white text-[#843D9B] border-white' : 'bg-white/10 text-white border-white/20'
+                            }`}
                         >
-                            <ShoppingCart size={18} />
-                            {cartCount > 0 && (
-                                <span className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-white text-[#843D9B] text-[9px] font-bold flex items-center justify-center rounded-full shadow-sm">
-                                    {cartCount}
-                                </span>
-                            )}
-                        </Link>
+                            <AnimatePresence mode="wait" initial={false}>
+                                <motion.span
+                                    key={showSearch ? 'close' : 'search'}
+                                    initial={{ rotate: -90, opacity: 0 }}
+                                    animate={{ rotate: 0, opacity: 1 }}
+                                    exit={{ rotate: 90, opacity: 0 }}
+                                    transition={{ duration: 0.18 }}
+                                    className="flex"
+                                >
+                                    {showSearch ? <X size={18} /> : <Search size={18} />}
+                                </motion.span>
+                            </AnimatePresence>
+                        </button>
                     </div>
                 </div>
 
-                {/* Search Bar Row */}
-                <div className="bg-white rounded-[1.25rem] flex items-center shadow-sm relative overflow-hidden pl-1 pr-2 h-[46px] sm:h-[50px]">
-                    <div className="flex-1 h-full min-w-0">
-                        <AnimatedSearchBar className="h-full bg-transparent shadow-none border-none text-sm w-full" hideBackground={true} />
-                    </div>
-                </div>
             </div>
+
+            {/* Search Bar Row — slides open from under the header; collapsed (no space) when hidden */}
+            <AnimatePresence initial={false}>
+                {showSearch && (
+                    <motion.div
+                        key="search-strip"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        onAnimationComplete={() => {
+                            if (showSearch) searchRef.current?.querySelector('input')?.focus();
+                        }}
+                        className="relative z-10 w-full overflow-hidden bg-white"
+                    >
+                        <div ref={searchRef} className="px-4 md:px-6 pt-4 pb-2">
+                            <div className="bg-white rounded-[1.25rem] flex items-center relative overflow-hidden pl-1 pr-2 h-[46px] sm:h-[50px] ring-1 ring-[#E9E3EE] shadow-[0_6px_18px_-12px_rgba(42,15,56,0.35)]">
+                                <div className="flex-1 h-full min-w-0">
+                                    <AnimatedSearchBar className="h-full bg-transparent shadow-none border-none text-sm w-full" hideBackground={true} />
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Notification Dropdown Portal */}
             <AnimatePresence>

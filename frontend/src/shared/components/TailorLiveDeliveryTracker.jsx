@@ -218,33 +218,20 @@ const TailorLiveDeliveryTracker = ({ order, socket, onDeliveryComplete }) => {
             </div>
             
             <p className="text-[10px] text-amber-700 font-medium">
-              Confirm payment collection method from the customer before completing.
+              Collect it in cash, or ask the customer to pay in their app — an online payment shows up here automatically.
             </p>
 
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('cash')}
-                className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                  paymentMethod === 'cash' 
-                    ? 'bg-amber-600 border-amber-600 text-white shadow-md' 
-                    : 'bg-white border-amber-200 text-amber-900 hover:bg-amber-50'
-                }`}
-              >
-                Cash Collected
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('online')}
-                className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                  paymentMethod === 'online' 
-                    ? 'bg-amber-600 border-amber-600 text-white shadow-md' 
-                    : 'bg-white border-amber-200 text-amber-900 hover:bg-amber-50'
-                }`}
-              >
-                QR / Paid Online
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod(paymentMethod === 'cash' ? '' : 'cash')}
+              className={`w-full py-2.5 rounded-xl text-xs font-bold border transition-all ${
+                paymentMethod === 'cash'
+                  ? 'bg-amber-600 border-amber-600 text-white shadow-md'
+                  : 'bg-white border-amber-200 text-amber-900 hover:bg-amber-50'
+              }`}
+            >
+              {paymentMethod === 'cash' ? `✓ ₹${order.remainingPaymentAmount} cash collected` : `I collected ₹${order.remainingPaymentAmount} in cash`}
+            </button>
           </div>
         )}
 

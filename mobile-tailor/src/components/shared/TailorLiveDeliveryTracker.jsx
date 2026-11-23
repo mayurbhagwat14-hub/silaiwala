@@ -172,17 +172,14 @@ const TailorLiveDeliveryTracker = ({
             </Box>
             
             <Txt className="text-[10px] text-amber-700 font-medium">
-              Confirm payment collection method from the customer before completing.
+              Collect it in cash, or ask the customer to pay in their app — an online payment shows up here automatically.
             </Txt>
 
-            <Box className="grid grid-cols-2 gap-2">
-              <Btn onPress={() => setPaymentMethod('cash')} className={`py-2 rounded-xl text-xs font-bold border transition-all ${paymentMethod === 'cash' ? 'bg-amber-600 border-amber-600 text-white shadow-md' : 'bg-white border-amber-200 text-amber-900 hover:bg-amber-50'}`}>
-                Cash Collected
-              </Btn>
-              <Btn onPress={() => setPaymentMethod('online')} className={`py-2 rounded-xl text-xs font-bold border transition-all ${paymentMethod === 'online' ? 'bg-amber-600 border-amber-600 text-white shadow-md' : 'bg-white border-amber-200 text-amber-900 hover:bg-amber-50'}`}>
-                QR / Paid Online
-              </Btn>
-            </Box>
+            <Btn onPress={() => setPaymentMethod(paymentMethod === 'cash' ? '' : 'cash')} className={`w-full py-2.5 rounded-xl border items-center ${paymentMethod === 'cash' ? 'bg-amber-600 border-amber-600' : 'bg-white border-amber-200'}`}>
+              <Txt className={`text-xs font-bold ${paymentMethod === 'cash' ? 'text-white' : 'text-amber-900'}`}>
+                {paymentMethod === 'cash' ? `✓ ₹${order.remainingPaymentAmount} cash collected` : `I collected ₹${order.remainingPaymentAmount} in cash`}
+              </Txt>
+            </Btn>
           </Box>}
 
         <Box className="space-y-2">
