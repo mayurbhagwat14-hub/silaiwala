@@ -15,11 +15,11 @@ const TILES = [
 /** "Explore more" shortcuts: a scrollable row of round icons, each a real link. */
 const ExploreMore = () => (
     <section>
-        <div className="mb-3 flex items-center justify-between px-4 md:px-6">
+        <div className="mb-2 flex items-center justify-between px-4 md:px-6">
             <h2 className="text-[17px] font-semibold text-gray-900">Explore more</h2>
             <span className="text-[11.5px] text-gray-400">Swipe for more</span>
         </div>
-        <div className="no-scrollbar flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 pt-1 md:scroll-px-6 md:px-6">
+        <div className="no-scrollbar flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-1 pt-1 md:scroll-px-6 md:px-6">
             {TILES.map((t) => (
                 <Link
                     key={t.label}

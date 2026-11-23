@@ -52,11 +52,11 @@ const CategoryRail = () => {
         : FALLBACK;
 
     return (
-        <section className="mt-5 bg-gradient-to-b from-[#F7EFFA] to-white pb-1 pt-4">
-            <div className="mb-3 flex items-center justify-between px-4 md:px-6">
+        <section className="mt-4 bg-gradient-to-b from-[#F7EFFA] to-white pt-3.5">
+            <div className="mb-2.5 flex items-center justify-between px-4 md:px-6">
                 <h2 className="text-[17px] font-semibold text-gray-900">What would you like stitched?</h2>
             </div>
-            <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 pb-1 md:px-6">
+            <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 md:px-6">
                 <Tile label="Offers" onClick={() => navigate('/user/coupons')} dot>
                     <Tag size={26} className="text-[#843D9B]" />
                 </Tile>
