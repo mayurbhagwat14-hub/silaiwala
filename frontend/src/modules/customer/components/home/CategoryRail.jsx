@@ -52,7 +52,7 @@ const CategoryRail = () => {
         : FALLBACK;
 
     return (
-        <section className="mt-5 bg-gradient-to-b from-[#F7EFFA] to-white py-4">
+        <section className="mt-5 bg-gradient-to-b from-[#F7EFFA] to-white pb-1 pt-4">
             <div className="mb-3 flex items-center justify-between px-4 md:px-6">
                 <h2 className="text-[17px] font-semibold text-gray-900">What would you like stitched?</h2>
             </div>

@@ -17,7 +17,7 @@ const Home = () => (
         {/* 3. Categories */}
         <CategoryRail />
 
-        <div className="mx-auto max-w-5xl space-y-7 pt-3">
+        <div className="mx-auto max-w-5xl space-y-6 pt-3">
             {/* 4. Explore more shortcuts */}
             <ExploreMore />
 
