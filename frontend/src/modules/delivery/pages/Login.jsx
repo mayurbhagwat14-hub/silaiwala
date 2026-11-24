@@ -124,10 +124,10 @@ const DeliveryLogin = () => {
 
             {/* Title & Subtitle */}
             <div className="text-center mb-6 w-full">
-                <h1 className="text-2xl sm:text-[26px] font-bold text-[#0F172A] tracking-tight mb-1">
+                <h1 className="text-2xl sm:text-[26px] font-bold text-white tracking-tight mb-1">
                     Delivery Partner Sign In
                 </h1>
-                <p className="text-xs sm:text-[13px] font-medium text-[#64748B] max-w-[280px] mx-auto leading-relaxed">
+                <p className="text-xs sm:text-[13px] font-medium text-white/80 max-w-[280px] mx-auto leading-relaxed">
                     {loginMethod === 'otp' && otpSent ? 'Enter the OTP sent to your number' : 'Welcome back! Login to your delivery partner account'}
                 </p>
             </div>
@@ -146,10 +146,10 @@ const DeliveryLogin = () => {
 
                 {/* Mobile Number Input Card */}
                 <div className="w-full text-left">
-                    <label className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                    <label className="text-xs font-semibold text-white block mb-1.5">
                         Mobile Number
                     </label>
-                    <div className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center p-1.5 px-2 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                    <div className="w-full bg-white rounded-[18px] flex items-center p-1.5 px-2 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                         <div className="bg-white shadow-2xs rounded-xl px-3 py-2 text-xs font-bold text-[#0F172A] mr-2.5 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
                             +91
                         </div>
@@ -179,18 +179,18 @@ const DeliveryLogin = () => {
                         {loginMethod === 'password' && (
                             <div className="w-full text-left">
                                 <div className="flex justify-between items-center mb-1.5">
-                                    <label className="text-xs font-semibold text-[#0F172A]">
+                                    <label className="text-xs font-semibold text-white">
                                         Password
                                     </label>
                                     <button
                                         type="button"
                                         onClick={() => navigate('/delivery/forgot-password')}
-                                        className="text-xs text-[#843D9B] font-bold hover:underline cursor-pointer"
+                                        className="text-xs text-white font-bold hover:underline cursor-pointer"
                                     >
                                         Forgot password?
                                     </button>
                                 </div>
-                                <div className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                                <div className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                                     <Lock size={18} className="text-[#94A3B8] shrink-0" />
                                     <input
                                         type={showPassword ? "text" : "password"}
@@ -219,13 +219,13 @@ const DeliveryLogin = () => {
                                 onChange={(e) => setAgreedToTerms(e.target.checked)}
                                 className="w-4 h-4 rounded-[5px] accent-[#843D9B] text-white cursor-pointer"
                             />
-                            <label htmlFor="delivery-terms" className="text-xs text-[#64748B] font-medium cursor-pointer select-none">
+                            <label htmlFor="delivery-terms" className="text-xs text-white/85 font-medium cursor-pointer select-none">
                                 I agree with{' '}
-                                <button type="button" onClick={() => window.open('/delivery/legal/terms-and-conditions', '_blank')} className="text-[#843D9B] font-semibold hover:underline">
+                                <button type="button" onClick={() => window.open('/delivery/legal/terms-and-conditions', '_blank')} className="text-white font-bold underline">
                                     Terms & Conditions
                                 </button>
                                 {' '} & {' '}
-                                <button type="button" onClick={() => window.open('/delivery/legal/privacy-policy', '_blank')} className="text-[#843D9B] font-semibold hover:underline">
+                                <button type="button" onClick={() => window.open('/delivery/legal/privacy-policy', '_blank')} className="text-white font-bold underline">
                                     Privacy Policy
                                 </button>
                             </label>
@@ -238,8 +238,8 @@ const DeliveryLogin = () => {
                                     disabled={isLoading || !agreedToTerms}
                                     className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center ${
                                         isLoading || !agreedToTerms 
-                                            ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none' 
-                                            : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'
+                                            ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none' 
+                                            : 'bg-white text-[#5A1A78] shadow-lg'
                                     }`}
                                 >
                                     {isLoading ? 'Logging in...' : 'Sign In'}
@@ -247,7 +247,7 @@ const DeliveryLogin = () => {
                                 <button
                                     type="button"
                                     onClick={() => { setLoginMethod('otp'); setError(''); }}
-                                    className="w-full text-xs font-bold text-[#843D9B] hover:underline transition-colors text-center cursor-pointer pt-1 block"
+                                    className="w-full text-xs font-bold text-white hover:underline transition-colors text-center cursor-pointer pt-1 block"
                                 >
                                     Login with OTP instead
                                 </button>
@@ -262,8 +262,8 @@ const DeliveryLogin = () => {
                                     disabled={!mobileNumber || mobileNumber.length < 10 || sendingOtp || !agreedToTerms}
                                     className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center ${
                                         !mobileNumber || mobileNumber.length < 10 || sendingOtp || !agreedToTerms
-                                            ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none'
-                                            : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'
+                                            ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none'
+                                            : 'bg-white text-[#5A1A78] shadow-lg'
                                     }`}
                                 >
                                     {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
@@ -271,7 +271,7 @@ const DeliveryLogin = () => {
                                 <button
                                     type="button"
                                     onClick={() => { setLoginMethod('password'); setError(''); }}
-                                    className="w-full text-xs font-bold text-[#843D9B] hover:underline transition-colors text-center cursor-pointer"
+                                    className="w-full text-xs font-bold text-white hover:underline transition-colors text-center cursor-pointer"
                                 >
                                     Login with Password instead
                                 </button>
@@ -288,10 +288,10 @@ const DeliveryLogin = () => {
                             className="space-y-4 pt-2 w-full text-left"
                         >
                             <div className="w-full text-left">
-                                <label className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                                <label className="text-xs font-semibold text-white block mb-1.5">
                                     OTP Code
                                 </label>
-                                <div className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                                <div className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                                     <Lock size={18} className="text-[#843D9B] shrink-0" />
                                     <input
                                         type={showOtp ? "text" : "password"}
@@ -315,14 +315,14 @@ const DeliveryLogin = () => {
                                 <button 
                                     type="button" 
                                     onClick={() => { setLoginMethod('password'); setOtpSent(false); }} 
-                                    className="text-[#64748B] hover:text-[#843D9B] font-medium"
+                                    className="text-white/80 font-medium"
                                 >
                                     ← Back to Password
                                 </button>
                                 <button 
                                     type="button" 
                                     onClick={() => setOtpSent(false)} 
-                                    className="text-[#843D9B] font-bold hover:underline"
+                                    className="text-white font-bold hover:underline"
                                 >
                                     Resend OTP?
                                 </button>
@@ -333,8 +333,8 @@ const DeliveryLogin = () => {
                                 disabled={isLoading || !agreedToTerms}
                                 className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center mt-2 ${
                                     isLoading || !agreedToTerms 
-                                        ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none' 
-                                        : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'
+                                        ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none' 
+                                        : 'bg-white text-[#5A1A78] shadow-lg'
                                 }`}
                             >
                                 {isLoading ? 'Verifying...' : 'Verify & Sign In'}
@@ -346,11 +346,11 @@ const DeliveryLogin = () => {
 
             {/* Footer Navigation */}
             <div className="mt-6 text-center w-full">
-                <p className="text-xs font-medium text-[#64748B]">
+                <p className="text-xs font-medium text-white/80">
                     New to Sewzella Delivery?{' '}
                     <Link 
                         to="/delivery/signup"
-                        className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer"
+                        className="text-white font-bold underline ml-1 cursor-pointer"
                     >
                         Register Now
                     </Link>

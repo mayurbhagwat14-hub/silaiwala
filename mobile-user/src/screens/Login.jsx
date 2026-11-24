@@ -150,23 +150,23 @@ const Login = () => {
 
   return (
     <>
-      <AuthLayout>
+      <AuthLayout purple>
         <Box className="w-full flex flex-col items-center font-['Plus_Jakarta_Sans',sans-serif] px-2">
           <Box className="w-16 h-16 rounded-[22px] bg-[#F4EFFF] border border-[#E9DFFE] flex items-center justify-center shadow-2xs mb-4 shrink-0 mx-auto mt-2">
             <I icon={User} size={24} color="#843D9B" strokeWidth={2.2} />
           </Box>
 
           <Box className="text-center mb-6 w-full">
-            <Txt className="text-2xl font-bold text-[#0F172A] tracking-tight mb-1">Sign In</Txt>
-            <Txt className="text-xs font-medium text-[#64748B] max-w-[250px] mx-auto leading-relaxed">Welcome back! Please sign in to your account</Txt>
+            <Txt className="text-2xl font-bold text-white tracking-tight mb-1">Sign In</Txt>
+            <Txt className="text-xs font-medium text-white/80 max-w-[250px] mx-auto leading-relaxed">Welcome back! Please sign in to your account</Txt>
           </Box>
 
           <FormError error={error} />
 
           <Box className="w-full space-y-4">
             <Box className="w-full text-left">
-              <Txt className="text-xs font-semibold text-[#0F172A] mb-1.5">Mobile Number</Txt>
-              <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center p-1.5 px-2 border border-transparent">
+              <Txt className="text-xs font-semibold text-white mb-1.5">Mobile Number</Txt>
+              <Box className="w-full bg-white rounded-[18px] flex items-center p-1.5 px-2 border border-transparent">
                 <Box className="bg-white shadow-2xs rounded-xl px-3 py-2 mr-2.5 flex items-center justify-center shrink-0 border border-gray-100/80">
                   <Txt className="text-xs font-bold text-[#0F172A]">+91</Txt>
                 </Box>
@@ -188,8 +188,8 @@ const Login = () => {
 
             {loginMethod === 'password' && (
               <Box className="w-full text-left">
-                <Txt className="text-xs font-semibold text-[#0F172A] mb-1.5">Password</Txt>
-                <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent">
+                <Txt className="text-xs font-semibold text-white mb-1.5">Password</Txt>
+                <Box className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent">
                   <I icon={Lock} size={18} color="#94A3B8" />
                   <Input
                     secureTextEntry={!showPassword}
@@ -207,15 +207,15 @@ const Login = () => {
                   </Btn>
                 </Box>
                 <Box className="flex justify-end pt-2">
-                  <Btn onPress={() => navigate('/user/forgot-password')} className="text-xs font-bold text-[#843D9B]">Forgot Password?</Btn>
+                  <Btn onPress={() => navigate('/user/forgot-password')} className="text-xs font-bold text-white">Forgot Password?</Btn>
                 </Box>
               </Box>
             )}
 
             {loginMethod === 'otp' && otpSent && (
               <Box className="space-y-1.5 text-left">
-                <Txt className="text-xs font-semibold text-[#0F172A] mb-1.5">Enter 6-Digit OTP</Txt>
-                <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent">
+                <Txt className="text-xs font-semibold text-white mb-1.5">Enter 6-Digit OTP</Txt>
+                <Box className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent">
                   <I icon={KeyRound} size={18} color="#843D9B" />
                   <Input
                     keyboardType="number-pad"
@@ -239,25 +239,25 @@ const Login = () => {
             <Btn
               onPress={handleSubmit}
               disabled={submitDisabled}
-              className={`w-full py-3.5 rounded-[22px] font-bold text-sm tracking-wide shadow-md text-center mt-2 ${submitDisabled ? 'bg-[#E2D9F3] text-white shadow-none' : 'bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'}`}
+              className={`w-full py-3.5 rounded-[22px] font-bold text-sm tracking-wide shadow-md text-center mt-2 ${submitDisabled ? 'bg-[#E9DDF1] text-[#8E6AA0] shadow-none' : 'bg-white text-[#5A1A78] shadow-lg'}`}
             >
               {isLoading ? 'Logging in...' : sendingOtp ? 'Sending OTP...' : loginMethod === 'otp' && !otpSent ? 'Send OTP' : loginMethod === 'otp' && otpSent ? 'Verify & Login' : 'Sign In'}
             </Btn>
 
             <Box className="text-center pt-1">
               {loginMethod === 'password' ? (
-                <Btn onPress={() => { setLoginMethod('otp'); setOtpSent(false); setError(''); }} className="text-xs font-semibold text-[#843D9B]">Login with OTP instead</Btn>
+                <Btn onPress={() => { setLoginMethod('otp'); setOtpSent(false); setError(''); }} className="text-xs font-semibold text-white underline">Login with OTP instead</Btn>
               ) : (
-                <Btn onPress={() => { setLoginMethod('password'); setOtpSent(false); setError(''); }} className="text-xs font-semibold text-[#843D9B]">Login with Password instead</Btn>
+                <Btn onPress={() => { setLoginMethod('password'); setOtpSent(false); setError(''); }} className="text-xs font-semibold text-white underline">Login with Password instead</Btn>
               )}
             </Box>
 
             {!otpSent && isGoogleAuthAvailable() && (
               <Box className="space-y-4 pt-1 w-full">
                 <Box className="relative flex items-center justify-center my-3 w-full">
-                  <Box className="flex-1 border-t border-gray-200/80" />
-                  <Txt className="shrink-0 mx-3 text-[#94A3B8] text-xs font-medium bg-white px-2">or continue with</Txt>
-                  <Box className="flex-1 border-t border-gray-200/80" />
+                  <Box className="flex-1 border-t border-white/30" />
+                  <Txt className="shrink-0 mx-3 text-white/80 text-xs font-medium px-2">or continue with</Txt>
+                  <Box className="flex-1 border-t border-white/30" />
                 </Box>
                 <Box className="flex items-center justify-center w-full min-h-[46px]">
                   <GoogleButton onPress={handleGoogle} disabled={googleBusy} />
@@ -267,15 +267,15 @@ const Login = () => {
           </Box>
 
           <Box className="mt-5 text-center w-full">
-            <Txt className="text-xs font-medium text-[#64748B]">
+            <Txt className="text-xs font-medium text-white/80">
               {"Don't have an account? "}
-              <Txt onPress={() => navigate('/user/register')} className="text-[#843D9B] font-bold">Sign Up</Txt>
+              <Txt onPress={() => navigate('/user/register')} className="text-white font-bold underline">Sign Up</Txt>
             </Txt>
-            <Txt className="mt-3 text-[10px] text-gray-400 font-medium max-w-[280px] mx-auto leading-relaxed text-center">
+            <Txt className="mt-3 text-[10px] text-white/75 font-medium max-w-[280px] mx-auto leading-relaxed text-center">
               {'By logging in, you agree to our '}
-              <Txt onPress={() => navigate('/user/legal/terms-and-conditions')} className="text-[#843D9B]">Terms & Conditions</Txt>
+              <Txt onPress={() => navigate('/user/legal/terms-and-conditions')} className="text-white font-semibold underline">Terms & Conditions</Txt>
               {' and '}
-              <Txt onPress={() => navigate('/user/legal/privacy-policy')} className="text-[#843D9B]">Privacy Policy</Txt>
+              <Txt onPress={() => navigate('/user/legal/privacy-policy')} className="text-white font-semibold underline">Privacy Policy</Txt>
               .
             </Txt>
           </Box>

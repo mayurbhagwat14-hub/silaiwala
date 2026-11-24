@@ -178,10 +178,10 @@ const Login = () => {
 
             {/* Title & Subtitle matching image */}
             <div className="text-center mb-6 w-full">
-                <h1 className="text-2xl sm:text-[26px] font-bold text-[#0F172A] tracking-tight mb-1">
+                <h1 className="text-2xl sm:text-[26px] font-bold text-white tracking-tight mb-1">
                     Sign In
                 </h1>
-                <p className="text-xs sm:text-[13px] font-medium text-[#64748B] max-w-[250px] mx-auto leading-relaxed">
+                <p className="text-xs sm:text-[13px] font-medium text-white/80 max-w-[250px] mx-auto leading-relaxed">
                     Welcome back! Please sign in to your account
                 </p>
             </div>
@@ -189,10 +189,10 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="w-full space-y-4">
                 {/* Mobile Number Input Card matching mockup */}
                 <div className="w-full text-left">
-                    <label className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                    <label className="text-xs font-semibold text-white block mb-1.5">
                         Mobile Number
                     </label>
-                    <div className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center p-1.5 px-2 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                    <div className="w-full bg-white rounded-[18px] flex items-center p-1.5 px-2 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                         <div className="bg-white shadow-2xs rounded-xl px-3 py-2 text-xs font-bold text-[#0F172A] mr-2.5 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
                             +91
                         </div>
@@ -221,10 +221,10 @@ const Login = () => {
                 {/* Password Mode Input Card matching mockup */}
                 {loginMethod === 'password' && (
                     <div className="w-full text-left">
-                        <label className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                        <label className="text-xs font-semibold text-white block mb-1.5">
                             Password
                         </label>
-                        <div className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                        <div className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                             <Lock size={18} className="text-[#94A3B8] shrink-0" />
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -246,7 +246,7 @@ const Login = () => {
                             <button
                                 type="button"
                                 onClick={() => navigate('/user/forgot-password')}
-                                className="text-xs font-bold text-[#843D9B] hover:underline cursor-pointer"
+                                className="text-xs font-bold text-white hover:underline cursor-pointer"
                             >
                                 Forgot Password?
                             </button>
@@ -257,10 +257,10 @@ const Login = () => {
                 {/* OTP Mode Input Card (when OTP sent) */}
                 {loginMethod === 'otp' && otpSent && (
                     <div className="space-y-1.5 text-left">
-                        <label className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                        <label className="text-xs font-semibold text-white block mb-1.5">
                             Enter 6-Digit OTP
                         </label>
-                        <div className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                        <div className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                             <KeyRound size={18} className="text-[#843D9B] shrink-0" />
                             <input
                                 type="text"
@@ -277,7 +277,7 @@ const Login = () => {
                                 type="button"
                                 onClick={handleSendOtp}
                                 disabled={sendingOtp}
-                                className="text-xs font-semibold text-[#843D9B] hover:underline cursor-pointer disabled:opacity-50"
+                                className="text-xs font-semibold text-white hover:underline cursor-pointer disabled:opacity-50"
                             >
                                 {sendingOtp ? 'Sending...' : 'Resend OTP'}
                             </button>
@@ -301,8 +301,8 @@ const Login = () => {
                         (loginMethod === 'otp' && otpSent && !otp) || 
                         isLoading || 
                         sendingOtp
-                            ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none'
-                            : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'
+                            ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none'
+                            : 'bg-white text-[#5A1A78] shadow-lg'
                     }`}
                 >
                     {isLoading
@@ -322,7 +322,7 @@ const Login = () => {
                         <button
                             type="button"
                             onClick={() => { setLoginMethod('otp'); setOtpSent(false); setError(''); }}
-                            className="text-xs font-semibold text-[#843D9B] hover:underline cursor-pointer"
+                            className="text-xs font-semibold text-white underline cursor-pointer"
                         >
                             Login with OTP instead
                         </button>
@@ -330,7 +330,7 @@ const Login = () => {
                         <button
                             type="button"
                             onClick={() => { setLoginMethod('password'); setOtpSent(false); setError(''); }}
-                            className="text-xs font-semibold text-[#843D9B] hover:underline cursor-pointer"
+                            className="text-xs font-semibold text-white underline cursor-pointer"
                         >
                             Login with Password instead
                         </button>
@@ -346,9 +346,9 @@ const Login = () => {
                     return (
                         <div className="space-y-4 pt-1 w-full">
                             <div className="relative flex items-center justify-center my-3 w-full">
-                                <div className="w-full border-t border-gray-200/80"></div>
-                                <span className="shrink-0 mx-3 text-[#94A3B8] text-xs font-medium bg-white px-2">or continue with</span>
-                                <div className="w-full border-t border-gray-200/80"></div>
+                                <div className="w-full border-t border-white/30"></div>
+                                <span className="shrink-0 mx-3 text-white/80 text-xs font-medium px-2">or continue with</span>
+                                <div className="w-full border-t border-white/30"></div>
                             </div>
 
                             <div className="flex justify-center w-full min-h-[46px]">
@@ -369,21 +369,21 @@ const Login = () => {
 
             {/* Footer Sign Up Link matching mockup */}
             <div className="mt-5 text-center w-full">
-                <p className="text-xs font-medium text-[#64748B]">
+                <p className="text-xs font-medium text-white/80">
                     Don't have an account?{' '}
                     <button 
                         type="button"
                         onClick={() => navigate('/user/register')}
-                        className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer"
+                        className="text-white font-bold underline ml-1 cursor-pointer"
                     >
                         Sign Up
                     </button>
                 </p>
-                <p className="mt-3 text-[10px] text-gray-400 font-medium max-w-[280px] mx-auto leading-relaxed">
+                <p className="mt-3 text-[10px] text-white/75 font-medium max-w-[280px] mx-auto leading-relaxed">
                     By logging in, you agree to our{' '}
-                    <button onClick={() => navigate('/user/legal/terms-and-conditions')} className="text-[#843D9B] hover:underline">Terms & Conditions</button>{' '}
+                    <button onClick={() => navigate('/user/legal/terms-and-conditions')} className="text-white font-semibold underline">Terms & Conditions</button>{' '}
                     and{' '}
-                    <button onClick={() => navigate('/user/legal/privacy-policy')} className="text-[#843D9B] hover:underline">Privacy Policy</button>.
+                    <button onClick={() => navigate('/user/legal/privacy-policy')} className="text-white font-semibold underline">Privacy Policy</button>.
                 </p>
             </div>
         </motion.div>

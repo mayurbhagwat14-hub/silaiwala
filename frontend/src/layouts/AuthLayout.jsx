@@ -110,7 +110,7 @@ const AuthLayout = () => {
     // NEW CUSTOMER 1:1 FULL-PAGE CLEAN LAYOUT
     if (isCustomerAuth) {
         return (
-            <div className="min-h-[100dvh] w-full bg-white flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:p-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#843D9B]/20 relative">
+            <div className={`min-h-[100dvh] w-full ${isLogin ? "bg-[#7B2591]" : "bg-white"} flex flex-col items-center justify-start sm:justify-center px-4 py-6 sm:p-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#843D9B]/20 relative`}>
                 {/* Top Header Skip Button */}
                 <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-[100]">
                     <Link

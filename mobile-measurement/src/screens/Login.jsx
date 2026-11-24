@@ -75,10 +75,10 @@ const MELogin = () => {
 
             {/* Title & Subtitle */}
             <Box className="text-center mb-6 w-full">
-                <Txt className="text-2xl sm:text-[26px] font-bold text-[#0F172A] tracking-tight mb-1">
+                <Txt className="text-2xl sm:text-[26px] font-bold text-white tracking-tight mb-1">
                     Executive Sign In
                 </Txt>
-                <Txt className="text-xs sm:text-[13px] font-medium text-[#64748B] max-w-[280px] mx-auto leading-relaxed">
+                <Txt className="text-xs sm:text-[13px] font-medium text-white/80 max-w-[280px] mx-auto leading-relaxed">
                     Welcome back! Sign in to your measurement executive portal
                 </Txt>
             </Box>
@@ -86,10 +86,10 @@ const MELogin = () => {
             <Box className="w-full space-y-4">
                 {/* Email or Mobile Number Input Field */}
                 <Box className="w-full text-left">
-                    <Txt className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                    <Txt className="text-xs font-semibold text-white block mb-1.5">
                         Email Address or Mobile Number
                     </Txt>
-                    <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                    <Box className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                         <I icon={Mail} size={18} className="text-[#94A3B8] shrink-0" />
                         <Input placeholder="you@example.com or 10-digit mobile" autoCapitalize="none" autoCorrect={false} value={email} onChangeText={e => setEmail(e)} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                     </Box>
@@ -98,14 +98,14 @@ const MELogin = () => {
                 {/* Password Input Field */}
                 <Box className="w-full text-left">
                     <Box className="flex justify-between items-center mb-1.5">
-                        <Txt className="text-xs font-semibold text-[#0F172A]">
+                        <Txt className="text-xs font-semibold text-white">
                             Password
                         </Txt>
-                        <Btn onPress={() => navigate('/executive/forgot-password')} className="text-xs text-[#843D9B] font-bold hover:underline cursor-pointer">
+                        <Btn onPress={() => navigate('/executive/forgot-password')} className="text-xs text-white font-bold hover:underline cursor-pointer">
                             Forgot password?
                         </Btn>
                     </Box>
-                    <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                    <Box className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                         <I icon={Lock} size={18} className="text-[#94A3B8] shrink-0" />
                         <Input placeholder="Enter your password" secureTextEntry={!showPassword} autoCapitalize="none" value={password} onChangeText={e => setPassword(e)} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                         <Btn onPress={() => setShowPassword(!showPassword)} className="text-[#94A3B8] hover:text-[#843D9B] transition-colors shrink-0 cursor-pointer">
@@ -115,24 +115,24 @@ const MELogin = () => {
                 </Box>
 
                 {/* Submit Button */}
-                <Btn onPress={handleSubmit} disabled={loading} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center mt-2 ${loading ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none' : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'}`}>
+                <Btn onPress={handleSubmit} disabled={loading} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center mt-2 ${loading ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none' : 'bg-white text-[#5A1A78] shadow-lg'}`}>
                     {loading ? 'Signing in...' : 'Sign In'}
                 </Btn>
             </Box>
 
             {/* Footer Navigation */}
             <Box className="mt-6 text-center w-full">
-                <Txt className="text-xs font-medium text-[#64748B]">
+                <Txt className="text-xs font-medium text-white/80">
                     Don't have an account?{' '}
-                    <Txt onPress={() => navigate("/executive/signup")} className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer">
+                    <Txt onPress={() => navigate("/executive/signup")} className="text-white font-bold underline ml-1 cursor-pointer">
                         Sign Up
                     </Txt>
                 </Txt>
-                <Txt className="mt-4 text-[10px] text-gray-400 font-medium max-w-[280px] mx-auto leading-relaxed">
+                <Txt className="mt-4 text-[10px] text-white/75 font-medium max-w-[280px] mx-auto leading-relaxed">
                     By logging in, you agree to our{' '}
-                    <Txt onPress={() => navigate("/executive/legal/terms-and-conditions")} className="text-[#843D9B] hover:underline">Terms & Conditions</Txt>{' '}
+                    <Txt onPress={() => navigate("/executive/legal/terms-and-conditions")} className="text-white font-semibold underline">Terms & Conditions</Txt>{' '}
                     and{' '}
-                    <Txt onPress={() => navigate("/executive/legal/privacy-policy")} className="text-[#843D9B] hover:underline">Privacy Policy</Txt>.
+                    <Txt onPress={() => navigate("/executive/legal/privacy-policy")} className="text-white font-semibold underline">Privacy Policy</Txt>.
                 </Txt>
             </Box>
         </Box>;

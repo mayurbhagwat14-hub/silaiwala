@@ -71,10 +71,10 @@ const MELogin = () => {
 
             {/* Title & Subtitle */}
             <div className="text-center mb-6 w-full">
-                <h1 className="text-2xl sm:text-[26px] font-bold text-[#0F172A] tracking-tight mb-1">
+                <h1 className="text-2xl sm:text-[26px] font-bold text-white tracking-tight mb-1">
                     Executive Sign In
                 </h1>
-                <p className="text-xs sm:text-[13px] font-medium text-[#64748B] max-w-[280px] mx-auto leading-relaxed">
+                <p className="text-xs sm:text-[13px] font-medium text-white/80 max-w-[280px] mx-auto leading-relaxed">
                     Welcome back! Sign in to your measurement executive portal
                 </p>
             </div>
@@ -82,10 +82,10 @@ const MELogin = () => {
             <form onSubmit={handleSubmit} className="w-full space-y-4">
                 {/* Email or Mobile Number Input Field */}
                 <div className="w-full text-left">
-                    <label className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                    <label className="text-xs font-semibold text-white block mb-1.5">
                         Email Address or Mobile Number
                     </label>
-                    <div className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                    <div className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                         <Mail size={18} className="text-[#94A3B8] shrink-0" />
                         <input
                             type="text"
@@ -101,18 +101,18 @@ const MELogin = () => {
                 {/* Password Input Field */}
                 <div className="w-full text-left">
                     <div className="flex justify-between items-center mb-1.5">
-                        <label className="text-xs font-semibold text-[#0F172A]">
+                        <label className="text-xs font-semibold text-white">
                             Password
                         </label>
                         <button
                             type="button"
                             onClick={() => navigate('/executive/forgot-password')}
-                            className="text-xs text-[#843D9B] font-bold hover:underline cursor-pointer"
+                            className="text-xs text-white font-bold hover:underline cursor-pointer"
                         >
                             Forgot password?
                         </button>
                     </div>
-                    <div className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                    <div className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                         <Lock size={18} className="text-[#94A3B8] shrink-0" />
                         <input
                             type={showPassword ? "text" : "password"}
@@ -138,8 +138,8 @@ const MELogin = () => {
                     disabled={loading}
                     className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center mt-2 ${
                         loading
-                            ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none'
-                            : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'
+                            ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none'
+                            : 'bg-white text-[#5A1A78] shadow-lg'
                     }`}
                 >
                     {loading ? 'Signing in...' : 'Sign In'}
@@ -148,20 +148,20 @@ const MELogin = () => {
 
             {/* Footer Navigation */}
             <div className="mt-6 text-center w-full">
-                <p className="text-xs font-medium text-[#64748B]">
+                <p className="text-xs font-medium text-white/80">
                     Don't have an account?{' '}
                     <Link 
                         to="/executive/signup"
-                        className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer"
+                        className="text-white font-bold underline ml-1 cursor-pointer"
                     >
                         Sign Up
                     </Link>
                 </p>
-                <p className="mt-4 text-[10px] text-gray-400 font-medium max-w-[280px] mx-auto leading-relaxed">
+                <p className="mt-4 text-[10px] text-white/75 font-medium max-w-[280px] mx-auto leading-relaxed">
                     By logging in, you agree to our{' '}
-                    <Link to="/executive/legal/terms-and-conditions" className="text-[#843D9B] hover:underline">Terms & Conditions</Link>{' '}
+                    <Link to="/executive/legal/terms-and-conditions" className="text-white font-semibold underline">Terms & Conditions</Link>{' '}
                     and{' '}
-                    <Link to="/executive/legal/privacy-policy" className="text-[#843D9B] hover:underline">Privacy Policy</Link>.
+                    <Link to="/executive/legal/privacy-policy" className="text-white font-semibold underline">Privacy Policy</Link>.
                 </p>
             </div>
         </motion.div>

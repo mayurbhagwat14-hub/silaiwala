@@ -3,9 +3,10 @@ import React from 'react';
 import Screen from '../common/Screen';
 import { Box, Scroll } from '../ui/primitives';
 
-export default function MeasurementExecutiveAuthLayout({ children, isSignup = false }) {
+// purple: solid brand background (login screen only; signup/forgot stay white).
+export default function MeasurementExecutiveAuthLayout({ children, isSignup = false, purple = false }) {
   return (
-    <Screen className="bg-white">
+    <Screen className={purple ? 'bg-[#7B2591]' : 'bg-white'} statusBar={purple ? 'light' : 'dark'}>
       <Scroll className="flex-1" contentClassName="p-4 items-center justify-center" contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <Box className={`w-full ${isSignup ? 'max-w-[620px]' : 'max-w-[400px]'} mx-auto flex flex-col items-center py-4`}>{children}</Box>
       </Scroll>
@@ -15,7 +16,7 @@ export default function MeasurementExecutiveAuthLayout({ children, isSignup = fa
 
 export const withExecutiveAuthLayout = (ScreenComponent, opts = {}) => {
   const Wrapped = (props) => (
-    <MeasurementExecutiveAuthLayout isSignup={opts.isSignup}>
+    <MeasurementExecutiveAuthLayout isSignup={opts.isSignup} purple={opts.purple}>
       <ScreenComponent {...props} />
     </MeasurementExecutiveAuthLayout>
   );

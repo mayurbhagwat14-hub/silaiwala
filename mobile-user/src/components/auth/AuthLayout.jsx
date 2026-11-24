@@ -6,15 +6,16 @@ import { useRouter } from 'expo-router';
 import Screen from '../common/Screen';
 import { Box, Btn, Txt, I, Scroll } from '../ui/primitives';
 
-export default function AuthLayout({ children }) {
+// purple: solid brand background (login screen only; signup/forgot stay white).
+export default function AuthLayout({ children, purple = false }) {
   const router = useRouter();
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(anim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
   }, [anim]);
   return (
-    <Screen className="bg-white">
-      <Box className="flex-1 w-full bg-white relative font-['Plus_Jakarta_Sans',sans-serif]">
+    <Screen className={purple ? 'bg-[#7B2591]' : 'bg-white'} statusBar={purple ? 'light' : 'dark'}>
+      <Box className={`flex-1 w-full ${purple ? 'bg-[#7B2591]' : 'bg-white'} relative font-['Plus_Jakarta_Sans',sans-serif]`}>
         <Scroll className="flex-1" contentClassName="px-4 py-6 pt-5 pb-5" contentContainerStyle={{ flexGrow: 1 }}>
           <Animated.View style={{ opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [15, 0] }) }] }}>
             <Box className="w-full max-w-[400px] mx-auto flex flex-col items-center py-4">{children}</Box>

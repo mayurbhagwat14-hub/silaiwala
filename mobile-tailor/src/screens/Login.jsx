@@ -158,10 +158,10 @@ const TailorLogin = () => {
 
             {/* Title & Subtitle */}
             <Box className="text-center mb-6 w-full">
-                <Txt className="text-2xl sm:text-[26px] font-bold text-[#0F172A] tracking-tight mb-1">
+                <Txt className="text-2xl sm:text-[26px] font-bold text-white tracking-tight mb-1">
                     Partner Sign In
                 </Txt>
-                <Txt className="text-xs sm:text-[13px] font-medium text-[#64748B] max-w-[260px] mx-auto leading-relaxed">
+                <Txt className="text-xs sm:text-[13px] font-medium text-white/80 max-w-[260px] mx-auto leading-relaxed">
                     {loginMethod === 'otp' && otpSent ? 'Enter the OTP sent to your number' : 'Welcome back! Login to your partner account'}
                 </Txt>
             </Box>
@@ -174,10 +174,10 @@ const TailorLogin = () => {
 
                 {/* Mobile Number Input Card */}
                 <Box className="w-full text-left">
-                    <Txt className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                    <Txt className="text-xs font-semibold text-white block mb-1.5">
                         Mobile Number
                     </Txt>
-                    <Box className={`w-full bg-[#F6F6F8] rounded-[18px] flex items-center p-1.5 px-2 border transition-all ${errors.mobileNumber ? 'border-red-300 bg-red-50/50' : 'border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white'}`}>
+                    <Box className={`w-full bg-white rounded-[18px] flex items-center p-1.5 px-2 border transition-all ${errors.mobileNumber ? 'border-red-300 bg-red-50/50' : 'border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white'}`}>
                         <Box className="bg-white shadow-2xs rounded-xl px-3 py-2 text-xs font-bold text-[#0F172A] mr-2.5 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
                             +91
                         </Box>
@@ -198,14 +198,14 @@ const TailorLogin = () => {
                 {!otpSent && <Box className="space-y-4 w-full">
                         {loginMethod === 'password' && <Box className="w-full text-left">
                                 <Box className="flex justify-between items-center mb-1.5">
-                                    <Txt className="text-xs font-semibold text-[#0F172A]">
+                                    <Txt className="text-xs font-semibold text-white">
                                         Password
                                     </Txt>
-                                    <Btn onPress={() => navigate('/partner/forgot-password')} className="text-xs text-[#843D9B] font-bold hover:underline cursor-pointer">
+                                    <Btn onPress={() => navigate('/partner/forgot-password')} className="text-xs text-white font-bold hover:underline cursor-pointer">
                                         Forgot password?
                                     </Btn>
                                 </Box>
-                                <Box className={`w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border transition-all ${errors.password ? 'border-red-300 bg-red-50/50' : 'border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white'}`}>
+                                <Box className={`w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border transition-all ${errors.password ? 'border-red-300 bg-red-50/50' : 'border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white'}`}>
                                     <I icon={Lock} size={18} className="text-[#94A3B8] shrink-0" />
                                     <Input placeholder="Enter your password" secureTextEntry={!showPassword} autoCapitalize="none" {...field('password', {
               required: loginMethod === 'password' ? 'Password is required' : false
@@ -220,38 +220,38 @@ const TailorLogin = () => {
                         {/* Terms Checkbox */}
                         <Box className="flex items-center gap-2 pt-1 px-0.5 text-left">
                             <Checkbox checked={agreedToTerms} onChange={setAgreedToTerms} />
-                            <Txt className="text-xs text-[#64748B] font-medium cursor-pointer select-none">
+                            <Txt className="text-xs text-white/85 font-medium cursor-pointer select-none">
                                 I agree with{' '}
-                                <Txt onPress={() => navigate('/partner/legal/terms-and-conditions')} className="text-[#843D9B] font-semibold hover:underline">
+                                <Txt onPress={() => navigate('/partner/legal/terms-and-conditions')} className="text-white font-bold underline">
                                     Terms & Conditions
                                 </Txt>
                                 {' '} & {' '}
-                                <Txt onPress={() => navigate('/partner/legal/privacy-policy')} className="text-[#843D9B] font-semibold hover:underline">
+                                <Txt onPress={() => navigate('/partner/legal/privacy-policy')} className="text-white font-bold underline">
                                     Privacy Policy
                                 </Txt>
                             </Txt>
                         </Box>
 
                         {loginMethod === 'password' && <Box className="space-y-3 pt-1 w-full">
-                                <Btn onPress={handleSubmit(onSubmit)} disabled={isLoading || !agreedToTerms} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center ${isLoading || !agreedToTerms ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none' : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'}`}>
+                                <Btn onPress={handleSubmit(onSubmit)} disabled={isLoading || !agreedToTerms} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center ${isLoading || !agreedToTerms ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none' : 'bg-white text-[#5A1A78] shadow-lg'}`}>
                                     {isLoading ? 'Logging in...' : 'Sign In'}
                                 </Btn>
                                 <Btn onPress={() => {
             setLoginMethod('otp');
             clearErrors('root');
-          }} className="w-full text-xs font-bold text-[#843D9B] hover:underline transition-colors text-center cursor-pointer pt-1 block">
+          }} className="w-full text-xs font-bold text-white hover:underline transition-colors text-center cursor-pointer pt-1 block">
                                     Login with OTP instead
                                 </Btn>
                             </Box>}
 
                         {loginMethod === 'otp' && <Box className="space-y-3 pt-1 w-full">
-                                <Btn onPress={handleSendOTP} disabled={!mobileNumber || mobileNumber.length < 10 || sendingOtp || !agreedToTerms} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center ${!mobileNumber || mobileNumber.length < 10 || sendingOtp || !agreedToTerms ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none' : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'}`}>
+                                <Btn onPress={handleSendOTP} disabled={!mobileNumber || mobileNumber.length < 10 || sendingOtp || !agreedToTerms} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center ${!mobileNumber || mobileNumber.length < 10 || sendingOtp || !agreedToTerms ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none' : 'bg-white text-[#5A1A78] shadow-lg'}`}>
                                     {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
                                 </Btn>
                                 <Btn onPress={() => {
             setLoginMethod('password');
             clearErrors('root');
-          }} className="w-full text-xs font-bold text-[#843D9B] hover:underline transition-colors text-center cursor-pointer">
+          }} className="w-full text-xs font-bold text-white hover:underline transition-colors text-center cursor-pointer">
                                     Login with Password instead
                                 </Btn>
                             </Box>}
@@ -261,10 +261,10 @@ const TailorLogin = () => {
                     {loginMethod === 'otp' && otpSent && <Box className="space-y-4 pt-2 w-full text-left">
                             {/* OTP Field Card */}
                             <Box className="w-full text-left">
-                                <Txt className="text-xs font-semibold text-[#0F172A] block mb-1.5">
+                                <Txt className="text-xs font-semibold text-white block mb-1.5">
                                     OTP Code
                                 </Txt>
-                                <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                                <Box className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                                     <I icon={Lock} size={18} className="text-[#843D9B] shrink-0" />
                                     <Input placeholder="Enter 6-digit OTP" maxLength={6} keyboardType="number-pad" secureTextEntry={!showOtp} {...field('otp', {
                 required: 'OTP is required',
@@ -286,15 +286,15 @@ const TailorLogin = () => {
                                 <Btn onPress={() => {
               setLoginMethod('password');
               setOtpSent(false);
-            }} className="text-[#64748B] hover:text-[#843D9B] font-medium">
+            }} className="text-white/80 font-medium">
                                     ← Back to Password
                                 </Btn>
-                                <Btn onPress={() => setOtpSent(false)} className="text-[#843D9B] font-bold hover:underline">
+                                <Btn onPress={() => setOtpSent(false)} className="text-white font-bold hover:underline">
                                     Resend OTP?
                                 </Btn>
                             </Box>
 
-                            <Btn onPress={handleSubmit(onSubmit)} disabled={isLoading || !agreedToTerms} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center mt-2 ${isLoading || !agreedToTerms ? 'bg-[#E2D9F3] text-white cursor-not-allowed shadow-none' : 'bg-[#843D9B] hover:bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/20'}`}>
+                            <Btn onPress={handleSubmit(onSubmit)} disabled={isLoading || !agreedToTerms} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center mt-2 ${isLoading || !agreedToTerms ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none' : 'bg-white text-[#5A1A78] shadow-lg'}`}>
                                 {isLoading ? 'Verifying...' : 'Verify & Sign In'}
                             </Btn>
                         </Box>}
@@ -303,9 +303,9 @@ const TailorLogin = () => {
 
             {/* Footer - Register link matching mockup */}
             <Box className="mt-6 text-center w-full">
-                <Txt className="text-xs font-medium text-[#64748B]">
+                <Txt className="text-xs font-medium text-white/80">
                     New to Sewzella Tailor?{' '}
-                    <Txt onPress={() => navigate("/partner/signup")} className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer">
+                    <Txt onPress={() => navigate("/partner/signup")} className="text-white font-bold underline ml-1 cursor-pointer">
                         Register Now
                     </Txt>
                 </Txt>
