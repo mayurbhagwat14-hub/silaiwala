@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, LayoutGrid, CalendarDays, ShoppingBag, User } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -31,11 +32,16 @@ const ITEMS = [
     { to: '/user/profile', icon: User, label: 'Profile' },
 ];
 
-/** Floating rounded tab bar; the active tab becomes a filled purple pill. */
+/**
+ * Floating rounded tab bar pinned to the bottom of the screen.
+ * Rendered into <body> via a portal: an ancestor with transform / filter / backdrop-blur would
+ * otherwise turn `position: fixed` into "scrolls with that ancestor".
+ */
 const BottomNav = () => {
     const { pathname } = useLocation();
+    if (typeof document === 'undefined') return null;
 
-    return (
+    return createPortal(
         <nav
             aria-label="Main"
             className="fixed inset-x-0 bottom-0 z-50 px-2.5 md:hidden"
@@ -75,7 +81,8 @@ const BottomNav = () => {
                     );
                 })}
             </div>
-        </nav>
+        </nav>,
+        document.body,
     );
 };
 

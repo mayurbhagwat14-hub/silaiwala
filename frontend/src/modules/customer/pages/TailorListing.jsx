@@ -6,6 +6,7 @@ import api from '../../../utils/api';
 import useLocationStore from '../../../store/locationStore';
 import SafeImage from '../../../components/Common/SafeImage';
 import TailorFilterDrawer from '../components/TailorFilterDrawer';
+import BottomNav from '../components/BottomNav';
 import { useRequireAuth } from '../../../hooks/useRequireAuth';
 import { tailorFiltersFromQuery, tailorFiltersToQuery } from '../utils/tailorFilters';
 
@@ -201,7 +202,7 @@ const TailorListing = () => {
     const showSkeleton = isLoading && tailors.length === 0;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#FBF7FD] to-[#F8F2FB] pb-24 font-sans selection:bg-[#843D9B] selection:text-white">
+        <div className="min-h-screen bg-gradient-to-b from-[#FBF7FD] to-[#F8F2FB] pb-28 font-sans md:pb-8 selection:bg-[#843D9B] selection:text-white">
             <TailorFilterDrawer
                 isOpen={isFilterOpen}
                 onClose={() => setIsFilterOpen(false)}
@@ -339,6 +340,9 @@ const TailorListing = () => {
                     </div>
                 )}
             </div>
+
+            {/* "Book Service" tab lives here, so keep the tab bar visible */}
+            <BottomNav />
         </div>
     );
 };
