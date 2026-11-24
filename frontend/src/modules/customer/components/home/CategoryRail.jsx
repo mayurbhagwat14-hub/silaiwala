@@ -1,35 +1,37 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { DressFormIcon, LehengaIcon, FlowerIcon, FabricIcon, ScissorsIcon } from './ServiceIcons';
+import { DressFormIcon, AlterationIcon, LehengaIcon, FlowerIcon, FabricIcon, ScissorsIcon } from './ServiceIcons';
 
-/** Quick service shortcuts under the hero: one white card, five icons split by thin dividers. */
+/** Quick service shortcuts under the hero. */
 const ITEMS = [
-    { label: 'Stitching &\nAlterations', icon: DressFormIcon, to: '/user/alteration' },
-    { label: 'Bridal Wear', icon: LehengaIcon, to: '/user/tailors?service=bridal' },
-    { label: 'Embroidery\nServices', icon: FlowerIcon, to: '/user/embroidery' },
+    { label: 'Stitching', icon: DressFormIcon, to: '/user/services' },
+    { label: 'Alteration', icon: AlterationIcon, to: '/user/alteration' },
+    { label: 'Bridal\nWear', icon: LehengaIcon, to: '/user/tailors?service=bridal' },
+    { label: 'Embroidery', icon: FlowerIcon, to: '/user/embroidery' },
     { label: 'Fabric\nStore', icon: FabricIcon, to: '/user/store' },
     { label: 'Custom\nDesigns', icon: ScissorsIcon, to: '/user/custom-design' },
 ];
 
+/** Swipeable row: exactly five items fit the width (basis-1/5); the rest swipe in. */
 const CategoryRail = () => {
     const navigate = useNavigate();
 
     return (
-        <section className="mt-4 px-4 md:px-6">
-            <div className="flex items-stretch rounded-[20px] bg-white py-3 shadow-[0_10px_26px_-18px_rgba(42,15,56,0.55)] ring-1 ring-[#F1ECF4]">
-                {ITEMS.map(({ label, icon: ItemIcon, to }, i) => (
+        <section className="mt-5 px-2.5 md:px-6">
+            <div className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto pb-1 pt-1">
+                {ITEMS.map(({ label, icon: ItemIcon, to }) => (
                     <motion.button
                         key={label}
                         type="button"
                         whileTap={{ scale: 0.92 }}
                         onClick={() => navigate(to)}
-                        className={`flex min-w-0 flex-1 flex-col items-center gap-1.5 px-0.5 ${i > 0 ? 'border-l border-[#EFE6F4]' : ''}`}
+                        className="flex shrink-0 basis-1/5 snap-start flex-col items-center gap-1.5 px-0.5"
                     >
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F6EEFA] text-[#6A2385] sm:h-12 sm:w-12">
-                            <ItemIcon size={26} />
+                        <span className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-white text-[#6A2385] shadow-[0_8px_18px_-8px_rgba(90,31,110,0.35)] ring-1 ring-[#F3ECF7] sm:h-[68px] sm:w-[68px]">
+                            <ItemIcon size={34} />
                         </span>
-                        <span className="whitespace-pre-line text-center text-[9.5px] font-medium leading-tight text-[#1A1523] sm:text-[11.5px]">
+                        <span className="whitespace-pre-line text-center text-[11px] font-medium leading-tight text-[#1A1523] sm:text-[12px]">
                             {label}
                         </span>
                     </motion.button>

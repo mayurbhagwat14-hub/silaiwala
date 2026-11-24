@@ -131,9 +131,14 @@ const LandingFooter = () => {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-[#EDE5F3] pt-7 md:flex-row">
-          <p className="text-[12.5px] text-[#9A94A3]">
-            &copy; {new Date().getFullYear()} {appName}. All rights reserved.
-          </p>
+          <div className="text-center md:text-left">
+            <p className="text-[12.5px] text-[#9A94A3]">
+              &copy; {new Date().getFullYear()} {appName}. All rights reserved.
+            </p>
+            <p className="mt-1 text-[12px] text-[#9A94A3]">
+              A Venture by <span className="font-semibold text-[#6A2385]">ELVRIX Technologies Private Limited</span>
+            </p>
+          </div>
           <div className="flex flex-wrap justify-center gap-6 text-[12.5px] text-[#9A94A3]">
             <Link to="/page/privacy-policy" className="transition-colors hover:text-[#843D9B]">Privacy Policy</Link>
             <Link to="/page/terms-of-service" className="transition-colors hover:text-[#843D9B]">Terms of Service</Link>

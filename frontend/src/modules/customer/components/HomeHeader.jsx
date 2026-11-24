@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, X, MapPin, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { Bell, X, MapPin, ChevronDown, SlidersHorizontal, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import LocationModal from './LocationModal';
 import useLocationStore from '../../../store/locationStore';
-import useBrandingStore from '../../../store/brandingStore';
+import useAuthStore from '../../../store/authStore';
+import { getImageUrl } from '../../../utils/imageUrl';
 import AnimatedSearchBar from './AnimatedSearchBar';
 import TailorFilterDrawer from './TailorFilterDrawer';
 import { useNotifications } from '../context/NotificationContext';
 import { DEFAULT_TAILOR_FILTERS, tailorFiltersToQuery } from '../utils/tailorFilters';
 
-const SERIF = "'Playfair Display', Georgia, serif";
-
-/** "Lal Chowk, Srinagar, Jammu and Kashmir 190001, India" → "Lal Chowk, Srinagar" (no pincode/country). */
-const shortLocation = (address) => {
-    if (!address) return 'Select location';
-    const parts = String(address)
+/** "Lal Chowk, Srinagar, Jammu and Kashmir 190001, India" → ["Lal Chowk", "Srinagar, J&K"] (no pincode/country). */
+const splitLocation = (address) => {
+    const parts = String(address || '')
         .split(',')
         .map((p) => p.replace(/[-\s]*\d{5,6}\b/g, '').trim())
         .filter((p) => p && !/^india$/i.test(p))
         .map((p) => p.replace(/^Jammu\s*(and|&)\s*Kashmir$/i, 'J&K'));
-    return parts.slice(0, 2).join(', ') || 'Select location';
+    if (!parts.length) return ['Select location', ''];
+    return [parts[0], parts.slice(1, 3).join(', ')];
 };
 
 /**
- * Home header: brand (logo + name from admin settings) on the left, location pill and
- * notification bell with unread count on the right, and a pinned search bar.
+ * Home header: delivery location on the left; notification bell (unread count) and profile
+ * on the right; then a pinned search bar.
  */
 const HomeHeader = () => {
     const navigate = useNavigate();
@@ -33,8 +32,10 @@ const HomeHeader = () => {
     const { notifications = [], unreadCount, markAsRead, markAllRead } = useNotifications();
     const [showLocationModal, setShowLocationModal] = useState(false);
     const { address: location } = useLocationStore();
-    const { appName, logos } = useBrandingStore();
-    const [logoFailed, setLogoFailed] = useState(false);
+    const user = useAuthStore((st) => st.user);
+    const [avatarFailed, setAvatarFailed] = useState(false);
+    const avatar = user?.profileImage ? getImageUrl(user.profileImage) : '';
+    const [area, rest] = splitLocation(location);
     const [showFilters, setShowFilters] = useState(false);
 
     // Apply in the drawer → open the tailor list with those filters in the URL.
@@ -42,7 +43,6 @@ const HomeHeader = () => {
         const query = tailorFiltersToQuery(filters);
         navigate(`/user/tailors${query ? `?${query}` : ''}`);
     };
-    const brandName = String(appName || 'Sewzella').trim();
 
     useEffect(() => {
         document.body.style.overflow = showNotifications || showLocationModal || showFilters ? 'hidden' : 'unset';
@@ -58,63 +58,53 @@ const HomeHeader = () => {
         <>
             <div className="relative z-20 bg-gradient-to-b from-[#F1E4F8] via-[#F7EEFB] to-[#FBF7FD] px-4 pb-3 pt-4 md:px-6">
                 <div className="flex items-center justify-between gap-3">
-                    {/* Brand: logo mark stacked above the name and tagline */}
-                    <Link to="/user" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_6px_14px_-8px_rgba(90,31,110,0.5)] ring-1 ring-[#EFE6F4] sm:h-12 sm:w-12 sm:rounded-2xl">
-                            {logos?.customer && !logoFailed ? (
-                                <img
-                                    src={logos.customer}
-                                    alt={brandName}
-                                    className="h-full w-full object-contain p-1"
-                                    onError={() => setLogoFailed(true)}
-                                />
-                            ) : (
-                                <span className="text-xl font-bold text-[#5A1A78]" style={{ fontFamily: SERIF }}>
-                                    {brandName.charAt(0)}
-                                </span>
-                            )}
+                    {/* Location: bold area on top, rest of the address below */}
+                    <button
+                        type="button"
+                        onClick={() => setShowLocationModal(true)}
+                        title={location || 'Select location'}
+                        className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                    >
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#5A1A78] shadow-[0_6px_14px_-10px_rgba(90,31,110,0.5)] ring-1 ring-[#EFE6F4]">
+                            <MapPin size={19} className="fill-[#5A1A78] [&>circle]:fill-white" />
                         </span>
-                        <span className="flex flex-col">
-                            <span
-                                className="whitespace-nowrap text-[19px] font-bold leading-none tracking-[-0.01em] text-[#4A1560] sm:text-[22px]"
-                                style={{ fontFamily: SERIF }}
-                            >
-                                {brandName}
-                                <sup className="ml-0.5 text-[8px] font-normal text-[#1A1523] sm:text-[9px]">®</sup>
+                        <span className="min-w-0">
+                            <span className="flex items-center gap-0.5 text-[15px] font-bold leading-tight text-[#1A1523]">
+                                <span className="truncate">{area}</span>
+                                <ChevronDown size={16} className="shrink-0 text-[#5A1A78]" />
                             </span>
-                            <span className="mt-1 whitespace-nowrap text-[7px] font-semibold uppercase tracking-[0.08em] text-[#6B5A78] sm:text-[8px] sm:tracking-[0.12em]">
-                                The Future of Tailoring
-                            </span>
+                            {rest && <span className="block truncate text-[11.5px] text-gray-500">{rest}</span>}
                         </span>
-                    </Link>
+                    </button>
 
-                    <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-                        {/* Location */}
-                        <button
-                            type="button"
-                            onClick={() => setShowLocationModal(true)}
-                            title={location || 'Select location'}
-                            className="flex h-8 min-w-0 max-w-[140px] items-center gap-1 rounded-full bg-white pl-2 pr-1.5 shadow-[0_6px_14px_-10px_rgba(90,31,110,0.5)] ring-1 ring-[#EFE6F4] transition-transform active:scale-95 sm:h-9 sm:max-w-[180px] sm:pl-2.5 sm:pr-2"
-                        >
-                            <MapPin size={14} className="shrink-0 fill-[#5A1A78] text-[#5A1A78] [&>circle]:fill-white" />
-                            <span className="min-w-0 truncate text-[11.5px] font-medium text-[#1A1523] sm:text-[12px]">{shortLocation(location)}</span>
-                            <ChevronDown size={13} className="shrink-0 text-gray-600" />
-                        </button>
-
+                    <div className="flex shrink-0 items-center gap-2">
                         {/* Notifications */}
                         <button
                             type="button"
                             onClick={openNotifications}
                             aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
-                            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#5A1A78] shadow-[0_6px_14px_-10px_rgba(90,31,110,0.5)] ring-1 ring-[#EFE6F4] transition-transform active:scale-95 sm:h-10 sm:w-10"
+                            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#5A1A78] shadow-[0_6px_14px_-10px_rgba(90,31,110,0.5)] ring-1 ring-[#EFE6F4] transition-transform active:scale-95"
                         >
-                            <Bell size={17} />
+                            <Bell size={18} />
                             {unreadCount > 0 && (
                                 <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-[#E5243B] px-1 text-[9.5px] font-bold leading-none text-white">
                                     {unreadCount > 9 ? '9+' : unreadCount}
                                 </span>
                             )}
                         </button>
+
+                        {/* Profile */}
+                        <Link
+                            to="/user/profile"
+                            aria-label="Profile"
+                            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white text-[#5A1A78] shadow-[0_6px_14px_-10px_rgba(90,31,110,0.5)] ring-1 ring-[#EFE6F4] transition-transform active:scale-95"
+                        >
+                            {avatar && !avatarFailed ? (
+                                <img src={avatar} alt="" className="h-full w-full object-cover" onError={() => setAvatarFailed(true)} />
+                            ) : (
+                                <User size={19} />
+                            )}
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -35,6 +35,17 @@ export const DressFormIcon = (props) => (
     </Svg>
 );
 
+/** Shirt with a dashed cut line and a small scissor — fitting / alterations. */
+export const AlterationIcon = (props) => (
+    <Svg {...props}>
+        <path d="M8.4 2.8 4 5.4l1.6 3.8 2-.8V21h8.8V8.4l2 .8L20 5.4l-4.4-2.6c-.6 1.5-1.9 2.4-3.6 2.4s-3-.9-3.6-2.4Z" />
+        <path d="M7.6 14.6h8.8" strokeDasharray="1 1.3" />
+        <circle cx="18.6" cy="17.2" r="1.3" />
+        <circle cx="18.6" cy="20.6" r="1.3" />
+        <path d="m19.7 16.6 2.6-1.8M19.7 21.2l2.6 1.6" />
+    </Svg>
+);
+
 /** Flared lehenga with blouse and embroidered border. */
 export const LehengaIcon = (props) => (
     <Svg {...props}>
