@@ -1,29 +1,59 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, Clock, Award, Phone, ShieldCheck, Heart, Share2, Scissors, ChevronRight, Tag, CheckCircle2, Info, ShoppingBag, Calendar, X, Layers, Wand2, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import ProductCard from '../components/store/ProductCard';
+import { ArrowLeft, Star, MapPin, Award, Heart, Share2, CheckCircle2, Layers, Wand2, BadgeCheck, Navigation, MessageSquareText } from 'lucide-react';
+import { motion } from 'framer-motion';
 import useCheckoutStore from '../../../store/checkoutStore';
+import useBrandingStore from '../../../store/brandingStore';
 import api from '../../../utils/api';
-import SafeImage from '../../../components/Common/SafeImage';
+import { getImageUrl } from '../../../utils/imageUrl';
 import toast from 'react-hot-toast';
-import { useRequireAuth } from '../../../hooks/useRequireAuth';
+
+const SANS = "'Plus Jakarta Sans', sans-serif";
+const FAV_KEY = 'favouriteTailors'; // shared with the home "Featured Tailors" hearts
+
+const readFavourites = () => {
+    try {
+        return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
+    } catch {
+        return new Set();
+    }
+};
+
+// Tailor-entered tags arrive as "kurta" or "SUITS" — show them consistently.
+const titleCase = (str) => String(str).trim().toLowerCase().replace(/(^|[\s/&(-])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+
+/** The tailor's own photo, or their initial on brand purple — never a stock photo. */
+const Photo = ({ src, name, className = '', initialClass = 'text-3xl' }) => {
+    const [failed, setFailed] = useState(false);
+    if (!src || failed) {
+        return (
+            <div className={`flex items-center justify-center bg-gradient-to-br from-[#843D9B] to-[#4A1560] ${className}`}>
+                <span className={`font-semibold text-white ${initialClass}`}>{(name || 'T').trim().charAt(0).toUpperCase()}</span>
+            </div>
+        );
+    }
+    return <img src={src} alt={name || ''} onError={() => setFailed(true)} className={`object-cover ${className}`} />;
+};
+
+const SectionTitle = ({ title, subtitle }) => (
+    <div className="mb-3 px-1">
+        <h3 className="text-[17px] font-semibold text-[#1A1523]" style={{ fontFamily: SANS }}>{title}</h3>
+        {subtitle && <p className="mt-0.5 text-[12px] text-gray-500">{subtitle}</p>}
+    </div>
+);
 
 const TailorProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { requireAuth } = useRequireAuth();
     const setTailorInStore = useCheckoutStore(state => state.setTailor);
+    const appName = useBrandingStore((s) => s.appName) || 'Sewzella';
     const [tailor, setTailor] = useState(null);
     const [fabrics, setFabrics] = useState([]);
     const [workSamples, setWorkSamples] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isFavorite, setIsFavorite] = useState(false);
-    
-    // Bridal Booking State
-    const [isBridalModalOpen, setIsBridalModalOpen] = useState(false);
-    const [bookingData, setBookingData] = useState({ date: '', time: '', notes: '' });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(() => readFavourites().has(id));
+    const [bioOpen, setBioOpen] = useState(false);
+    const [addressOpen, setAddressOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -62,7 +92,6 @@ const TailorProfile = () => {
                 setIsLoading(false);
             } catch (error) {
                 if (error?.name === 'CanceledError' || error?.message === 'canceled' || error?.message?.includes('Cancelled')) {
-                    console.log('Tailor fetch canceled, ignoring...');
                     return;
                 }
                 console.error('Failed to fetch tailor data:', error);
@@ -72,58 +101,48 @@ const TailorProfile = () => {
         fetchData();
     }, [id]);
 
-    const handleBridalSubmit = async (e) => {
-        e.preventDefault();
-        if (!requireAuth('Please login to book a bridal consultation')) return;
-        setIsSubmitting(true);
-        try {
-            // Note: Sending to the main order checkout endpoint with special flags
-            const res = await api.post('/orders', {
-                tailorId: tailor._id,
-                items: [{
-                    serviceType: 'bridal-consultation',
-                    name: 'Bridal Consultation',
-                    quantity: 1
-                }],
-                fabricPickupRequired: false,
-                isBridalConsultation: true,
-                isMeasurementHome: true,
-                bridalNotes: bookingData.notes,
-                bridalDate: bookingData.date,
-                bridalTime: bookingData.time
-            });
-            if (res.data.success) {
-                alert('Bridal Consultation booked successfully!');
-                setIsBridalModalOpen(false);
-                setBookingData({ date: '', time: '', notes: '' });
-                navigate('/user/orders');
-            }
-        } catch (error) {
-            alert(error.response?.data?.message || 'Failed to submit request');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#FBF7FD]">
+                <div className="h-44 animate-pulse bg-[#EADCF2]" />
+                <div className="-mt-12 px-4">
+                    <div className="space-y-4 rounded-[28px] bg-white p-5 ring-1 ring-[#F1ECF4]">
+                        <div className="flex gap-4">
+                            <span className="h-20 w-20 animate-pulse rounded-2xl bg-[#F3EEF6]" />
+                            <div className="flex-1 space-y-2 pt-2">
+                                <span className="block h-5 w-2/3 animate-pulse rounded-full bg-[#F3EEF6]" />
+                                <span className="block h-3 w-1/2 animate-pulse rounded-full bg-[#F3EEF6]" />
+                            </div>
+                        </div>
+                        <span className="block h-16 animate-pulse rounded-2xl bg-[#F3EEF6]" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-    if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-10 h-10 border-4 border-[#843D9B] border-t-transparent rounded-full animate-spin" />
-    </div>;
+    if (!tailor) {
+        return (
+            <div className="flex min-h-screen flex-col items-center justify-center bg-[#FBF7FD] p-6 text-center">
+                <h2 className="text-lg font-semibold text-[#1A1523]">Tailor not found</h2>
+                <button onClick={() => navigate(-1)} className="mt-4 rounded-full bg-[#5A1A78] px-5 py-2 text-[13px] font-semibold text-white">Go back</button>
+            </div>
+        );
+    }
 
-    if (!tailor) return <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <h2 className="text-xl font-bold text-gray-900">Tailor Not Found</h2>
-        <button onClick={() => navigate(-1)} className="mt-4 text-[#843D9B] font-bold">Go Back</button>
-    </div>;
+    const name = tailor.shopName || tailor.user?.name || 'Tailor Partner';
+    const photo = tailor.user?.profileImage ? getImageUrl(tailor.user.profileImage) : '';
 
     const handleShare = async () => {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: tailor.shopName || 'Tailor Partner',
-                    text: `Check out ${tailor.shopName || 'Tailor Partner'} on SilaiWala!`,
+                    title: name,
+                    text: `Check out ${name} on ${appName}!`,
                     url: window.location.href,
                 });
-            } catch (err) {
-                console.error('Error sharing:', err);
+            } catch {
+                /* share sheet dismissed */
             }
         } else {
             navigator.clipboard.writeText(window.location.href);
@@ -131,406 +150,300 @@ const TailorProfile = () => {
         }
     };
 
-    const artisanBadge = (tailor?.experienceInYears || 0) >= 15 
-        ? 'Master Craftsman' 
-        : (tailor?.experienceInYears || 0) >= 5 
-            ? 'Expert Artisan' 
-            : (tailor?.experienceInYears || 0) >= 1
-                ? 'Skilled Artisan'
-                : 'Verified Partner';
+    const toggleFavourite = () => {
+        const favs = readFavourites();
+        if (favs.has(id)) favs.delete(id);
+        else favs.add(id);
+        try {
+            localStorage.setItem(FAV_KEY, JSON.stringify([...favs]));
+        } catch {
+            /* storage unavailable — keep in memory only */
+        }
+        setIsFavorite(favs.has(id));
+    };
 
-    const finishedOrdersCount = (tailor?.ordersCompleted !== undefined && tailor.ordersCompleted > 0) 
-        ? `${tailor.ordersCompleted}+` 
-        : (tailor?.totalReviews > 0 
-            ? `${tailor.totalReviews}+` 
-            : '0');
+    // ── Only real data below; anything the tailor hasn't filled in is simply not shown ──
+    const isVerified = tailor.registrationStatus === 'verified' || tailor.isApproved === true;
+    const rating = Number(tailor.rating) || 0;
+    const reviews = Number(tailor.totalReviews) || 0;
+    const hasReviews = rating > 0 && reviews > 0;
+    const experience = Number(tailor.experienceInYears) || 0;
+    const ordersDone = Number(tailor.ordersCompleted) || 0;
+    const specialities = (tailor.specializations || []).map((s) => String(s).trim()).filter(Boolean);
+    const bio = (tailor.bio || '').trim();
+    const city = tailor.location?.city || '';
+    const address = tailor.location?.address || tailor.address || [tailor.location?.city, tailor.location?.state].filter(Boolean).join(', ');
 
-    const experienceText = tailor?.experienceInYears && tailor.experienceInYears > 0
-        ? `${tailor.experienceInYears}y`
-        : 'New';
+    const [lng, lat] = Array.isArray(tailor.location?.coordinates) ? tailor.location.coordinates : [];
+    const hasCoords = Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0);
+    const mapQuery = hasCoords ? `${lat},${lng}` : encodeURIComponent(`${name} ${address}`);
+    const directionsUrl = hasCoords
+        ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+        : `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
 
-    const deliveryTime = tailor?.avgDeliveryDays 
-        ? `${tailor.avgDeliveryDays}d` 
-        : '3-5d';
+    const stats = [
+        { icon: Star, value: hasReviews ? rating.toFixed(1) : 'New', label: hasReviews ? `${reviews} review${reviews > 1 ? 's' : ''}` : 'No reviews yet', tone: 'text-amber-500' },
+        { icon: CheckCircle2, value: ordersDone > 0 ? `${ordersDone}` : '0', label: 'Orders done', tone: 'text-emerald-600' },
+        experience > 0 && { icon: Award, value: `${experience} yr${experience > 1 ? 's' : ''}`, label: 'Experience', tone: 'text-[#6A2385]' },
+    ].filter(Boolean);
 
-    const bioText = tailor?.bio && tailor.bio.trim() !== ''
-        ? tailor.bio
-        : `Custom tailoring specialist at ${tailor?.shopName || 'SilaiWala'}. Specialized in ${tailor?.specializations?.join(', ') || 'quality stitching & alterations'}.`;
-
-    const addressText = tailor?.location?.address || tailor?.address || [tailor?.location?.city, tailor?.location?.state].filter(Boolean).join(', ') || 'Atelier address available upon order';
-
-    const mapQuery = encodeURIComponent(`${tailor?.shopName || ''} ${addressText}`);
+    const goServices = () => {
+        setTailorInStore(tailor._id, name);
+        navigate('/user/services', { state: { tailorId: tailor._id, tailorName: name } });
+    };
+    const goCustom = () => {
+        setTailorInStore(tailor._id, name);
+        navigate('/user/custom-design', { state: { tailorId: tailor._id, tailorName: name } });
+    };
 
     return (
-        <div className="min-h-screen bg-[#F7F8FC] pb-32 font-sans overflow-x-hidden">
-            {/* 1. Dynamic Header with Parallax-like feel */}
-            <div className="relative h-44 w-full overflow-hidden bg-[#843D9B]">
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/10 z-10"></div>
-                <SafeImage
-                    src={tailor.user?.profileImage}
-                    fallback='https://images.unsplash.com/photo-1556760544-74c6974b89e0?w=800'
-                    alt="Cover"
-                    className="w-full h-full opacity-60 blur-sm scale-110"
-                />
+        <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-[#FBF7FD] to-[#F8F2FB] pb-32 font-sans">
+            {/* 1. Cover: the tailor's own photo blurred, or a plain brand gradient */}
+            <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-[#7B2D93] via-[#6A2385] to-[#3E0F52]">
+                {photo && <img src={photo} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-125 object-cover opacity-50 blur-xl" />}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/25 to-transparent" />
 
-                <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-10 sm:pt- safe flex justify-between items-center">
+                <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))]">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2.5 bg-white/10 backdrop-blur-md rounded-full text-white border border-white/20 active:scale-90 transition-all"
+                        aria-label="Back"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md active:scale-90"
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={19} />
                     </button>
                     <div className="flex gap-2">
-                        <button 
+                        <button
                             onClick={handleShare}
-                            className="p-2.5 bg-white/10 backdrop-blur-md rounded-full text-white border border-white/20 active:scale-90 transition-all cursor-pointer z-50"
+                            aria-label="Share"
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md active:scale-90"
                         >
-                            <Share2 size={18} />
+                            <Share2 size={17} />
                         </button>
                         <button
-                            onClick={() => setIsFavorite(!isFavorite)}
-                            className={`p-2.5 backdrop-blur-md rounded-full border border-white/20 active:scale-90 transition-all ${isFavorite ? 'bg-rose-500 text-white border-rose-500' : 'bg-white/10 text-white'}`}
+                            onClick={toggleFavourite}
+                            aria-label={isFavorite ? 'Remove from favourites' : 'Add to favourites'}
+                            aria-pressed={isFavorite}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ring-1 backdrop-blur-md active:scale-90 ${isFavorite ? 'bg-white text-rose-500 ring-white' : 'bg-white/15 text-white ring-white/25'}`}
                         >
-                            <Heart size={18} className={isFavorite ? 'fill-current' : ''} />
+                            <Heart size={17} className={isFavorite ? 'fill-current' : ''} />
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* 2. Overlapping Profile Card */}
-            <div className="relative z-30 -mt-12 px-4">
+            {/* 2. Profile card */}
+            <div className="relative z-30 -mt-14 px-4">
                 <motion.div
-                    initial={{ y: 20, opacity: 0 }}
+                    initial={{ y: 16, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="bg-white rounded-[2.5rem] p-4 sm:p-6 shadow-xl border border-gray-100"
+                    className="rounded-[28px] bg-white p-4 shadow-[0_18px_40px_-24px_rgba(42,15,56,0.55)] ring-1 ring-[#F1ECF4] sm:p-6"
                 >
-                    <div className="flex gap-4 items-start">
+                    <div className="flex items-start gap-4">
                         <div className="relative shrink-0">
-                            <div className="w-20 h-20 rounded-[1.5rem] overflow-hidden border-4 border-white shadow-2xl rotate-2 group">
-                                <SafeImage src={tailor.user?.profileImage} alt={tailor.shopName} className="w-full h-full group-hover:scale-110 transition-transform duration-700" />
-                            </div>
-                            {tailor.isApproved && (
-                                <div className="absolute -bottom-1 -right-1 bg-[#843D9B] p-1.5 rounded-full border-2 border-white shadow-lg ring-4 ring-[#843D9B]/10">
-                                    <ShieldCheck size={14} className="text-white" />
+                            <Photo src={photo} name={name} className="h-[84px] w-[84px] rounded-[22px] ring-4 ring-white shadow-lg" />
+                            {tailor.isAvailable && (
+                                <span title="Accepting orders" className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-white bg-emerald-500" />
+                            )}
+                        </div>
+                        <div className="min-w-0 flex-1 pt-1">
+                            <h1 className="flex items-center gap-1.5 text-[21px] font-bold leading-tight text-[#1A1523]" style={{ fontFamily: SANS }}>
+                                <span className="truncate">{name}</span>
+                                {isVerified && <BadgeCheck size={19} className="shrink-0 fill-[#6A2385] text-white" />}
+                            </h1>
+                            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12.5px] text-gray-500">
+                                {city && (
+                                    <span className="flex items-center gap-1"><MapPin size={12} /> {city}</span>
+                                )}
+                                {tailor.isAvailable ? (
+                                    <span className="font-medium text-emerald-600">● Accepting orders</span>
+                                ) : (
+                                    <span className="text-gray-400">● Currently busy</span>
+                                )}
+                            </p>
+                            {specialities.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {specialities.slice(0, 4).map((s) => (
+                                        <span key={s} className="rounded-full bg-[#F6EEFA] px-2.5 py-0.5 text-[11px] font-medium text-[#6A2385]">{titleCase(s)}</span>
+                                    ))}
                                 </div>
                             )}
                         </div>
-                        <div className="pt-2 flex-1">
-                            <div className="flex justify-between items-start">
-                                <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-none mb-1">{tailor.shopName || 'Tailor Partner'}</h2>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 mb-3">
-                                <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#843D9B] to-[#9b4cb5] text-white text-[9.5px] font-black px-2.5 py-1 rounded-full tracking-wider uppercase whitespace-nowrap shadow-xs">
-                                    <Sparkles size={11} className="fill-white/80" />
-                                    <span>{artisanBadge}</span>
-                                </div>
-                                <div className="h-1 w-1 bg-gray-300 rounded-full"></div>
-                                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight truncate">
-                                    {tailor.specializations?.[0] || 'Expert Tailor'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-4 text-xs">
-                                <div className="flex items-center gap-1.5 bg-indigo-50 px-2 py-1 rounded-lg">
-                                    <Star size={12} className="fill-[#843D9B] text-[#843D9B]" />
-                                    <span className="font-black text-[#843D9B]">{tailor.rating || 5.0}</span>
-                                    <span className="text-[#843D9B]/40 text-[10px] font-bold">({tailor.totalReviews || 0})</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-gray-400 font-bold">
-                                    <MapPin size={12} className="text-[#843D9B]/30" />
-                                    <span>{tailor.location?.city || 'Near you'}</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
-                    {/* Stats Row */}
-                    <div className="mt-5 grid grid-cols-3 gap-2">
-                        <div className="bg-gray-50/50 p-2.5 rounded-2xl border border-gray-50 text-center">
-                            <Award size={18} className="mx-auto mb-1 text-[#843D9B]" />
-                            <span className="block text-xs font-black text-gray-900 leading-none">{experienceText}</span>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-1 block">Experience</span>
-                        </div>
-                        <div className="bg-gray-50/50 p-2.5 rounded-2xl border border-gray-100 text-center">
-                            <CheckCircle2 size={18} className="mx-auto mb-1 text-green-600" />
-                            <span className="block text-xs font-black text-gray-900 leading-none">{finishedOrdersCount}</span>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-1 block">Finished</span>
-                        </div>
-                        <div className="bg-gray-50/50 p-2.5 rounded-2xl border border-gray-100 text-center">
-                            <Clock size={18} className="mx-auto mb-1 text-amber-600" />
-                            <span className="block text-xs font-black text-gray-900 leading-none">{deliveryTime}</span>
-                            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-1 block">Delivery</span>
-                        </div>
-                    </div>
-
-                    {/* About Section */}
-                    <div className="mt-4 p-3.5 bg-gray-50/80 rounded-2xl border border-gray-100">
-                        <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-1.5 opacity-40">Artisan's Bio</h3>
-                        <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
-                            {bioText}
-                        </p>
-                    </div>
-
-                    {/* Location Sneak Peek */}
-                    <div className="mt-4">
-                        <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-2 opacity-40 px-1">Artisan's Atelier</h3>
-                        <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block bg-gray-100 h-24 rounded-2xl relative overflow-hidden active:scale-[0.99] transition-transform group cursor-pointer"
-                        >
-                            <img src="https://images.unsplash.com/photo-1524613032530-449a5d94c285?w=600" className="w-full h-full object-cover blur-[1px] grayscale-[0.5] group-hover:scale-105 transition-transform" alt="Map" />
-                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white shadow-xl flex items-center gap-2">
-                                    <MapPin size={14} className="text-rose-600" />
-                                    <span className="text-[10px] font-black text-gray-800 uppercase tracking-widest">Open in Maps</span>
-                                </div>
+                    {/* Stats — real numbers only */}
+                    <div className={`mt-4 grid gap-2 ${stats.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                        {stats.map(({ icon: StatIcon, value, label, tone }) => (
+                            <div key={label} className="rounded-2xl bg-[#FBF7FD] px-2 py-2.5 text-center ring-1 ring-[#F1E8F5]">
+                                <StatIcon size={17} className={`mx-auto ${tone} ${StatIcon === Star && hasReviews ? 'fill-amber-400' : ''}`} />
+                                <span className="mt-1 block text-[15px] font-bold leading-none text-[#1A1523]">{value}</span>
+                                <span className="mt-1 block text-[10.5px] text-gray-500">{label}</span>
                             </div>
-                        </a>
-                        <p className="text-[10px] text-gray-400 font-bold mt-2 px-1 flex items-center gap-1">
-                            <Info size={10} /> {addressText}
-                        </p>
+                        ))}
                     </div>
 
-                    {/* Bridal Consultation Button */}
-                    <div className="mt-5">
-                        <button
-                            onClick={() => setIsBridalModalOpen(true)}
-                            className="w-full py-3.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-100 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                        >
-                            <Heart size={16} className="text-rose-500 fill-rose-500" />
-                            <span className="text-xs font-black text-rose-600 uppercase tracking-widest">Book Bridal Consultation</span>
-                        </button>
-                    </div>
+                    {/* About — only the tailor's own words */}
+                    {bio && (
+                        <div className="mt-4">
+                            <h3 className="mb-1 text-[13px] font-semibold text-[#1A1523]">About</h3>
+                            <p className={`text-[13px] leading-relaxed text-gray-600 ${bioOpen ? '' : 'line-clamp-3'}`}>{bio}</p>
+                            {bio.length > 160 && (
+                                <button onClick={() => setBioOpen((v) => !v)} className="mt-1 text-[12px] font-semibold text-[#6A2385]">
+                                    {bioOpen ? 'Show less' : 'Read more'}
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </motion.div>
             </div>
 
-            {/* 3. Shop Fabrics (High Impact) */}
+            {/* 3. Location — one compact row: small live map, address, directions */}
+            {(hasCoords || address) && (
+                <div className="mt-5 px-4">
+                    <div className="flex items-center gap-3 rounded-[20px] bg-white p-2.5 ring-1 ring-[#F1ECF4] shadow-[0_10px_26px_-20px_rgba(42,15,56,0.6)]">
+                        <a
+                            href={directionsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Open ${name} in Maps`}
+                            className="relative block h-[84px] w-[84px] shrink-0 overflow-hidden rounded-2xl bg-[#F6EEFA]"
+                        >
+                            <iframe
+                                title={`${name} on the map`}
+                                src={`https://maps.google.com/maps?q=${mapQuery}&z=15&output=embed`}
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                tabIndex={-1}
+                                className="pointer-events-none absolute left-1/2 top-1/2 h-[200px] w-[200px] -translate-x-1/2 -translate-y-1/2 border-0"
+                            />
+                        </a>
+                        <button
+                            type="button"
+                            onClick={() => setAddressOpen((v) => !v)}
+                            className="min-w-0 flex-1 text-left"
+                        >
+                            <span className="flex items-center gap-1 text-[13px] font-semibold text-[#1A1523]">
+                                <MapPin size={13} className="text-[#6A2385]" /> Shop location
+                            </span>
+                            <span className={`mt-0.5 block text-[12px] leading-snug text-gray-500 ${addressOpen ? '' : 'line-clamp-2'}`}>
+                                {address || city}
+                            </span>
+                        </button>
+                        <a
+                            href={directionsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Directions"
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#5A1A78] text-white active:scale-95"
+                        >
+                            <Navigation size={16} />
+                        </a>
+                    </div>
+                </div>
+            )}
+
+            {/* 4. Fabrics */}
             {fabrics && fabrics.length > 0 && (
                 <div id="tailor-fabrics" className="mt-6 px-4">
-                    <div className="flex justify-between items-center mb-4 px-2">
-                        <div>
-                            <h3 className="text-xl font-black text-gray-900 tracking-tight">Artisan's Collection</h3>
-                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Exclusive fabrics available in-store</p>
-                        </div>
-                        <div className="p-2.5 bg-[#843D9B]/5 rounded-2xl border border-[#843D9B]/5">
-                            <Tag size={18} className="text-[#843D9B]" />
-                        </div>
-                    </div>
-
-                    <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 no-scrollbar snap-x">
-                        {fabrics.map((fabric, idx) => (
-                            <motion.div
+                    <SectionTitle title="Fabric collection" subtitle="Fabrics available at this shop" />
+                    <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3">
+                        {fabrics.map((fabric) => (
+                            <button
                                 key={fabric._id}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="snap-start flex-shrink-0 w-52"
+                                type="button"
+                                onClick={() => {
+                                    setTailorInStore(tailor._id, name);
+                                    navigate(`/user/fabric/${fabric._id}`);
+                                }}
+                                className="w-40 shrink-0 snap-start overflow-hidden rounded-[18px] bg-white text-left ring-1 ring-[#F1ECF4] shadow-[0_10px_22px_-18px_rgba(42,15,56,0.6)]"
                             >
-                                <div
-                                    onClick={() => {
-                                        setTailorInStore(tailor._id, tailor.shopName || 'Tailor Partner');
-                                        navigate(`/user/fabric/${fabric._id}`);
-                                    }}
-                                    className="bg-white rounded-[2.5rem] p-3 shadow-md border border-gray-100 group cursor-pointer hover:shadow-xl transition-all duration-500 overflow-hidden"
-                                >
-                                    <div className="aspect-[3/4] rounded-[2rem] overflow-hidden mb-3 relative shadow-inner">
-                                        <SafeImage src={fabric.images?.[0] || fabric.image} alt={fabric.name} className="w-full h-full group-hover:scale-110 transition-transform duration-1000" />
-                                        <div className="absolute top-3 left-3">
-                                            <div className="bg-white/90 backdrop-blur-md px-2 py-1 rounded-lg border border-white shadow-sm">
-                                                <span className="text-[8px] font-black text-[#843D9B] uppercase">{fabric.category?.name || 'Fabric'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="px-2">
-                                        <h4 className="text-[13px] font-black text-gray-800 truncate mb-1">{fabric.name}</h4>
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex flex-col">
-                                                <p className="text-sm font-black text-[#843D9B]">₹{fabric.price}</p>
-                                                <p className="text-[9px] text-gray-400 font-bold uppercase">Incl. Taxes</p>
-                                            </div>
-                                            <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-[#843D9B] shadow-sm transform group-hover:rotate-12 transition-transform">
-                                                <Scissors size={14} />
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div className="relative aspect-[4/5] bg-[#F6EEFA]">
+                                    <Photo src={fabric.images?.[0] || fabric.image ? getImageUrl(fabric.images?.[0] || fabric.image) : ''} name={fabric.name} className="h-full w-full" />
+                                    {fabric.category?.name && (
+                                        <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-[#6A2385]">{fabric.category.name}</span>
+                                    )}
                                 </div>
-                            </motion.div>
+                                <div className="p-2.5">
+                                    <h4 className="truncate text-[13px] font-semibold text-[#1A1523]">{fabric.name}</h4>
+                                    <p className="mt-0.5 text-[13px] font-bold text-[#6A2385]">₹{Number(fabric.price || 0).toLocaleString('en-IN')}</p>
+                                </div>
+                            </button>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* 4. Portfolio / Designs */}
+            {/* 5. Services & work */}
             <div id="signature-designs" className="mt-6 px-4">
-                <div className="flex justify-between items-center mb-4 px-2">
-                    <div>
-                        <h3 className="text-xl font-black text-gray-900 tracking-tight">Signature Designs</h3>
-                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Inspired by traditional masteries</p>
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    {workSamples.length > 0 ? workSamples.map((sample, idx) => (
-                        <motion.div
-                            key={sample._id}
-                            initial={{ opacity: 0, y: 15 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: idx * 0.1 }}
-                        >
-                            <div
-                                onClick={() => {
-                                    if (sample.type === 'service') {
-                                        setTailorInStore(tailor._id, tailor.shopName || 'Tailor Partner');
-                                        navigate(`/user/services/${sample._id}`, { state: { tailorId: tailor._id } });
-                                    }
-                                }}
-                                className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 group cursor-pointer hover:shadow-md transition-all duration-300"
-                            >
-                                <div className="aspect-[4/5] overflow-hidden">
-                                    <SafeImage src={sample.image} alt={sample.title} className="w-full h-full group-hover:scale-105 transition-transform duration-700" />
-                                </div>
-                                <div className="p-3">
-                                    <h4 className="text-xs font-black text-gray-900 truncate">{sample.title}</h4>
-                                    <div className="flex items-center justify-between mt-1">
-                                        <p className="text-[9px] text-gray-400 font-bold uppercase">{sample.category?.name || 'Design'}</p>
-                                        <p className="text-[10px] font-black text-[#843D9B]">₹{sample.laborPrice || sample.basePrice}</p>
-                                    </div>
-                                    <div className="flex items-center justify-between mt-2">
-                                        <div className="flex flex-wrap gap-1">
-                                            {sample.tags && sample.tags.slice(0, 2).map((tag, i) => (
-                                                <span key={i} className="px-1.5 py-0.5 bg-[#843D9B]/5 text-[#843D9B] text-[7px] font-black rounded-md uppercase tracking-tighter">
-                                                    #{tag}
-                                                </span>
-                                            ))}
-                                        </div>
+                <SectionTitle
+                    title="Services & work"
+                    subtitle={workSamples.length ? 'Tap a service to book it' : undefined}
+                />
+                {workSamples.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {workSamples.map((sample, idx) => {
+                            const price = Number(sample.laborPrice || sample.basePrice) || 0;
+                            const img = sample.image && sample.image !== 'no-photo.jpg' ? getImageUrl(sample.image) : '';
+                            return (
+                                <motion.button
+                                    key={sample._id}
+                                    type="button"
+                                    initial={{ opacity: 0, y: 12 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: Math.min(idx, 6) * 0.05 }}
+                                    onClick={() => {
+                                        if (sample.type === 'service') {
+                                            setTailorInStore(tailor._id, name);
+                                            navigate(`/user/services/${sample._id}`, { state: { tailorId: tailor._id } });
+                                        }
+                                    }}
+                                    className={`overflow-hidden rounded-[18px] bg-white text-left ring-1 ring-[#F1ECF4] shadow-[0_10px_22px_-18px_rgba(42,15,56,0.6)] ${sample.type === 'service' ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default'}`}
+                                >
+                                    <div className="relative aspect-[4/5] bg-[#F6EEFA]">
+                                        <Photo src={img} name={sample.title} className="h-full w-full" />
                                         {sample.isBookable && (
-                                            <span className="text-[7px] font-black bg-green-100 text-green-700 px-1.5 py-0.5 rounded-md uppercase tracking-tighter">Bookable</span>
+                                            <span className="absolute left-2 top-2 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white">Bookable</span>
                                         )}
                                     </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )) : (
-                        <div className="col-span-2 py-10 text-center opacity-40">
-                            <p className="text-xs font-bold uppercase tracking-widest">No signature designs yet</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Sticky Action Footer - DUAL ACTION */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 pb-10 sm:pb-6 bg-white/80 backdrop-blur-2xl border-t border-gray-100 z-[40] animate-in slide-in-from-bottom">
-                <div className="max-w-md mx-auto flex gap-3">
-                    <button
-                        onClick={() => {
-                            setTailorInStore(tailor._id, tailor.shopName || 'Tailor Partner');
-                            navigate('/user/services', { state: { tailorId: tailor._id, tailorName: tailor.shopName || 'Tailor Partner' } });
-                        }}
-                        className="flex-1 bg-white border-2 border-[#843D9B] text-[#843D9B] py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm hover:bg-[#843D9B]/5 cursor-pointer"
-                    >
-                        <Layers size={16} />
-                        <span>More Services</span>
-                    </button>
-                    <button
-                        onClick={() => {
-                            setTailorInStore(tailor._id, tailor.shopName || 'Tailor Partner');
-                            navigate('/user/custom-design', { state: { tailorId: tailor._id, tailorName: tailor.shopName || 'Tailor Partner' } });
-                        }}
-                        className="flex-1 bg-[#843D9B] hover:bg-[#6B2F7E] text-white py-3 rounded-2xl shadow-lg shadow-[#843D9B]/20 font-black text-xs uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                        <Wand2 size={16} />
-                        <span>Custom Order</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Bridal Booking Modal */}
-            <AnimatePresence>
-                {isBridalModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                            onClick={() => setIsBridalModalOpen(false)}
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl"
-                        >
-                            <button
-                                onClick={() => setIsBridalModalOpen(false)}
-                                className="absolute right-4 top-4 p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-colors"
-                            >
-                                <X size={16} />
-                            </button>
-
-                            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center mb-4">
-                                <Heart size={24} className="fill-rose-500" />
-                            </div>
-
-                            <h3 className="text-xl font-black text-gray-900 mb-1">Bridal Consultation</h3>
-                            <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-                                Book an exclusive in-person bridal fitting. {tailor.shopName || 'Tailor Partner'} will travel to your location to take measurements.
-                            </p>
-
-                            <form onSubmit={handleBridalSubmit} className="space-y-4">
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">Preferred Date</label>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                                        <input
-                                            type="date"
-                                            required
-                                            min={new Date().toISOString().split('T')[0]}
-                                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:border-rose-300 focus:ring-1 focus:ring-rose-300/20 transition-all outline-none"
-                                            value={bookingData.date}
-                                            onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
-                                        />
+                                    <div className="p-2.5">
+                                        <h4 className="truncate text-[13px] font-semibold text-[#1A1523]">{sample.title}</h4>
+                                        <div className="mt-0.5 flex items-center justify-between gap-2">
+                                            <span className="truncate text-[11px] text-gray-500">{sample.category?.name || (sample.type === 'sample' ? 'Past work' : 'Service')}</span>
+                                            {price > 0 && <span className="shrink-0 text-[12.5px] font-bold text-[#6A2385]">₹{price.toLocaleString('en-IN')}</span>}
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">Preferred Time</label>
-                                    <div className="relative">
-                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                                        <input
-                                            type="time"
-                                            required
-                                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:border-rose-300 focus:ring-1 focus:ring-rose-300/20 transition-all outline-none"
-                                            value={bookingData.time}
-                                            onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">Requirements Note</label>
-                                    <textarea
-                                        placeholder="Specific requests, dress type, etc."
-                                        rows="2"
-                                        className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:bg-white focus:border-rose-300 focus:ring-1 focus:ring-rose-300/20 transition-all outline-none resize-none"
-                                        value={bookingData.notes}
-                                        onChange={(e) => setBookingData({ ...bookingData, notes: e.target.value })}
-                                    ></textarea>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="w-full py-4 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:shadow-rose-500/40 active:scale-[0.98] transition-all disabled:opacity-70 mt-2"
-                                >
-                                    {isSubmitting ? 'Booking...' : 'Book Consultation'}
-                                </button>
-                            </form>
-                        </motion.div>
+                                </motion.button>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center rounded-[20px] bg-white px-6 py-8 text-center ring-1 ring-[#F1ECF4]">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F3E9F8] text-[#6A2385]">
+                            <MessageSquareText size={22} />
+                        </span>
+                        <p className="mt-3 text-[13.5px] font-semibold text-[#1A1523]">No services listed yet</p>
+                        <p className="mt-1 text-[12px] text-gray-500">You can still place a custom order with this tailor.</p>
                     </div>
                 )}
-            </AnimatePresence>
+            </div>
+
+            {/* Sticky actions */}
+            <div className="fixed inset-x-0 bottom-0 z-[40] rounded-t-[22px] border-t border-[#EFE6F4] bg-white/95 px-4 pt-3 shadow-[0_-6px_20px_-12px_rgba(42,15,56,0.3)] backdrop-blur-md" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+                <div className="mx-auto flex max-w-md gap-3">
+                    <button
+                        onClick={goServices}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-full border-[1.5px] border-[#5A1A78] bg-white py-3 text-[13px] font-semibold text-[#5A1A78] active:scale-95"
+                    >
+                        <Layers size={16} /> Services
+                    </button>
+                    <button
+                        onClick={goCustom}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7B2D93] to-[#5A1A78] py-3 text-[13px] font-semibold text-white shadow-[0_10px_20px_-10px_rgba(90,26,120,0.9)] active:scale-95"
+                    >
+                        <Wand2 size={16} /> Custom Order
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
