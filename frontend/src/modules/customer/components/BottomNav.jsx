@@ -44,10 +44,10 @@ const BottomNav = () => {
     return createPortal(
         <nav
             aria-label="Main"
-            className="fixed inset-x-0 bottom-0 z-50 px-2.5 md:hidden"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}
+            className="fixed inset-x-0 bottom-0 z-50 rounded-t-[22px] border-t border-[#EFE6F4] bg-white shadow-[0_-6px_20px_-12px_rgba(42,15,56,0.3)] md:hidden"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
-            <div className="mx-auto flex h-[64px] max-w-md items-stretch rounded-[26px] bg-white px-1 shadow-[0_-4px_24px_-8px_rgba(42,15,56,0.25)] ring-1 ring-[#F1ECF4]">
+            <div className="mx-auto flex h-[62px] max-w-md items-stretch px-1">
                 {ITEMS.map(({ to, icon: NavIcon, label }) => {
                     const active = isActivePath(to, pathname);
                     return (
