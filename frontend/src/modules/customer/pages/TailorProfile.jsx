@@ -103,7 +103,7 @@ const TailorProfile = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[#FBF7FD]">
+            <div className="min-h-screen bg-white">
                 <div className="h-44 animate-pulse bg-[#EADCF2]" />
                 <div className="-mt-12 px-4">
                     <div className="space-y-4 rounded-[28px] bg-white p-5 ring-1 ring-[#F1ECF4]">
@@ -123,7 +123,7 @@ const TailorProfile = () => {
 
     if (!tailor) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center bg-[#FBF7FD] p-6 text-center">
+            <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6 text-center">
                 <h2 className="text-lg font-semibold text-[#1A1523]">Tailor not found</h2>
                 <button onClick={() => navigate(-1)} className="mt-4 rounded-full bg-[#5A1A78] px-5 py-2 text-[13px] font-semibold text-white">Go back</button>
             </div>
@@ -197,7 +197,7 @@ const TailorProfile = () => {
     };
 
     return (
-        <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-[#FBF7FD] to-[#F8F2FB] pb-32 font-sans">
+        <div className="min-h-screen overflow-x-hidden bg-white pb-32 font-sans">
             {/* 1. Cover: the tailor's own photo blurred, or a plain brand gradient */}
             <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-[#7B2D93] via-[#6A2385] to-[#3E0F52]">
                 {photo && <img src={photo} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-125 object-cover opacity-50 blur-xl" />}

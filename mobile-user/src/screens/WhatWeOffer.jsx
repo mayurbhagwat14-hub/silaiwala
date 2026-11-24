@@ -22,7 +22,7 @@ const WhatWeOffer = () => {
   const navigate = useNavigate();
   return (
     <Screen className="bg-white" bottom={false}>
-      <Box className="flex-1 bg-[#F7F8FC] font-sans">
+      <Box className="flex-1 bg-white font-sans">
         <Box className="z-50 bg-white shadow-sm px-4 py-4 flex items-center gap-4">
           <Btn onPress={() => navigate(-1)} className="p-2 rounded-full">
             <I icon={ArrowLeft} size={24} color="#374151" />

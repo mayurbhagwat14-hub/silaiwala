@@ -44,7 +44,7 @@ const Home = () => {
 
   return (
     <Screen className="bg-[#843D9B]" bottom={false} statusBar="light">
-      <Scroll className="flex-1 bg-white" contentClassName="bg-[#F7F8FC] pb-24 font-sans">
+      <Scroll className="flex-1 bg-white" contentClassName="bg-white pb-24 font-sans">
         <HomeHeader />
         <Box className="bg-white rounded-t-[2rem] relative z-30 -mt-4 pt-2 shadow-[0_-8px_16px_-6px_rgba(0,0,0,0.08)]">
           <PromoBanner />

@@ -171,7 +171,7 @@ const MeasurementsPage = () => {
       }
     }));
   };
-  return <Screen className="bg-gray-50" bottom={false}><Box className="flex-1 bg-gray-50 text-gray-900 font-sans">
+  return <Screen className="bg-white" bottom={false}><Box className="flex-1 bg-white text-gray-900 font-sans">
             <Box className="bg-white px-6 pt-4 pb-5 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100 shadow-sm">
                 <Btn onPress={() => navigate('/user/profile')} className="p-2 -ml-2 rounded-full hover:bg-gray-50 text-primary">
                     <I icon={ChevronLeft} size={24} />

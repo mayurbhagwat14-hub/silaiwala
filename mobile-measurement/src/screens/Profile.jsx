@@ -131,28 +131,6 @@ const Profile = () => {
   return <>
             <Box className="min-h-full bg-[#F5F5F5] flex flex-col font-sans">
             
-            {/* ── MOBILE HEADER ── */}
-            <Box className={`md:hidden relative bg-[#843D9B] pt-4 ${isEditing ? 'pb-12' : 'pb-16'} px-5 text-white overflow-hidden shrink-0 shadow-xl transition-all duration-300`}>
-                <Box className="absolute inset-0 z-0 opacity-20 mix-blend-overlay pointer-events-none">
-                    <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <Path fill="#FFFFFF" d="M0,100 C40,80 60,0 100,0 L100,100 Z" />
-                    </Svg>
-                </Box>
-                <Box className="relative z-10 flex items-center justify-between">
-                    <Btn onPress={() => navigate(-1)} className="p-1.5 -ml-2 text-white hover:text-indigo-100 transition-colors">
-                        <I icon={ArrowLeft} size={20} />
-                    </Btn>
-                    <Txt className="text-base font-black tracking-tight absolute left-1/2 -translate-x-1/2 uppercase">
-                        Profile Settings
-                    </Txt>
-                </Box>
-                <Box className="absolute -bottom-1 left-0 w-full leading-none">
-                    <Svg width="100%" height={32} viewBox="0 0 100 20" preserveAspectRatio="none">
-                        <Path fill="#F5F5F5" d="M0,20 C30,0 70,0 100,20 L100,20 L0,20 Z" />
-                    </Svg>
-                </Box>
-            </Box>
-
             <Box className="flex-1 p-2 md:p-0">
                 
                 {/* ── DESKTOP TITLE ── */}

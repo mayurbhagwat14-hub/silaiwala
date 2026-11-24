@@ -253,7 +253,7 @@ const LegalPage = ({
     text: `${activeDoc.title} for ${appName} Platform.`,
     url: webUrl(`/user/legal/${rawType}`)
   });
-  return <Screen className="bg-[#FDFBFD]"><Box className="flex-1 bg-[#FDFBFD] text-[#1A1A1A] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#843D9B] selection:text-white">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white text-[#1A1A1A] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#843D9B] selection:text-white">
             {/* ═══ Top Modern Navigation Bar ═══ */}
             <Box className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-purple-100/70 shadow-xs">
                 <Box className="max-w-4xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
@@ -420,7 +420,7 @@ const LegalPage = ({
                                 <I icon={Mail} size={15} />
                                 <Txt>Email Grievance Officer</Txt>
                             </Btn>
-                            <Btn onPress={() => navigate("/page/support")} className="px-5 py-3 rounded-2xl bg-white hover:bg-gray-50 border border-purple-200 text-gray-800 text-xs font-bold tracking-wide flex items-center justify-center gap-2 transition-all active:scale-95 no-underline shadow-2xs">
+                            <Btn onPress={() => navigate("/user/support")} className="px-5 py-3 rounded-2xl bg-white hover:bg-gray-50 border border-purple-200 text-gray-800 text-xs font-bold tracking-wide flex items-center justify-center gap-2 transition-all active:scale-95 no-underline shadow-2xs">
                                 <I icon={HelpCircle} size={15} className="text-[#843D9B]" />
                                 <Txt>Contact Us</Txt>
                             </Btn>

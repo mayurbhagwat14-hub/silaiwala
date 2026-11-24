@@ -24,7 +24,7 @@ const Coupons = () => {
     };
     load();
   }, []);
-  return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white">
             <Box className="bg-white border-b border-gray-100 px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
                 <Btn onPress={() => navigate(-1)} className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center cursor-pointer">
                     <I icon={ArrowLeft} size={18} className="text-gray-700" />

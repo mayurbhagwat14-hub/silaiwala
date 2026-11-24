@@ -109,7 +109,7 @@ const CustomerLiveJourney = () => {
 
   if (error) {
     return (
-      <Screen className="bg-gray-50">
+      <Screen className="bg-white">
         <Box className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <I icon={XCircle} size={48} color="#ef4444" style={{ marginBottom: 16 }} />
           <Txt className="text-lg font-bold text-gray-900 mb-2">Location Error</Txt>
@@ -121,7 +121,7 @@ const CustomerLiveJourney = () => {
   }
   if (!order) {
     return (
-      <Screen className="bg-gray-50">
+      <Screen className="bg-white">
         <Box className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <Spin size={32} color="#843D9B" style={{ marginBottom: 16 }} />
           <Txt className="text-gray-500 font-medium">Initializing Tracker...</Txt>
@@ -134,7 +134,7 @@ const CustomerLiveJourney = () => {
 
   return (
     <Screen className="bg-white">
-      <Box className="flex-1 bg-gray-50 flex flex-col font-sans">
+      <Box className="flex-1 bg-white flex flex-col font-sans">
         <Box className="bg-white px-4 py-4 shadow-sm z-10 flex items-center justify-between border-b border-gray-100">
           <Btn onPress={() => navigate('/user/orders')} className="p-2 -ml-2 rounded-full">
             <I icon={ChevronLeft} size={24} color="#1f2937" />

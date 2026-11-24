@@ -1,5 +1,4 @@
 // Port of modules/delivery/pages/Login.jsx (converted with scripts/web2rn.js, then reviewed)
-import { Linking } from 'react-native';
 import Checkbox from '../components/ui/Checkbox';
 import React, { useState, useEffect } from "react";
 import { useNavigate,  } from '../lib/nav';
@@ -115,6 +114,20 @@ const DeliveryLogin = () => {
       setError(err.message || 'Invalid OTP. Please try again.');
     }
   };
+  // Terms checkbox: always rendered after every input field, right above the main button
+  const termsRow = <Box className="flex items-center gap-2 pt-1 px-0.5 text-left">
+      <Checkbox checked={agreedToTerms} onChange={setAgreedToTerms} />
+      <Txt className="text-xs text-white/85 font-medium cursor-pointer select-none">
+        I agree with{' '}
+        <Txt onPress={() => navigate('/delivery/legal/terms-and-conditions')} className="text-white font-bold underline">
+          Terms & Conditions
+        </Txt>
+        {' '} & {' '}
+        <Txt onPress={() => navigate('/delivery/legal/privacy-policy')} className="text-white font-bold underline">
+          Privacy Policy
+        </Txt>
+      </Txt>
+    </Box>;
   return <Box className="w-full flex flex-col items-center font-['Plus_Jakarta_Sans',sans-serif] px-2 sm:px-4">
             {/* Top Squircle Card with Icon */}
             <Box className="w-16 h-16 rounded-[22px] bg-[#F4EFFF] border border-[#E9DFFE] flex items-center justify-center shadow-2xs mb-4 shrink-0 mx-auto mt-2">
@@ -143,10 +156,10 @@ const DeliveryLogin = () => {
                         Mobile Number
                     </Txt>
                     <Box className="w-full bg-white rounded-[18px] flex items-center p-1.5 px-2 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                        <Box className="bg-white shadow-2xs rounded-xl px-3 py-2 text-xs font-bold text-[#0F172A] mr-2.5 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
+                        <Box className="bg-white shadow-2xs rounded-xl px-3 py-2 text-sm font-medium text-[#0F172A] mr-2.5 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
                             +91
                         </Box>
-                        <Input placeholder="Enter mobile number" value={mobileNumber} onChangeText={e => setMobileNumber(e.replace(/\D/g, ''))} maxLength={10} disabled={otpSent || sendingOtp} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8] disabled:opacity-60" keyboardType="phone-pad" />
+                        <Input placeholder="Enter mobile number" value={mobileNumber} onChangeText={e => setMobileNumber(e.replace(/\D/g, ''))} maxLength={10} disabled={otpSent || sendingOtp} editable={!(otpSent || sendingOtp)} className="w-full text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8] disabled:opacity-60" keyboardType="phone-pad" />
                         {otpSent && <Btn onPress={() => {
             setOtpSent(false);
             setOtp('');
@@ -168,27 +181,14 @@ const DeliveryLogin = () => {
                                 </Box>
                                 <Box className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                                     <I icon={Lock} size={18} className="text-[#94A3B8] shrink-0" />
-                                    <Input placeholder="Enter your password" value={password} onChangeText={e => setPassword(e)} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                                    <Input placeholder="Enter your password" value={password} onChangeText={e => setPassword(e)} secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                                     <Btn onPress={() => setShowPassword(!showPassword)} className="text-[#94A3B8] hover:text-[#843D9B] transition-colors shrink-0 cursor-pointer">
                                         {showPassword ? <I icon={EyeOff} size={18} /> : <I icon={Eye} size={18} />}
                                     </Btn>
                                 </Box>
                             </Box>}
 
-                        {/* Terms Checkbox */}
-                        <Box className="flex items-center gap-2 pt-1 px-0.5 text-left">
-                            <Checkbox checked={agreedToTerms} onChange={setAgreedToTerms} />
-                            <Txt className="text-xs text-white/85 font-medium cursor-pointer select-none">
-                                I agree with{' '}
-                                <Txt onPress={() => Linking.openURL('/delivery/legal/terms-and-conditions')} className="text-white font-bold underline">
-                                    Terms & Conditions
-                                </Txt>
-                                {' '} & {' '}
-                                <Txt onPress={() => Linking.openURL('/delivery/legal/privacy-policy')} className="text-white font-bold underline">
-                                    Privacy Policy
-                                </Txt>
-                            </Txt>
-                        </Box>
+                        {termsRow}
 
                         {loginMethod === 'password' && <Box className="space-y-3 pt-1 w-full">
                                 <Btn onPress={handleSubmit} disabled={isLoading || !agreedToTerms} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center ${isLoading || !agreedToTerms ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none' : 'bg-white text-[#5A1A78] shadow-lg'}`}>
@@ -223,7 +223,7 @@ const DeliveryLogin = () => {
                                 </Txt>
                                 <Box className="w-full bg-white rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                                     <I icon={Lock} size={18} className="text-[#843D9B] shrink-0" />
-                                    <Input placeholder="Enter 6-digit OTP" maxLength={6} value={otp} onChangeText={e => setOtp(e.replace(/\D/g, ''))} className="w-full text-xs sm:text-sm text-[#0F172A] font-bold tracking-widest bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8] placeholder:tracking-normal" />
+                                    <Input placeholder="Enter 6-digit OTP" maxLength={6} keyboardType="number-pad" secureTextEntry={!showOtp} value={otp} onChangeText={e => setOtp(e.replace(/\D/g, ''))} className="w-full text-xs sm:text-sm text-[#0F172A] font-bold tracking-widest bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8] placeholder:tracking-normal" />
                                     <Btn onPress={() => setShowOtp(!showOtp)} className="text-[#94A3B8] hover:text-[#843D9B] transition-colors shrink-0 cursor-pointer">
                                         {showOtp ? <I icon={EyeOff} size={18} /> : <I icon={Eye} size={18} />}
                                     </Btn>
@@ -241,6 +241,8 @@ const DeliveryLogin = () => {
                                     Resend OTP?
                                 </Btn>
                             </Box>
+
+                            {termsRow}
 
                             <Btn onPress={handleSubmit} disabled={isLoading || !agreedToTerms} className={`w-full py-3.5 sm:py-4 rounded-[22px] font-bold text-sm tracking-wide transition-all shadow-md active:scale-[0.99] cursor-pointer text-center mt-2 ${isLoading || !agreedToTerms ? 'bg-[#E9DDF1] text-[#8E6AA0] cursor-not-allowed shadow-none' : 'bg-white text-[#5A1A78] shadow-lg'}`}>
                                 {isLoading ? 'Verifying...' : 'Verify & Sign In'}

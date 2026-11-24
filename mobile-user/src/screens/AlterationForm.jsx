@@ -148,7 +148,7 @@ const AlterationForm = () => {
       setIsSubmitting(false);
     }
   };
-  return <Screen className="bg-gray-50" statusBg="bg-[#843D9B]" statusBar="light"><Box className="flex-1 bg-gray-50 font-sans">
+  return <Screen className="bg-white" statusBg="bg-[#843D9B]" statusBar="light"><Box className="flex-1 bg-white font-sans">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-[#843D9B] text-white px-4 py-4 flex items-center gap-3 pt-safe shadow-md">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors">

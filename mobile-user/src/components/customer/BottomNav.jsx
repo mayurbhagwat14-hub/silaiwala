@@ -1,11 +1,11 @@
 // Port of modules/customer/components/BottomNav.jsx
 import { useNavigate, TAB_ROOTS } from '../../lib/nav';
-import React, { useEffect, useRef } from 'react';
-import { Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Keyboard } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Shirt, ShoppingBag, ClipboardList, User } from 'lucide-react-native';
-import { Box, Txt, Btn, I } from '../ui/primitives';
+import { Box, Txt, Btn, I, useTyping } from '../ui/primitives';
 
 const isActiveFor = (to, path) => {
   if (to === '/user') {
@@ -56,8 +56,24 @@ const NavItem = ({ to, icon, label }) => {
   );
 };
 
+// True while the on-screen keyboard is open.
+const useKeyboardOpen = () => {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setOpen(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setOpen(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+  return open;
+};
+
 const BottomNav = () => {
   const insets = useSafeAreaInsets();
+  // The footer stays pinned to the bottom of the screen: while typing it steps aside
+  // instead of riding up on top of the keyboard.
+  const keyboardOpen = useKeyboardOpen();
+  const typing = useTyping(); // true the moment a field is focused, before the keyboard has finished opening
+  if (keyboardOpen || typing) return null;
   return (
     <Box
       className="absolute bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] rounded-t-2xl pt-2.5 px-4"

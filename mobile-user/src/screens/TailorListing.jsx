@@ -63,12 +63,12 @@ const TailorListing = () => {
   const searchTerm = search.trim().toLowerCase();
   const filteredTailors = tailors.filter(t => (t.shopName || "").toLowerCase().includes(searchTerm) || (t.specializations || []).some(s => s.toLowerCase().includes(searchTerm)));
   if (isLoading && tailors.length === 0) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center p-6 text-center">
                 <Spin size={40} className="text-[#843D9B] animate-spin mb-4" />
                 <Txt className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Searching Experts...</Txt>
             </Box></Screen>;
   }
-  return <Screen className="bg-[#F7F8FC]"><Box className="flex-1 bg-[#F7F8FC] font-sans selection:bg-[#843D9B] selection:text-white">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans selection:bg-[#843D9B] selection:text-white">
             <TailorFilterDrawer isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} filters={filters} setFilters={setFilters} />
 
 

@@ -18,7 +18,7 @@ const NotificationSettings = () => {
       [key]: !prev[key]
     }));
   };
-  return <Screen className="bg-gray-50" statusBg="bg-primary" statusBar="light"><Box className="flex-1 bg-gray-50 md:p-6 font-sans">
+  return <Screen className="bg-white" statusBg="bg-primary" statusBar="light"><Box className="flex-1 bg-white md:p-6 font-sans">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-primary md:bg-transparent md:mb-8 px-4 py-4 flex items-center gap-4 text-white md:text-gray-900 border-b border-white/10 md:border-0 backdrop-blur-md">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-2xl md:bg-white md:shadow-sm hover:bg-white/10 md:hover:bg-gray-50 transition-all">

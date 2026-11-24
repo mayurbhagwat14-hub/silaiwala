@@ -70,7 +70,7 @@ const EmbroideryPage = () => {
   const calculateTotal = () => {
     return Object.values(selectedDesigns).flat().reduce((sum, d) => sum + d.price, 0);
   };
-  return <Screen className="bg-[#F7F8FC]">
+  return <Screen className="bg-white">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
                 <Box className="px-5 py-6 flex items-center justify-between">

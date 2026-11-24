@@ -1,17 +1,19 @@
 import Checkbox from '../components/ui/Checkbox';
-import { pickImage, fileToDataUrl, isPickedFile } from '../lib/files';
+import { Alert } from 'react-native';
+import { pickImage, isPickedFile } from '../lib/files';
+import { persistPickedFile, fileStillExists, clearSignupFiles } from '../lib/signupFiles';
 import React from 'react';
 import Spin from '../components/ui/Spin';
 import storage from '../lib/storage';
 import Select from '../components/ui/Select';
-import { Mail as FiMail, Lock as FiLock, Eye as FiEye, EyeOff as FiEyeOff, User as FiUser, Phone as FiPhone, Truck as FiTruck, Camera as FiCamera, ChevronRight as FiChevronRight, ChevronLeft as FiChevronLeft, Check as FiCheck, FileText as FiFileText, Shield as FiShield, CreditCard as FiCreditCard, Trash2 as FiTrash2, Navigation as FiNavigation } from 'lucide-react-native';
+import { Mail as FiMail, Lock as FiLock, Eye as FiEye, EyeOff as FiEyeOff, User as FiUser, Phone as FiPhone, Truck as FiTruck, Camera as FiCamera, ChevronRight as FiChevronRight, ChevronLeft as FiChevronLeft, Check as FiCheck, FileText as FiFileText, Shield as FiShield, CreditCard as FiCreditCard, Trash2 as FiTrash2, Navigation as FiNavigation, RotateCcw as FiRotateCcw } from 'lucide-react-native';
 // Port of modules/delivery/pages/Register.jsx (converted with scripts/web2rn.js, then reviewed)
 import { useState, useRef, useEffect } from "react";
 import {  useNavigate } from '../lib/nav';
 import toast from '../lib/toast';
 import { useDeliveryAuthStore } from "../store/deliveryStore";
 import api from "../lib/api";
-import DeliveryLegalModal from "../components/delivery/DeliveryLegalModal";
+import { scrollAuthToTop } from "../components/delivery/DeliveryAuthLayout";
 import useBrandingStore from "../store/brandingStore";
 import PlacesAutocompleteField from "../components/shared/PlacesAutocompleteField";
 import { useUnifiedLocation } from "../shared/hooks/useUnifiedLocation";
@@ -22,39 +24,70 @@ const STEPS = [{
   icon: FiUser
 }, {
   id: 2,
-  title: 'Documents',
+  title: 'Vehicle & Documents',
   icon: FiFileText
 }, {
   id: 3,
-  title: 'Vehicle & Bank',
+  title: 'Address & Bank',
   icon: FiTruck
 }];
 const DRAFT_KEY = 'delivery_signup_draft_v2';
-const dataURLtoFile = (dataurl, filename) => {
-  if (!dataurl || typeof dataurl !== 'string' || !dataurl.startsWith('data:')) return null;
-  try {
-    const arr = dataurl.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
+const PHOTO_KEYS = ['profileImage', 'licenseFront', 'licenseBack', 'aadharFront', 'aadharBack'];
+
+// Fields that belong to each step — "Reset this step" clears only these.
+const STEP_FIELDS = {
+  1: { text: ['name', 'email', 'phone', 'emergencyContact', 'aadharNumber', 'password'], photos: ['profileImage'] },
+  2: { text: ['vehicleNumber'], photos: ['licenseFront', 'licenseBack', 'aadharFront', 'aadharBack'] },
+  3: { text: ['address', 'latitude', 'longitude', 'accountHolderName', 'accountNumber', 'bankName', 'ifscCode'], photos: [] },
+};
+
+const isBicycle = (type) => type === 'Bicycle';
+
+// Indian plates: "MH 12 AB 1234", "DL 1 C 1234", and the Bharat series "22 BH 1234 AA".
+const VEHICLE_RE = /^[A-Z]{2}\d{1,2}[A-Z]{0,3}\d{4}$/;
+const BH_RE = /^\d{2}BH\d{4}[A-Z]{1,2}$/;
+const IFSC_RE = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+
+/** One validation message per field; '' when the value is fine. Used live (on blur) and on Next/Submit. */
+const fieldError = (name, value, form = {}) => {
+  const v = String(value ?? '').trim();
+  switch (name) {
+    case 'name':
+      if (!v) return 'Full name is required';
+      if (!/^[a-zA-Z\s]+$/.test(v)) return 'Full name can contain only letters';
+      if (v.replace(/\s/g, '').length < 3) return 'Full name must be at least 3 letters';
+      return '';
+    case 'accountHolderName':
+      if (!v) return 'Account holder name is required';
+      if (!/^[a-zA-Z\s]+$/.test(v)) return 'Account holder name can contain only letters';
+      if (v.replace(/\s/g, '').length < 3) return 'Account holder name must be at least 3 letters';
+      return '';
+    case 'vehicleNumber': {
+      if (isBicycle(form.vehicleType)) return '';
+      const plate = v.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!plate) return 'Vehicle registration number is required';
+      if (!VEHICLE_RE.test(plate) && !BH_RE.test(plate)) return 'Enter a valid number plate, e.g. MH 12 AB 1234';
+      return '';
     }
-    return new File([u8arr], filename, {
-      type: mime
-    });
-  } catch (e) {
-    console.error('Error converting base64 to file:', e);
-    return null;
+    case 'accountNumber':
+      if (!v) return 'Bank account number is required';
+      if (!/^\d+$/.test(v)) return 'Account number can contain only digits';
+      if (v.length < 9 || v.length > 18) return 'Account number must be 9 to 18 digits';
+      if (/^0+$/.test(v)) return 'Enter a valid account number';
+      return '';
+    case 'ifscCode': {
+      const code = v.toUpperCase();
+      if (!code) return 'IFSC code is required';
+      if (code.length !== 11) return 'IFSC code must be 11 characters';
+      if (!IFSC_RE.test(code)) return 'Invalid IFSC: 4 letters, then 0, then 6 letters/digits (e.g. SBIN0001234)';
+      return '';
+    }
+    default:
+      return '';
   }
 };
 const DeliveryRegister = () => {
   const navigate = useNavigate();
-  const [legalModal, setLegalModal] = useState({
-    isOpen: false,
-    type: 'terms'
-  });
   const {
     register,
     sendRegistrationOtp,
@@ -73,16 +106,25 @@ const DeliveryRegister = () => {
     isLocating
   } = useUnifiedLocation();
 
-  // Restore draft state from localStorage on page refresh
+  // Restore the draft (text fields + paths of photos kept on disk) after an app restart / network drop
   const getInitialState = () => {
     try {
       const saved = storage.getItem(DRAFT_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        const files = {};
+        const previews = {};
+        PHOTO_KEYS.forEach((k) => {
+          const f = parsed.files?.[k];
+          if (f?.uri && fileStillExists(f.uri)) {
+            files[k] = f;
+            previews[k] = f.uri;
+          }
+        });
         return {
           currentStep: parsed.currentStep || 1,
-          formData: parsed.formData || {},
-          previews: parsed.previews || {},
+          formData: { ...(parsed.formData || {}), ...files },
+          previews,
           isPhoneVerified: parsed.isPhoneVerified || false
         };
       }
@@ -142,12 +184,18 @@ const DeliveryRegister = () => {
           longitude: formData.longitude,
           vehicleType: formData.vehicleType,
           vehicleNumber: formData.vehicleNumber,
-          accountName: formData.accountName,
+          accountHolderName: formData.accountHolderName,
           accountNumber: formData.accountNumber,
           bankName: formData.bankName,
           ifscCode: formData.ifscCode
         },
-        previews,
+        // Only small { uri, name, type } records — the photos themselves stay on disk
+        files: Object.fromEntries(PHOTO_KEYS.filter((k) => isPickedFile(formData[k])).map((k) => [k, {
+          uri: formData[k].uri,
+          name: formData[k].name,
+          type: formData[k].type,
+          size: formData[k].size || 0
+        }])),
         isPhoneVerified
       };
       storage.setItem(DRAFT_KEY, JSON.stringify(draftPayload));
@@ -226,21 +274,19 @@ const DeliveryRegister = () => {
       [name]: ''
     }));
 
-    // File inputs with DataURL preview for network-loss persistence
-    if (['licenseFront', 'licenseBack', 'aadharFront', 'aadharBack', 'profileImage'].includes(name)) {
+    // Photos: kept as files on disk (see persistPhoto); preview shows the same file
+    if (PHOTO_KEYS.includes(name)) {
       const file = files?.[0] || null;
       if (file) {
-        // web: FileReader data URL (survives a refresh); native: data URL from the picker's base64
-        const base64Url = fileToDataUrl(file) || file.uri;
-        setPreviews(prev => ({ ...prev, [name]: base64Url }));
+        setPreviews(prev => ({ ...prev, [name]: file.uri }));
         setFormData(prev => ({ ...prev, [name]: file }));
       }
       return;
     }
 
-    // 1. Full Name & Account Holder Name: ONLY letters and spaces
+    // 1. Full Name & Account Holder Name: ONLY letters and single spaces (digits/symbols are dropped as typed)
     if (name === 'name' || name === 'accountHolderName') {
-      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, '');
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, '').replace(/\s{2,}/g, ' ').replace(/^\s+/, '');
       setFormData(prev => ({
         ...prev,
         [name]: lettersOnly
@@ -248,13 +294,30 @@ const DeliveryRegister = () => {
       return;
     }
 
-    // 2. Bank Account Number: ONLY numbers (digits)
+    // 2. Bank Account Number: ONLY digits, max 18
     if (name === 'accountNumber') {
-      const numericValue = value.replace(/\D/g, '');
+      const numericValue = value.replace(/\D/g, '').slice(0, 18);
       setFormData(prev => ({
         ...prev,
         [name]: numericValue
       }));
+      if (numericValue.length >= 9) {
+        setFieldErrors(prev => ({ ...prev, accountNumber: fieldError('accountNumber', numericValue) }));
+      }
+      return;
+    }
+
+    // Vehicle type: a bicycle needs no plate or driving licence, so drop those
+    if (name === 'vehicleType') {
+      setFormData(prev => ({
+        ...prev,
+        vehicleType: value,
+        ...(isBicycle(value) ? { vehicleNumber: '', licenseFront: null, licenseBack: null } : {})
+      }));
+      if (isBicycle(value)) {
+        setPreviews(prev => ({ ...prev, licenseFront: undefined, licenseBack: undefined }));
+        setFieldErrors(prev => ({ ...prev, vehicleNumber: '' }));
+      }
       return;
     }
 
@@ -287,12 +350,16 @@ const DeliveryRegister = () => {
         ...prev,
         [name]: formatted
       }));
+      // Full length typed: tell right away if the format is wrong
+      if (formatted.length === 11) {
+        setFieldErrors(prev => ({ ...prev, ifscCode: fieldError('ifscCode', formatted) }));
+      }
       return;
     }
 
-    // 5. Vehicle Number: Uppercase Alphanumeric & spaces
+    // 5. Vehicle Number: uppercase letters, digits and single spaces (max 13 incl. spaces)
     if (name === 'vehicleNumber') {
-      const formatted = value.toUpperCase().replace(/[^A-Z0-9\s-]/g, '');
+      const formatted = value.toUpperCase().replace(/[^A-Z0-9\s]/g, '').replace(/\s{2,}/g, ' ').replace(/^\s+/, '').slice(0, 13);
       setFormData(prev => ({
         ...prev,
         [name]: formatted
@@ -304,6 +371,45 @@ const DeliveryRegister = () => {
       [name]: value
     }));
   };
+  // Validate one field when the user leaves it, so mistakes show up before Next/Submit
+  const validateOnBlur = name => () => {
+    setFieldErrors(prev => ({ ...prev, [name]: fieldError(name, formData[name], formData) }));
+  };
+
+  // Pick a photo and keep a copy on disk, so it survives a network drop or app restart
+  const persistPhoto = async name => {
+    const picked = await pickImage();
+    if (!picked) return;
+    const kept = await persistPickedFile(picked, name);
+    handleChange({ target: { name, files: [kept] } });
+  };
+
+  // "Reset this step": clears only the fields and photos of the current step
+  const resetCurrentStep = () => {
+    const { text, photos } = STEP_FIELDS[currentStep] || { text: [], photos: [] };
+    Alert.alert('Reset this step?', `This clears the details you entered on "${STEPS[currentStep - 1].title}". Other steps are kept.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Reset',
+        style: 'destructive',
+        onPress: () => {
+          setFormData(prev => ({
+            ...prev,
+            ...Object.fromEntries(text.map(k => [k, ''])),
+            ...Object.fromEntries(photos.map(k => [k, null]))
+          }));
+          setPreviews(prev => ({ ...prev, ...Object.fromEntries(photos.map(k => [k, undefined])) }));
+          setFieldErrors(prev => ({ ...prev, ...Object.fromEntries([...text, ...photos].map(k => [k, ''])) }));
+          if (currentStep === 1) {
+            setIsPhoneVerified(false);
+            setShowOtpField(false);
+            setPhoneOtp('');
+          }
+        }
+      }
+    ]);
+  };
+
   const handleSendOtp = async () => {
     setFieldErrors(prev => ({
       ...prev,
@@ -366,8 +472,8 @@ const DeliveryRegister = () => {
     let isValid = true;
     switch (step) {
       case 1:
-        if (!formData.name.trim() || formData.name.trim().length < 3 || !/^[a-zA-Z\s]+$/.test(formData.name.trim())) {
-          errs.name = 'Full name must contain only letters (min 3 chars)';
+        if (fieldError('name', formData.name)) {
+          errs.name = fieldError('name', formData.name);
           toast.error(errs.name);
           isValid = false;
         }
@@ -417,57 +523,47 @@ const DeliveryRegister = () => {
           ...errs
         }));
         return isValid;
-      case 2:
-        if (!previews.aadharFront && !formData.aadharFront) {
+      case 2: {
+        // Vehicle number (not needed for a bicycle)
+        const plateErr = fieldError('vehicleNumber', formData.vehicleNumber, formData);
+        if (plateErr) {
+          setFieldErrors(prev => ({ ...prev, vehicleNumber: plateErr }));
+          toast.error(plateErr);
+          return false;
+        }
+        // Driving License is required only if vehicle is NOT bicycle
+        if (!isBicycle(formData.vehicleType) && !isPickedFile(formData.licenseFront)) {
+          toast.error('Driving License (Front) photo is required for motorized vehicles');
+          return false;
+        }
+        if (!isPickedFile(formData.aadharFront)) {
           toast.error('Aadhaar Card (Front) photo is required');
           return false;
         }
-
-        // Driving License is required only if vehicle is NOT bicycle
-        if (formData.vehicleType !== 'Bicycle') {
-          if (!previews.licenseFront && !formData.licenseFront) {
-            toast.error('Driving License (Front) photo is required for motorized vehicles');
-            return false;
-          }
-        }
         return true;
+      }
       case 3:
-        if (formData.vehicleType !== 'Bicycle') {
-          const cleanPlate = (formData.vehicleNumber || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-          if (!cleanPlate) {
-            errs.vehicleNumber = 'Vehicle registration number is required';
-            toast.error(errs.vehicleNumber);
-            isValid = false;
-          } else if (cleanPlate.length < 5 || cleanPlate.length > 12) {
-            errs.vehicleNumber = 'Enter a valid vehicle plate number (e.g. DL 01 AB 1234)';
-            toast.error(errs.vehicleNumber);
-            isValid = false;
-          }
-        }
         if (!formData.address.trim() || formData.address.trim().length < 5) {
           errs.address = 'Please provide a complete residential address (min 5 chars)';
           toast.error(errs.address);
           isValid = false;
         }
         // Bank Details Validation
-        if (!formData.accountHolderName || formData.accountHolderName.trim().length < 3 || !/^[a-zA-Z\s]+$/.test(formData.accountHolderName.trim())) {
-          errs.accountHolderName = 'Account holder name must contain only letters (min 3 chars)';
-          toast.error(errs.accountHolderName);
-          isValid = false;
-        }
-        if (!formData.accountNumber || !/^\d{9,18}$/.test(formData.accountNumber)) {
-          errs.accountNumber = 'Bank account number must be between 9 and 18 digits';
-          toast.error(errs.accountNumber);
-          isValid = false;
-        }
+        ['accountHolderName', 'accountNumber'].forEach(k => {
+          const msg = fieldError(k, formData[k]);
+          if (msg) {
+            errs[k] = msg;
+            toast.error(msg);
+            isValid = false;
+          }
+        });
         if (!formData.bankName || formData.bankName.trim().length < 2) {
           errs.bankName = 'Bank name is required';
           toast.error(errs.bankName);
           isValid = false;
         }
-        const cleanIfsc = (formData.ifscCode || '').trim().toUpperCase();
-        if (!cleanIfsc || !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(cleanIfsc)) {
-          errs.ifscCode = 'Enter a valid 11-character IFSC code (e.g. SBIN0001234)';
+        if (fieldError('ifscCode', formData.ifscCode)) {
+          errs.ifscCode = fieldError('ifscCode', formData.ifscCode);
           toast.error(errs.ifscCode);
           isValid = false;
         }
@@ -489,6 +585,11 @@ const DeliveryRegister = () => {
     setCurrentStep(s => Math.min(s + 1, 3));
   };
   const prevStep = () => setCurrentStep(s => Math.max(s - 1, 1));
+
+  // Every step opens at the top, not wherever the previous step was scrolled to
+  useEffect(() => {
+    scrollAuthToTop();
+  }, [currentStep]);
   const uploadBulkFiles = async filesArray => {
     const data = new FormData();
     let hasFiles = false;
@@ -499,51 +600,53 @@ const DeliveryRegister = () => {
       }
     }
     if (!hasFiles) return [];
-    try {
-      data.append('folder', 'delivery_registration');
-      const res = await api.post('/upload/public/bulk', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        timeout: 60000
-      });
-      return res.data?.data || [];
-    } catch (error) {
-      console.warn('Image upload failed during registration:', error);
-      return [];
-    }
+    data.append('folder', 'delivery_registration');
+    // No silent fallback: if the photos can't be uploaded (e.g. network lost) the signup stops here,
+    // keeps everything entered, and the partner can simply tap Submit again.
+    const res = await api.post('/upload/public/bulk', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      timeout: 60000
+    });
+    const urls = res.data?.data || [];
+    if (urls.length < filesArray.length) throw new Error('Some photos could not be uploaded. Please check your internet and tap Submit again.');
+    return urls;
   };
   const handleSubmit = async e => {
     if (currentStep !== 3) return;
     if (!validateStep(3)) return;
     try {
-      const getFileObj = (key, filename) => {
-        if (isPickedFile(formData[key])) return formData[key];
-        if (previews[key] && typeof previews[key] === 'string') {
-          return dataURLtoFile(previews[key], filename);
-        }
-        return null;
-      };
+      const getFileObj = key => (isPickedFile(formData[key]) ? formData[key] : null);
+      const bicycle = isBicycle(formData.vehicleType);
       const filesToUpload = [{
         name: 'Profile Image',
-        file: getFileObj('profileImage', 'profile.jpg'),
+        file: getFileObj('profileImage'),
         isProfile: true
       }, {
         name: 'Driving License Front',
-        file: getFileObj('licenseFront', 'dl_front.jpg') || getFileObj('drivingLicense', 'dl_front.jpg')
+        file: bicycle ? null : getFileObj('licenseFront')
       }, {
         name: 'Driving License Back',
-        file: getFileObj('licenseBack', 'dl_back.jpg') || getFileObj('drivingLicenseBack', 'dl_back.jpg')
+        file: bicycle ? null : getFileObj('licenseBack')
       }, {
         name: 'Aadhar Front',
-        file: getFileObj('aadharFront', 'aadhar_front.jpg') || getFileObj('aadharCard', 'aadhar_front.jpg')
+        file: getFileObj('aadharFront')
       }, {
         name: 'Aadhar Back',
-        file: getFileObj('aadharBack', 'aadhar_back.jpg') || getFileObj('aadharCardBack', 'aadhar_back.jpg')
+        file: getFileObj('aadharBack')
       }].filter(item => isPickedFile(item.file));
       let uploadedUrls = [];
       if (filesToUpload.length > 0) {
-        uploadedUrls = await uploadBulkFiles(filesToUpload);
+        try {
+          uploadedUrls = await uploadBulkFiles(filesToUpload);
+        } catch (uploadErr) {
+          const offline = uploadErr?.isAxiosError && !uploadErr?.response;
+          toast.error(offline
+            ? 'No internet connection. Your details and photos are saved — tap Submit again once you are online.'
+            : uploadErr?.message || 'Photo upload failed. Please try again.');
+          return;
+        }
       }
       let profileImageUrl = null;
       const documents = [];
@@ -583,6 +686,7 @@ const DeliveryRegister = () => {
       }
       const result = await register(payload);
       storage.removeItem(DRAFT_KEY); // Clear draft after successful submission
+      clearSignupFiles();
       toast.success(result.message || 'Registration submitted successfully!');
       navigate('/delivery/login', {
         replace: true
@@ -627,7 +731,7 @@ const DeliveryRegister = () => {
   const DocUploadCard = ({
     name,
     label
-  }) => <Btn onPress={() => pickImage({ base64: true }).then(file => file && handleChange({ target: { name, files: [file] } }))} className="block relative cursor-pointer group">
+  }) => <Btn onPress={() => persistPhoto(name)} className="block relative cursor-pointer group">
       {previews[name] ? <Box className="relative w-full h-36 sm:h-40 rounded-2xl overflow-hidden border-2 border-emerald-200 shadow-sm">
           <Img src={previews[name]} alt={label} className="w-full h-full object-cover" />
           <Box className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -678,9 +782,15 @@ const DeliveryRegister = () => {
               {STEPS[currentStep - 1].title}
             </Txt>
           </Box>
-          <Txt className="text-[10px] font-bold text-[#843D9B] bg-[#F4EFFF] border border-[#E9DFFE] px-2.5 py-1 rounded-full shrink-0">
-            Step {currentStep} of 3
-          </Txt>
+          <Box className="flex items-center gap-2 shrink-0">
+            <Btn onPress={resetCurrentStep} aria-label="Reset this step" className="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200">
+              <I icon={FiRotateCcw} size={11} className="text-[#64748B]" />
+              <Txt className="text-[10px] font-bold text-[#64748B]">Reset</Txt>
+            </Btn>
+            <Txt className="text-[10px] font-bold text-[#843D9B] bg-[#F4EFFF] border border-[#E9DFFE] px-2.5 py-1 rounded-full">
+              Step {currentStep} of 3
+            </Txt>
+          </Box>
         </Box>
 
         <Box className="w-full space-y-4">
@@ -689,7 +799,7 @@ const DeliveryRegister = () => {
             {currentStep === 1 && <Box key="step1" className="space-y-4 w-full">
                 {/* Profile Photo Uploader */}
                 <Box className="flex flex-col items-center justify-center my-2">
-                  <Btn className="block relative w-20 h-20 rounded-full border-2 border-dashed border-[#843D9B]/40 bg-[#F4EFFF]/40 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-[#843D9B] transition-all shadow-2xs" onPress={() => pickImage({ base64: true }).then(file => file && handleChange({ target: { name: 'profileImage', files: [file] } }))}>
+                  <Btn className="block relative w-20 h-20 rounded-full border-2 border-dashed border-[#843D9B]/40 bg-[#F4EFFF]/40 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-[#843D9B] transition-all shadow-2xs" onPress={() => persistPhoto('profileImage')}>
                     {previews.profileImage ? <Img src={previews.profileImage} alt="Profile" className="w-full h-full object-cover" /> : <Box className="flex flex-col items-center">
                         <I icon={FiCamera} className="text-[#843D9B] mb-0.5" size={20} />
                         <Txt className="text-[9px] font-bold text-[#843D9B]">Upload</Txt>
@@ -704,7 +814,7 @@ const DeliveryRegister = () => {
                     <Txt className="block text-xs font-semibold text-[#0F172A] mb-1 text-left">Full Name *</Txt>
                     <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 gap-2.5 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                       <I icon={FiUser} className="text-[#94A3B8] shrink-0" size={16} />
-                      <Input value={formData.name} onChangeText={v => handleChange({ target: { name: 'name', value: v } })} placeholder="Enter full name" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                      <Input value={formData.name} onChangeText={v => handleChange({ target: { name: 'name', value: v } })} onBlur={validateOnBlur('name')} autoCapitalize="words" autoCorrect={false} placeholder="Enter full name" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                     </Box>
                     {fieldErrors.name && <Txt className="text-[11px] text-red-500 font-semibold mt-1 text-left">{fieldErrors.name}</Txt>}
                   </Box>
@@ -721,10 +831,10 @@ const DeliveryRegister = () => {
                   <Box>
                     <Txt className="block text-xs font-semibold text-[#0F172A] mb-1 text-left">Mobile Number *</Txt>
                     <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center p-1.5 px-2 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                      <Box className="bg-white shadow-2xs rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#0F172A] mr-2 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
+                      <Box className="bg-white shadow-2xs rounded-xl px-2.5 py-1.5 text-sm font-medium text-[#0F172A] mr-2 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
                         +91
                       </Box>
-                      <Input value={formData.phone} onChangeText={v => handleChange({ target: { name: 'phone', value: v } })} placeholder="Mobile number" maxLength={10} disabled={isPhoneVerified} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8] disabled:opacity-60" keyboardType="phone-pad" />
+                      <Input value={formData.phone} onChangeText={v => handleChange({ target: { name: 'phone', value: v } })} placeholder="Mobile number" maxLength={10} disabled={isPhoneVerified} editable={!isPhoneVerified} className="w-full text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8] disabled:opacity-60" keyboardType="phone-pad" />
                       {isPhoneVerified ? <Txt className="text-emerald-600 font-bold text-xs shrink-0 pr-2">Verified ✓</Txt> : <Btn onPress={handleSendOtp} disabled={isSendingOtp || !formData.phone || formData.phone.length !== 10} className="text-xs font-bold text-[#843D9B] hover:underline shrink-0 pr-1 cursor-pointer disabled:opacity-40">
                           {isSendingOtp ? 'Sending...' : 'Verify'}
                         </Btn>}
@@ -735,10 +845,10 @@ const DeliveryRegister = () => {
                   <Box>
                     <Txt className="block text-xs font-semibold text-[#0F172A] mb-1 text-left">Emergency Contact *</Txt>
                     <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center p-1.5 px-2 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                      <Box className="bg-white shadow-2xs rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#0F172A] mr-2 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
+                      <Box className="bg-white shadow-2xs rounded-xl px-2.5 py-1.5 text-sm font-medium text-[#0F172A] mr-2 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
                         +91
                       </Box>
-                      <Input value={formData.emergencyContact} onChangeText={v => handleChange({ target: { name: 'emergencyContact', value: v } })} placeholder="Emergency number" maxLength={10} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" keyboardType="phone-pad" />
+                      <Input value={formData.emergencyContact} onChangeText={v => handleChange({ target: { name: 'emergencyContact', value: v } })} placeholder="Emergency number" maxLength={10} className="w-full text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" keyboardType="phone-pad" />
                     </Box>
                     {fieldErrors.emergencyContact && <Txt className="text-[11px] text-red-500 font-semibold mt-1 text-left">{fieldErrors.emergencyContact}</Txt>}
                   </Box>
@@ -756,7 +866,7 @@ const DeliveryRegister = () => {
                     <Txt className="block text-xs font-semibold text-[#0F172A] mb-1 text-left">Password *</Txt>
                     <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 gap-2.5 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                       <I icon={FiLock} className="text-[#94A3B8] shrink-0" size={16} />
-                      <Input value={formData.password} onChangeText={v => handleChange({ target: { name: 'password', value: v } })} placeholder="Create password" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                      <Input value={formData.password} onChangeText={v => handleChange({ target: { name: 'password', value: v } })} secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} placeholder="Create password" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                       <Btn onPress={() => setShowPassword(!showPassword)} className="text-[#94A3B8] hover:text-[#843D9B] transition-colors shrink-0 cursor-pointer">
                         {showPassword ? <I icon={FiEyeOff} size={16} /> : <I icon={FiEye} size={16} />}
                       </Btn>
@@ -769,7 +879,7 @@ const DeliveryRegister = () => {
                 {showOtpField && !isPhoneVerified && <Box className="bg-[#F4EFFF] p-4 rounded-[18px] border border-[#E9DFFE] space-y-2 text-left">
                     <Txt className="block text-xs font-bold text-[#843D9B]">Enter 6-Digit OTP</Txt>
                     <Box className="flex gap-2">
-                      <Input value={phoneOtp} onChangeText={e => setPhoneOtp(e)} placeholder="••••••" maxLength={6} className="flex-1 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-center font-bold tracking-widest text-sm text-[#0F172A] focus:outline-none focus:border-[#843D9B]" />
+                      <Input value={phoneOtp} onChangeText={e => setPhoneOtp(e.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="••••••" maxLength={6} className="flex-1 px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-center font-bold tracking-widest text-sm text-[#0F172A] focus:outline-none focus:border-[#843D9B]" />
                       <Btn onPress={handleVerifyOtp} disabled={isVerifyingOtp || !phoneOtp || phoneOtp.length !== 6} className="px-5 py-2.5 bg-[#843D9B] text-white rounded-xl text-xs font-bold hover:bg-[#843D9B] disabled:opacity-40 transition-all shrink-0 cursor-pointer">
                         {isVerifyingOtp ? 'Verifying...' : 'Submit OTP'}
                       </Btn>
@@ -779,13 +889,33 @@ const DeliveryRegister = () => {
 
             {/* STEP 2: Documents */}
             {currentStep === 2 && <Box key="step2" className="space-y-4 w-full text-left">
-                <Box>
+                {/* Vehicle first: what it is decides which documents are needed */}
+                <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <Box>
+                    <Txt className="block text-xs font-semibold text-[#0F172A] mb-1">Vehicle Type *</Txt>
+                    <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
+                      <Select value={formData.vehicleType} onChange={v => handleChange({ target: { name: 'vehicleType', value: v } })} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0" options={[{ value: 'Bike (Motorcycle)', label: 'Bike (Motorcycle)' }, { value: 'Scooter', label: 'Scooter' }, { value: 'Electric Scooter', label: 'Electric Scooter' }, { value: 'Bicycle', label: 'Bicycle' }]} />
+                    </Box>
+                  </Box>
+
+                  {isBicycle(formData.vehicleType) ? <Box className="bg-emerald-50 border border-emerald-100 rounded-[16px] p-3">
+                      <Txt className="text-xs font-semibold text-emerald-700">No number plate or driving licence needed for a bicycle.</Txt>
+                    </Box> : <Box>
+                      <Txt className="block text-xs font-semibold text-[#0F172A] mb-1">Vehicle Registration Number *</Txt>
+                      <Box className={`w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 border ${fieldErrors.vehicleNumber ? 'border-red-300' : 'border-transparent'}`}>
+                        <Input value={formData.vehicleNumber} onChangeText={v => handleChange({ target: { name: 'vehicleNumber', value: v } })} onBlur={validateOnBlur('vehicleNumber')} autoCapitalize="characters" autoCorrect={false} maxLength={13} placeholder="e.g. MH 12 AB 1234" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium uppercase tracking-wider bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                      </Box>
+                      {fieldErrors.vehicleNumber && <Txt className="text-[11px] text-red-500 font-semibold mt-1">{fieldErrors.vehicleNumber}</Txt>}
+                    </Box>}
+                </Box>
+
+                {!isBicycle(formData.vehicleType) && <Box>
                   <Txt className="block text-xs font-bold text-[#0F172A] mb-2">Driving License (Required) *</Txt>
                   <Box className="grid grid-cols-2 gap-3">
                     <DocUploadCard name="licenseFront" label="License Front" />
                     <DocUploadCard name="licenseBack" label="License Back" />
                   </Box>
-                </Box>
+                </Box>}
 
                 <Box>
                   <Txt className="block text-xs font-bold text-[#0F172A] mb-2">Aadhaar Card (Required) *</Txt>
@@ -802,23 +932,6 @@ const DeliveryRegister = () => {
 
             {/* STEP 3: Vehicle & Bank */}
             {currentStep === 3 && <Box key="step3" className="space-y-4 w-full text-left">
-                <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <Box>
-                    <Txt className="block text-xs font-semibold text-[#0F172A] mb-1">Vehicle Type *</Txt>
-                    <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                      <Select value={formData.vehicleType} onChange={v => handleChange({ target: { name: 'vehicleType', value: v } })} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0" options={[{ value: 'Bike (Motorcycle)', label: 'Bike (Motorcycle)' }, { value: 'Scooter', label: 'Scooter' }, { value: 'Electric Scooter', label: 'Electric Scooter' }, { value: 'Bicycle', label: 'Bicycle' }]} />
-                    </Box>
-                  </Box>
-
-                  <Box>
-                    <Txt className="block text-xs font-semibold text-[#0F172A] mb-1">Vehicle Registration Number *</Txt>
-                    <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                      <Input value={formData.vehicleNumber} onChangeText={v => handleChange({ target: { name: 'vehicleNumber', value: v } })} placeholder="e.g. MH 12 AB 1234" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium uppercase tracking-wider bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
-                    </Box>
-                    {fieldErrors.vehicleNumber && <Txt className="text-[11px] text-red-500 font-semibold mt-1">{fieldErrors.vehicleNumber}</Txt>}
-                  </Box>
-                </Box>
-
                 <Box>
                   <Box className="flex justify-between items-center mb-1">
                     <Txt className="block text-xs font-semibold text-[#0F172A]">Residential Address *</Txt>
@@ -864,7 +977,7 @@ const DeliveryRegister = () => {
                     <Box>
                       <Txt className="block text-xs font-semibold text-[#0F172A] mb-1">Account Holder Name *</Txt>
                       <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                        <Input value={formData.accountHolderName} onChangeText={v => handleChange({ target: { name: 'accountHolderName', value: v } })} placeholder="Name as per bank account" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                        <Input value={formData.accountHolderName} onChangeText={v => handleChange({ target: { name: 'accountHolderName', value: v } })} onBlur={validateOnBlur('accountHolderName')} autoCapitalize="words" autoCorrect={false} placeholder="Name as per bank account" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                       </Box>
                       {fieldErrors.accountHolderName && <Txt className="text-[11px] text-red-500 font-semibold mt-1">{fieldErrors.accountHolderName}</Txt>}
                     </Box>
@@ -872,7 +985,7 @@ const DeliveryRegister = () => {
                     <Box>
                       <Txt className="block text-xs font-semibold text-[#0F172A] mb-1">Account Number *</Txt>
                       <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                        <Input value={formData.accountNumber} onChangeText={v => handleChange({ target: { name: 'accountNumber', value: v } })} placeholder="9 - 18 digit account number" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                        <Input value={formData.accountNumber} onChangeText={v => handleChange({ target: { name: 'accountNumber', value: v } })} onBlur={validateOnBlur('accountNumber')} keyboardType="number-pad" maxLength={18} placeholder="9 - 18 digit account number" className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                       </Box>
                       {fieldErrors.accountNumber && <Txt className="text-[11px] text-red-500 font-semibold mt-1">{fieldErrors.accountNumber}</Txt>}
                     </Box>
@@ -888,7 +1001,7 @@ const DeliveryRegister = () => {
                     <Box>
                       <Txt className="block text-xs font-semibold text-[#0F172A] mb-1">IFSC Code *</Txt>
                       <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-3.5 py-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                        <Input value={formData.ifscCode} onChangeText={v => handleChange({ target: { name: 'ifscCode', value: v } })} placeholder="e.g. SBIN0001234" maxLength={11} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium uppercase tracking-wider bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                        <Input value={formData.ifscCode} onChangeText={v => handleChange({ target: { name: 'ifscCode', value: v } })} onBlur={validateOnBlur('ifscCode')} autoCapitalize="characters" autoCorrect={false} placeholder="e.g. SBIN0001234" maxLength={11} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium uppercase tracking-wider bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                       </Box>
                       {fieldErrors.ifscCode && <Txt className="text-[11px] text-red-500 font-semibold mt-1">{fieldErrors.ifscCode}</Txt>}
                     </Box>
@@ -899,13 +1012,7 @@ const DeliveryRegister = () => {
                   <Txt className="flex items-center gap-2 cursor-pointer select-none">
                     <Checkbox checked={agreedToTerms} onChange={setAgreedToTerms} />
                     <Txt className="text-xs text-[#64748B] font-medium">
-                      I agree to the <Txt onPress={() => setLegalModal({
-                    isOpen: true,
-                    type: 'terms'
-                  })} className="text-[#843D9B] hover:underline font-semibold cursor-pointer">Terms & Conditions</Txt> and <Txt onPress={() => setLegalModal({
-                    isOpen: true,
-                    type: 'privacy'
-                  })} className="text-[#843D9B] hover:underline font-semibold cursor-pointer">Privacy Policy</Txt>
+                      I agree to the <Txt onPress={() => navigate('/delivery/legal/terms-and-conditions')} className="text-[#843D9B] hover:underline font-semibold cursor-pointer">Terms & Conditions</Txt> and <Txt onPress={() => navigate('/delivery/legal/privacy-policy')} className="text-[#843D9B] hover:underline font-semibold cursor-pointer">Privacy Policy</Txt>
                     </Txt>
                   </Txt>
                 </Box>
@@ -928,16 +1035,16 @@ const DeliveryRegister = () => {
           <Box className="text-center mt-6 w-full">
             <Txt className="text-xs font-medium text-[#64748B]">
               Already have an account?{' '}
-              <Txt onPress={() => storage.removeItem(DRAFT_KEY)} className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer">Login</Txt>
+              <Txt onPress={() => {
+              storage.removeItem(DRAFT_KEY);
+              clearSignupFiles();
+              navigate('/delivery/login');
+            }} className="text-[#843D9B] font-bold hover:underline ml-1 cursor-pointer">Login</Txt>
             </Txt>
           </Box>
         </Box>
       </Box>
 
-      <DeliveryLegalModal isOpen={legalModal.isOpen} type={legalModal.type} onClose={() => setLegalModal({
-      isOpen: false,
-      type: 'terms'
-    })} />
     </>;
 };
 export default DeliveryRegister;

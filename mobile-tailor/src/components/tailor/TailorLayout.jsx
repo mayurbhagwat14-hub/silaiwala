@@ -15,7 +15,7 @@ import { useNavigate, TAB_ROOTS } from '../../lib/nav';
 import api from '../../lib/api';
 import useRefreshOnReturn from '../../lib/useRefreshOnReturn';
 import Screen from '../common/Screen';
-import { Box, Btn, I, Img, Scroll, Txt } from '../ui/primitives';
+import { Box, Btn, I, Img, Scroll, Txt, useTyping } from '../ui/primitives';
 
 const ORDER_SECTION = ['/partner/orders', '/partner/shop-orders', '/partner/alterations', '/partner/custom-designs', '/partner/issues'];
 const ORDER_TABS = [
@@ -36,6 +36,7 @@ export default function TailorLayout({ children, scroll = true }) {
   const { appName, logos } = useBrandingStore();
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const typing = useTyping(); // true the moment a field is focused, before the keyboard has finished opening
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const returnKey = useRefreshOnReturn();
@@ -177,7 +178,7 @@ export default function TailorLayout({ children, scroll = true }) {
       ) : content}
 
       {/* ── BOTTOM NAVIGATION ── */}
-      {!keyboardOpen ? (
+      {!(keyboardOpen || typing) ? (
         <Box className="bg-white border-t border-gray-100 px-4 pt-2 flex items-center justify-between gap-2 shadow-[0_-8px_30px_rgba(0,0,0,0.05)]" style={{ paddingBottom: Math.max(8, insets.bottom), elevation: 12 }}>
           {menuItems.map((item) => {
             const isActive = pathname === item.path || (item.path === '/partner/orders' && isOrderSection);

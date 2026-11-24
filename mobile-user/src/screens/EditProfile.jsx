@@ -17,6 +17,16 @@ import { getCurrentPosition } from '../lib/location';
 import { reverseGeocode } from '../utils/reverseGeocode';
 import { Box, Btn, I, Txt, Input, Scroll } from '../components/ui/primitives';
 import Spin from '../components/ui/Spin';
+// Full name: letters and single spaces only (no digits / special characters)
+const NAME_RE = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
+const cleanName = (v) => String(v).replace(/[^A-Za-z\s]/g, '').replace(/\s{2,}/g, ' ').replace(/^\s+/, '');
+const nameError = (v) => {
+  const t = String(v || '').trim();
+  if (!t) return 'Full name is required';
+  if (!NAME_RE.test(t)) return 'Full name can contain only letters';
+  if (t.replace(/\s/g, '').length < 2) return 'Full name must be at least 2 letters';
+  return '';
+};
 const EditProfile = () => {
   const navigate = useNavigate();
   const {
@@ -51,7 +61,8 @@ const EditProfile = () => {
   const [formData, setFormData] = useState({
     name: activeUser.name || '',
     email: activeUser.email || '',
-    phone: activeUser.phone || activeUser.phoneNumber || '',
+    // shown as the editable 10 digits (the saved value may carry a "+91" prefix)
+    phone: String(activeUser.phone || activeUser.phoneNumber || '').replace(/\D/g, '').slice(-10),
     location: activeUser.location || '',
     profileImage: activeUser.profileImage || null
   });
@@ -238,14 +249,18 @@ const EditProfile = () => {
   };
   const handleSubmit = async e => {
     const newErrors = {};
-    const nameErr = validateName(formData.name);
+    const nameErr = nameError(formData.name);
     if (nameErr) newErrors.name = nameErr;
+    const phoneDigits = String(formData.phone || '').replace(/\D/g, '').slice(-10);
+    if (phoneDigits && !/^[6-9]\d{9}$/.test(phoneDigits)) newErrors.phone = 'Enter a valid 10-digit mobile number starting with 6-9';
     if (formData.email) {
       const emailErr = validateEmail(formData.email);
       if (emailErr) newErrors.email = emailErr;
     }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      // never fail silently: say what is wrong, even when the field is scrolled out of view
+      toast.error(Object.values(newErrors)[0]);
       return;
     }
     setErrors({});
@@ -264,19 +279,22 @@ const EditProfile = () => {
           uploadedImageUrl = uploadRes.data.data;
         }
       }
+      // only send the number when it was changed, so its saved format (e.g. "+91…") is left alone
+      const originalPhone = String(activeUser.phone || activeUser.phoneNumber || '').replace(/\D/g, '').slice(-10);
+      const phoneChange = formData.phone && formData.phone !== originalPhone ? { phoneNumber: formData.phone } : {};
       await updateProfile({
-        name: formData.name,
+        name: formData.name.trim(),
         email: formData.email,
-        phoneNumber: formData.phone,
+        ...phoneChange,
         location: formData.location,
         profileImage: uploadedImageUrl
       });
       const updateUser = useAuthStore.getState().updateUser;
       if (updateUser) {
         updateUser({
-          name: formData.name,
+          name: formData.name.trim(),
           email: formData.email,
-          phoneNumber: formData.phone,
+          ...phoneChange,
           location: formData.location,
           ...(uploadedImageUrl && {
             profileImage: uploadedImageUrl
@@ -321,10 +339,13 @@ const EditProfile = () => {
                         <Txt className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</Txt>
                         <Box className={`flex items-center gap-3 bg-gray-50 p-4 rounded-2xl border ${errors.name ? 'border-red-300' : 'border-gray-100'} focus-within:border-[#843D9B] focus-within:bg-white transition-all`}>
                             <I icon={User} size={18} className="text-gray-400" />
-                            <Input value={formData.name} onChangeText={e => setFormData({
-              ...formData,
-              name: e
-            })} className="bg-transparent text-sm font-bold w-full focus:outline-none" placeholder="Enter your name" />
+                            <Input value={formData.name} onChangeText={e => {
+              setFormData({
+                ...formData,
+                name: cleanName(e)
+              });
+              if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+            }} autoCapitalize="words" autoCorrect={false} maxLength={50} className="bg-transparent text-sm font-bold w-full focus:outline-none" placeholder="Enter your name" />
                         </Box>
                         {errors.name && <Txt className="text-[10px] text-red-500 font-bold ml-2">{errors.name}</Txt>}
                     </Box>

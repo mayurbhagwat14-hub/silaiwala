@@ -38,7 +38,7 @@ const CheckoutAddress = () => {
       }
     }
   };
-  return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 font-sans">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans">
             {/* 1. Sticky Header */}
             <Box className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 h-16 flex items-end gap-3 pb-4">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-50 text-gray-700">

@@ -7,7 +7,7 @@ import { parse } from '../../lib/tw';
 import { Box } from '../ui/primitives';
 
 /**
- * <Screen className="bg-[#F7F8FC]" bottom={false}>…</Screen>
+ * <Screen className="bg-white" bottom={false}>…</Screen>
  * top/bottom: apply the safe-area inset as padding (bottom is off when a BottomNav is shown).
  */
 export default function Screen({ className = 'bg-white', children, top = true, bottom = true, statusBar = 'dark', keyboard = true, style, statusBg }) {

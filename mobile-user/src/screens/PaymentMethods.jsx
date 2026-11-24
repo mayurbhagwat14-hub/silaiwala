@@ -30,7 +30,7 @@ const PaymentMethods = () => {
     icon: Banknote,
     color: 'text-amber-600 bg-amber-50'
   }]);
-  return <Screen className="bg-[#F8F9FB]" bottom={false} statusBg="bg-[#843D9B]" statusBar="light"><Box className="flex-1 bg-[#F8F9FB] font-sans">
+  return <Screen className="bg-white" bottom={false} statusBg="bg-[#843D9B]" statusBar="light"><Box className="flex-1 bg-white font-sans">
             <Box className="sticky top-0 z-50 bg-[#843D9B] px-4 py-4 flex items-center gap-3 text-white shadow-md">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer">
                     <I icon={ArrowLeft} size={20} />

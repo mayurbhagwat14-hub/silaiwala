@@ -132,7 +132,7 @@ const ProfilePage = () => {
       profileImage: typeof rawImg === 'string' ? rawImg : null
     };
   }, [profile, authUser, storedUser]);
-  return <Screen className="bg-[#F8F9FB]" bottom={false} statusBg="bg-[#843D9B]" statusBar="light"><Box className="flex-1 bg-[#F8F9FB] font-sans text-gray-900 w-full overflow-x-hidden">
+  return <Screen className="bg-white" bottom={false} statusBg="bg-[#843D9B]" statusBar="light"><Box className="flex-1 bg-white font-sans text-gray-900 w-full overflow-x-hidden">
             <Scroll className="flex-1" contentClassName="pb-24 flex flex-col items-center">
             {/* 1. Header & Stats */}
             <ProfileHeader user={displayUser} stats={profile?.stats} />

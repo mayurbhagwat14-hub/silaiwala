@@ -145,7 +145,7 @@ const StoreProductDetail = () => {
     });
     navigate('/user/cart');
   };
-  return <Screen className="bg-[#FAFAFB]">
+  return <Screen className="bg-white">
             {toast && <Box className={cn('absolute top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-full shadow-lg text-[10px] font-black uppercase tracking-widest animate-in slide-in-from-top-2 fade-in duration-300', toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-primary text-white')}>
                     {toast.message}
                 </Box>}

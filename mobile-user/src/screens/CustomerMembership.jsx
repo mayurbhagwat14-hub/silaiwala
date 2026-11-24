@@ -179,7 +179,7 @@ const CustomerMembership = () => {
     };
   };
   if (!loading && !isSystemEnabled) {
-    return <Screen className="bg-[#F8F9FD]"><Box className="flex-1 bg-[#F8F9FD] flex flex-col font-sans text-gray-900">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col font-sans text-gray-900">
                 <Box className="bg-white px-4 py-4 flex items-center gap-3 shadow-sm border-b border-gray-100">
                     <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-xl hover:bg-gray-100">
                         <I icon={ArrowLeft} size={20} className="text-gray-700" />
@@ -203,7 +203,7 @@ const CustomerMembership = () => {
                 </Box>
             </Box></Screen>;
   }
-  return <Screen className="bg-[#F8F9FD]"><Box className="flex-1 bg-[#F8F9FD] font-sans text-gray-900">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans text-gray-900">
             {/* Header */}
             <Box className="bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-50 shadow-sm border-b border-gray-100">
                 <Box className="flex items-center gap-3">

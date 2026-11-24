@@ -72,9 +72,10 @@ const ProfileSettings = () => {
           setProfile(data);
           setFormData({
             shopName: data.shopName || '',
-            name: data.user?.name || '',
+            // Saved values can carry a "+91" prefix or stray characters: show them in the editable format
+            name: String(data.user?.name || '').replace(/[^a-zA-Z\s]/g, '').replace(/\s{2,}/g, ' ').trim(),
             email: data.user?.email || '',
-            phoneNumber: data.user?.phoneNumber || '',
+            phoneNumber: String(data.user?.phoneNumber || '').replace(/\D/g, '').slice(-10),
             bio: data.bio || '',
             address: data.location?.address || '',
             latitude: data.location?.coordinates?.[1] || null,
@@ -122,8 +123,13 @@ const ProfileSettings = () => {
   };
   const handleSave = async e => {
     // Strict Owner Name validation (Letters and spaces only, no numbers or special chars)
-    const cleanName = (formData.name || '').replace(/[^a-zA-Z\s]/g, '').trim();
+    const rawName = (formData.name || '').trim();
+    const cleanName = rawName.replace(/\s{2,}/g, ' ');
     if (!cleanName) {
+      toast.error('Owner name is required');
+      return;
+    }
+    if (!/^[a-zA-Z]+(?: [a-zA-Z]+)*$/.test(cleanName) || cleanName.replace(/\s/g, '').length < 2) {
       toast.error('Owner name should contain only letters and spaces');
       return;
     }
@@ -136,6 +142,10 @@ const ProfileSettings = () => {
     }
     if (cleanPhone.length !== 10) {
       toast.error('Contact number must be exactly 10 digits');
+      return;
+    }
+    if (!/^[6-9]/.test(cleanPhone)) {
+      toast.error('Contact number must start with 6, 7, 8 or 9');
       return;
     }
     setIsSaving(true);
@@ -160,6 +170,7 @@ const ProfileSettings = () => {
       }
       const payload = {
         ...formData,
+        name: cleanName,
         phoneNumber: cleanPhone,
         profileImage: uploadedImageUrl
       };
@@ -168,6 +179,7 @@ const ProfileSettings = () => {
         setProfile(res.data.data);
         setFormData({
           ...formData,
+          name: cleanName,
           phoneNumber: cleanPhone,
           profileImage: uploadedImageUrl
         });
@@ -408,7 +420,7 @@ const ProfileSettings = () => {
                                         <Box className="space-y-1">
                                             <Txt className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Owner Name</Txt>
                                             <PInput className="w-full px-5 py-3.5 bg-gray-50 border border-transparent focus:border-[#843D9B]/20 rounded-2xl focus:outline-none focus:bg-white transition-all text-sm font-black text-gray-900" placeholder="Enter owner name (Letters only)" value={formData.name} onChangeText={e => {
-                    const cleanVal = e.replace(/[^a-zA-Z\s]/g, '');
+                    const cleanVal = e.replace(/[^a-zA-Z\s]/g, '').replace(/\s{2,}/g, ' ').replace(/^\s+/, '').slice(0, 50);
                     setFormData({
                       ...formData,
                       name: cleanVal

@@ -75,16 +75,6 @@ const Requests = () => {
   }];
   return <>
             <Box className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-3 sm:py-8">
-            <Box className="flex items-center gap-3 mb-3 sm:mb-8">
-                <Box className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#843D9B] flex items-center justify-center text-white shadow-lg shadow-purple-200 shrink-0">
-                    <I icon={FileText} className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
-                </Box>
-                <Box className="min-w-0 flex-1">
-                    <Txt className="text-lg sm:text-2xl font-black text-gray-900 tracking-tight truncate">Measurement Requests</Txt>
-                    <Txt className="text-[9px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5 sm:mt-1 truncate">Manage your assigned tasks</Txt>
-                </Box>
-            </Box>
-
             {/* Premium Tabs */}
             <Box className="mb-3 sm:mb-8 w-full">
                 <Box className="flex p-1 bg-white border border-gray-100 rounded-2xl shadow-sm w-full">

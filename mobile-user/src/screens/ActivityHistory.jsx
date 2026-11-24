@@ -37,7 +37,7 @@ const ActivityHistory = () => {
       console.error('Failed to mark as read:', error);
     }
   };
-  return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 font-sans text-gray-900">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans text-gray-900">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-4 flex items-center gap-3 pt-safe">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-50 transition-colors">

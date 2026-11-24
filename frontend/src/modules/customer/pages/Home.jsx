@@ -8,7 +8,7 @@ import BulkOrderPromo from '../components/home/BulkOrderPromo';
 import BottomNav from '../components/BottomNav';
 
 const Home = () => (
-    <div className="min-h-screen bg-gradient-to-b from-[#FBF7FD] via-[#FCF9FD] to-[#F8F2FB] pb-32 font-sans selection:bg-[#843D9B] selection:text-white md:pb-8">
+    <div className="min-h-screen bg-white pb-32 font-sans selection:bg-[#843D9B] selection:text-white md:pb-8">
         {/* 1. Location, brand, home visit, profile & search */}
         <HomeHeader />
 

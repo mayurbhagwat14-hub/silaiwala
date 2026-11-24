@@ -51,12 +51,12 @@ const TailorSelection = () => {
     navigate('/user/checkout/address');
   };
   if (isLoading) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center p-6 text-center">
                 <Spin size={32} className="text-[#843D9B] animate-spin mb-4" />
                 <Txt className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Available Tailors...</Txt>
             </Box></Screen>;
   }
-  return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 font-sans">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-[#843D9B] text-white px-4 py-4 flex items-center gap-3 pt-safe">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors">

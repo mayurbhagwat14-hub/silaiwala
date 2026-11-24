@@ -5,6 +5,28 @@ import api from '../../../utils/api';
 import { toast } from 'react-hot-toast';
 import { DocumentViewerModal, AdminDocumentGrid } from '../components/DocumentViewerModal';
 
+// Shiprocket pickup setup: same rules the backend enforces
+const PLACE_RE = /^[A-Za-z][A-Za-z\s.'-]{1,49}$/;
+const placeError = (label, value) => {
+    const v = String(value || '').trim();
+    if (!v) return '';
+    if (!/^[A-Za-z\s.'-]+$/.test(v)) return `${label} can contain only letters`;
+    if (!PLACE_RE.test(v)) return `${label} must be 2 to 50 letters`;
+    return '';
+};
+const pincodeError = (value) => {
+    const v = String(value || '');
+    if (!v) return '';
+    if (v.length !== 6) return 'Pincode must be 6 digits';
+    if (v[0] === '0') return 'Pincode cannot start with 0';
+    return '';
+};
+const shiprocketFormValid = (f) =>
+    PLACE_RE.test(String(f.city || '').trim()) &&
+    PLACE_RE.test(String(f.state || '').trim()) &&
+    /^[1-9]\d{5}$/.test(String(f.pincode || '')) &&
+    String(f.address || '').length >= 10 && /\d/.test(f.address);
+
 const AdminTailors = () => {
     const [selectedTab, setSelectedTab] = useState('All Tailors');
     const [selectedTailor, setSelectedTailor] = useState(null);
@@ -47,8 +69,9 @@ const AdminTailors = () => {
                 city: t.profile?.location?.city || '',
                 state: t.profile?.location?.state || '',
                 pincode: t.profile?.location?.pincode || '',
-                rating: t.profile?.rating || 4.8,
-                completedOrders: t.profile?.totalReviews || 0,
+                // Real rating only: tailors with no reviews (new / pending) have none yet
+                rating: (t.profile?.totalReviews > 0 && t.profile?.rating > 0) ? Number(t.profile.rating).toFixed(1) : null,
+                reviewCount: t.profile?.totalReviews || 0,
                 commission: t.profile?.commissionPercentage !== undefined ? `${t.profile.commissionPercentage}%` : '20%',
                 commissionRaw: t.profile?.commissionPercentage !== undefined ? t.profile.commissionPercentage : 20,
                 status: t.isActive ? 'Approved' : (t.isVerified ? 'Suspended' : 'Pending'),
@@ -180,8 +203,8 @@ const AdminTailors = () => {
         setIsRetryingShiprocket(true);
         try {
             const body = {};
-            if (shiprocketSetupForm.city) body.city = shiprocketSetupForm.city;
-            if (shiprocketSetupForm.state) body.state = shiprocketSetupForm.state;
+            if (shiprocketSetupForm.city) body.city = shiprocketSetupForm.city.trim();
+            if (shiprocketSetupForm.state) body.state = shiprocketSetupForm.state.trim();
             if (shiprocketSetupForm.pincode) body.pincode = shiprocketSetupForm.pincode;
             if (shiprocketSetupForm.address) body.address = shiprocketSetupForm.address;
 
@@ -365,9 +388,9 @@ const AdminTailors = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-1 text-[11px] font-bold text-orange-500">
-                                                    <Star size={12} className="fill-orange-500" /> {tailor.rating}
+                                                    {tailor.rating ? <><Star size={12} className="fill-orange-500" /> {tailor.rating}</> : <span className="text-gray-400 font-semibold">No ratings yet</span>}
                                                 </div>
-                                                <span className="text-[10px] text-gray-500 font-medium">{tailor.completedOrders} Orders</span>
+                                                <span className="text-[10px] text-gray-500 font-medium">{tailor.reviewCount} {tailor.reviewCount === 1 ? 'Review' : 'Reviews'}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-xs font-black text-gray-900">{tailor.commission}</td>
@@ -499,13 +522,13 @@ const AdminTailors = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm text-center">
                                         <div className="flex justify-center mb-1 text-orange-500"><Star size={20} className="fill-orange-500" /></div>
-                                        <p className="text-2xl font-black text-gray-900">{selectedTailor.rating}</p>
+                                        <p className="text-2xl font-black text-gray-900">{selectedTailor.rating || '—'}</p>
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Rating</p>
                                     </div>
                                     <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm text-center">
                                         <div className="flex justify-center mb-1 text-primary"><CheckCircle2 size={20} /></div>
-                                        <p className="text-2xl font-black text-gray-900">{selectedTailor.completedOrders}</p>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Orders Done</p>
+                                        <p className="text-2xl font-black text-gray-900">{selectedTailor.reviewCount}</p>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Reviews</p>
                                     </div>
                                 </div>
 
@@ -864,20 +887,22 @@ const AdminTailors = () => {
                                         <input 
                                             type="text"
                                             value={shiprocketSetupForm.city}
-                                            onChange={(e) => setShiprocketSetupForm(prev => ({ ...prev, city: e.target.value }))}
+                                            onChange={(e) => setShiprocketSetupForm(prev => ({ ...prev, city: e.target.value.replace(/[^A-Za-zs.'-]/g, '').slice(0, 50) }))}
                                             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-sm text-gray-900 focus:outline-none focus:border-primary"
                                             placeholder="e.g. Delhi"
                                         />
+                                        {placeError('City', shiprocketSetupForm.city) && <p className="text-[10px] text-red-500 font-bold mt-1.5">{placeError('City', shiprocketSetupForm.city)}</p>}
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">State *</label>
                                         <input 
                                             type="text"
                                             value={shiprocketSetupForm.state}
-                                            onChange={(e) => setShiprocketSetupForm(prev => ({ ...prev, state: e.target.value }))}
+                                            onChange={(e) => setShiprocketSetupForm(prev => ({ ...prev, state: e.target.value.replace(/[^A-Za-zs.'-]/g, '').slice(0, 50) }))}
                                             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-sm text-gray-900 focus:outline-none focus:border-primary"
                                             placeholder="e.g. Delhi"
                                         />
+                                        {placeError('State', shiprocketSetupForm.state) && <p className="text-[10px] text-red-500 font-bold mt-1.5">{placeError('State', shiprocketSetupForm.state)}</p>}
                                     </div>
                                 </div>
                                 <div>
@@ -890,6 +915,7 @@ const AdminTailors = () => {
                                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-sm text-gray-900 focus:outline-none focus:border-primary"
                                         placeholder="e.g. 110001"
                                     />
+                                    {pincodeError(shiprocketSetupForm.pincode) && <p className="text-[10px] text-red-500 font-bold mt-1.5">{pincodeError(shiprocketSetupForm.pincode)}</p>}
                                 </div>
                             </div>
                             
@@ -903,15 +929,7 @@ const AdminTailors = () => {
                                 </button>
                                 <button 
                                     onClick={handleRetryShiprocketSetup}
-                                    disabled={
-                                        isRetryingShiprocket || 
-                                        !shiprocketSetupForm.city || 
-                                        !shiprocketSetupForm.state || 
-                                        !shiprocketSetupForm.pincode || 
-                                        !shiprocketSetupForm.address || 
-                                        shiprocketSetupForm.address.length < 10 || 
-                                        !/\d/.test(shiprocketSetupForm.address)
-                                    }
+                                    disabled={isRetryingShiprocket || !shiprocketFormValid(shiprocketSetupForm)}
                                     className="flex-1 py-3 bg-primary text-white hover:bg-primary-dark transition-colors text-xs font-black uppercase tracking-widest rounded-xl disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-primary/20"
                                 >
                                     <Truck size={14} />

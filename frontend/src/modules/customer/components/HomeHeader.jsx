@@ -56,7 +56,7 @@ const HomeHeader = () => {
 
     return (
         <>
-            <div className="relative z-20 bg-gradient-to-b from-[#F1E4F8] via-[#F7EEFB] to-[#FBF7FD] px-4 pb-3 pt-4 md:px-6">
+            <div className="relative z-20 bg-white px-4 pb-3 pt-4 md:px-6">
                 <div className="flex items-center justify-between gap-3">
                     {/* Location: bold area on top, rest of the address below */}
                     <button
@@ -110,7 +110,7 @@ const HomeHeader = () => {
             </div>
 
             {/* Search stays pinned while scrolling */}
-            <div className="sticky top-0 z-30 bg-[#FBF7FD]/95 px-4 pb-3 pt-1 backdrop-blur-md md:px-6">
+            <div className="sticky top-0 z-30 bg-white px-4 pb-3 pt-1 md:px-6">
                 <div className="flex h-[54px] items-center rounded-full bg-white pr-2 shadow-[0_10px_24px_-16px_rgba(74,21,96,0.5)] ring-1 ring-[#EEE4F3]">
                     <AnimatedSearchBar className="h-full min-w-0 flex-1" hideBackground />
                     <span className="mx-1 h-6 w-px bg-[#EEE4F3]" />

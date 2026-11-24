@@ -234,9 +234,9 @@ const CheckoutSummary = () => {
     };
   }, [baseTotal, couponCheckoutType, isLoadingPricing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const discountAmount = appliedCoupon ? Math.round(Number(appliedCoupon.discount) || 0) : 0;
+  const discountAmount = appliedCoupon && !bulkOrderId ? Math.round(Number(appliedCoupon.discount) || 0) : 0;
   const displayPricing = React.useMemo(() => {
-    if (!appliedCoupon || discountAmount <= 0) {
+    if (!appliedCoupon || discountAmount <= 0 || bulkOrderId) {
       return {
         ...currentPricing,
         discountAmount: 0,
@@ -250,7 +250,7 @@ const CheckoutSummary = () => {
       preDiscountTotal: baseTotal,
       total: Math.max(0, baseTotal - discountAmount)
     };
-  }, [currentPricing, appliedCoupon, discountAmount, baseTotal]);
+  }, [currentPricing, appliedCoupon, discountAmount, baseTotal, bulkOrderId]);
   const finalTotal = Math.round(Number(displayPricing?.total) || 0);
   // The server tells us the exact advance rule it will charge (same rule as createOrder);
   // the local guess is only used until the price summary arrives.
@@ -507,11 +507,7 @@ const CheckoutSummary = () => {
 
       // ONLY BULK ORDERS DO DEPOSIT PAYMENT HERE NOW
       if (finalTotal <= 0) {
-        const verifyRes = await api.put(`/bulk-orders/${bulkOrderId}`, {
-          paymentStatus: 'deposit-paid',
-          status: 'accepted',
-          message: "No security deposit required. Order accepted."
-        });
+        const verifyRes = await api.post(`/bulk-orders/${bulkOrderId}/accept`);
         if (verifyRes.data.success) {
           navigate('/user/checkout/success', {
             state: {
@@ -528,9 +524,8 @@ const CheckoutSummary = () => {
         return;
       }
       setLoadingText('Connecting to Secure Payment...');
-      const rzpOrderRes = await api.post('/orders/razorpay/create', {
-        amount: finalTotal
-      });
+      // the deposit amount is decided by the server from the quote, not sent by the app
+      const rzpOrderRes = await api.post(`/bulk-orders/${bulkOrderId}/razorpay/create`);
       if (!rzpOrderRes.data.success) throw new Error('Razorpay order creation failed');
       const rzpOrder = rzpOrderRes.data.data;
       const options = {
@@ -542,13 +537,10 @@ const CheckoutSummary = () => {
         order_id: rzpOrder.id,
         handler: async function (response) {
           try {
-            const verifyRes = await api.put(`/bulk-orders/${bulkOrderId}`, {
-              paymentStatus: 'deposit-paid',
-              status: 'accepted',
+            const verifyRes = await api.post(`/bulk-orders/${bulkOrderId}/razorpay/verify`, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              message: "Security deposit paid via Razorpay. Order accepted."
+              razorpay_signature: response.razorpay_signature
             });
             if (verifyRes.data.success) {
               navigate('/user/checkout/success', {
@@ -591,7 +583,7 @@ const CheckoutSummary = () => {
     }
   };
   if (!bulkOrderId && currentCheckoutItems.length === 0 && cartItems.length === 0 && !isProcessing && !hasNavigated.current) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center p-6 text-center">
                 <I icon={ShoppingBag} size={48} className="text-gray-300 mb-3" />
                 <Txt className="text-base font-bold text-gray-900 mb-1">Your cart is empty</Txt>
                 <Txt className="text-xs text-gray-500 mb-4">Please select a service or product to continue.</Txt>
@@ -600,7 +592,7 @@ const CheckoutSummary = () => {
                 </Btn>
             </Box></Screen>;
   }
-  return <Screen className="bg-[#F8FAFC]" statusBg="bg-primary" statusBar="light"><Box className="flex-1 bg-[#F8FAFC] font-sans text-gray-900">
+  return <Screen className="bg-white" statusBg="bg-primary" statusBar="light"><Box className="flex-1 bg-white font-sans text-gray-900">
             {/* Full Screen Processing Loader */}
             {isProcessing && <Box className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[1000] flex flex-col items-center justify-center text-white">
                     <Spin size={64} className="text-indigo-400" />
@@ -830,7 +822,7 @@ const CheckoutSummary = () => {
 
                 {/* 4. Coupon / Offers + Bill Details */}
                 {!isCartAlteration && isLoadingPricing && <Box className="bg-white rounded-3xl h-16 border border-gray-100 shadow-xs" />}
-                {!isCartAlteration && !isLoadingPricing && <CouponOfferSection orderAmount={baseTotal} checkoutType={couponCheckoutType} appliedCoupon={appliedCoupon} onApplied={setAppliedCoupon} onRemoved={clearAppliedCoupon} />}
+                {!isCartAlteration && !bulkOrderId && !isLoadingPricing && <CouponOfferSection orderAmount={baseTotal} checkoutType={couponCheckoutType} appliedCoupon={appliedCoupon} onApplied={setAppliedCoupon} onRemoved={clearAppliedCoupon} />}
 
                 {isCartAlteration ? <Box className="bg-primary/5 border border-primary/10 rounded-3xl p-5 text-center">
                         <Txt className="text-sm font-bold text-primary mb-1">Awaiting Quote</Txt>

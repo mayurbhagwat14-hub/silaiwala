@@ -675,8 +675,23 @@ exports.retryShiprocketSetup = async (req, res) => {
     }
 
     // Accept address overrides from request body and save to tailor profile
-    const { city, state, pincode, address } = req.body;
-    
+    const { address } = req.body;
+    const city = typeof req.body.city === 'string' ? req.body.city.trim().replace(/\s+/g, ' ') : req.body.city;
+    const state = typeof req.body.state === 'string' ? req.body.state.trim().replace(/\s+/g, ' ') : req.body.state;
+    const pincode = typeof req.body.pincode === 'string' ? req.body.pincode.trim() : req.body.pincode;
+
+    // Validate BEFORE saving, so a bad value never reaches the tailor's profile
+    const placeName = /^[A-Za-z][A-Za-z\s.'-]{1,49}$/;
+    if (city && !placeName.test(city)) {
+      return res.status(400).json({ success: false, message: 'City can contain only letters (2 to 50 characters).' });
+    }
+    if (state && !placeName.test(state)) {
+      return res.status(400).json({ success: false, message: 'State can contain only letters (2 to 50 characters).' });
+    }
+    if (pincode && !/^[1-9]\d{5}$/.test(String(pincode))) {
+      return res.status(400).json({ success: false, message: 'Pincode must be 6 digits and cannot start with 0.' });
+    }
+
     if (city) tailor.location.city = city;
     if (state) tailor.location.state = state;
     if (pincode) tailor.location.pincode = pincode;

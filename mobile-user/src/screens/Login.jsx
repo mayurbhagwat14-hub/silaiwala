@@ -13,6 +13,10 @@ import LocationSplashScreen from '../components/common/LocationSplashScreen';
 import { Box, Txt, Btn, Input, I } from '../components/ui/primitives';
 import { FormError } from './Signup';
 
+// The number typed on this screen, kept for the app session so it is still filled in after
+// opening Terms / Privacy (or anything else that remounts this screen). Cleared after login.
+let rememberedMobile = '';
+
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,7 +25,11 @@ const Login = () => {
   const redirectTo = rawFrom && !rawFrom.includes('/login') && !rawFrom.includes('/register') && !rawFrom.includes('/signup') ? rawFrom : '/user';
   const { otpLogin, sendOTP, isLoading, logout, isAuthenticated, user } = useAuthStore();
 
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [mobileNumber, setMobileNumberState] = useState(rememberedMobile);
+  const setMobileNumber = (value) => {
+    rememberedMobile = value;
+    setMobileNumberState(value);
+  };
   const [password, setPassword] = useState('');
   const [loginMethod, setLoginMethod] = useState('password');
   const [otp, setOtp] = useState('');
@@ -118,6 +126,7 @@ const Login = () => {
   };
 
   const handleLocationComplete = () => {
+    rememberedMobile = '';
     setIsLocating(false);
     navigate(redirectTo, { replace: true });
   };

@@ -78,7 +78,7 @@ const Embellishments = () => {
     }
   };
   const totalSelected = Object.values(selectedDesigns).flat().length;
-  return <Screen className="bg-[#FDFBF9]">
+  return <Screen className="bg-white">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-[#FDFBF9]/90 backdrop-blur-xl border-b border-gray-100">
                 <Box className="px-5 py-6 flex items-center justify-between">

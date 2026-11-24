@@ -14,7 +14,7 @@ export default function TabsLayout() {
         animation: 'none',
         lazy: true,
         freezeOnBlur: true,
-        sceneStyle: { backgroundColor: '#F7F8FC' },
+        sceneStyle: { backgroundColor: '#FFFFFF' },
       }}
     >
       <Tabs.Screen name="index" />

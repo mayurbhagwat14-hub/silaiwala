@@ -202,7 +202,7 @@ const TailorListing = () => {
     const showSkeleton = isLoading && tailors.length === 0;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#FBF7FD] to-[#F8F2FB] pb-28 font-sans md:pb-8 selection:bg-[#843D9B] selection:text-white">
+        <div className="min-h-screen bg-white pb-28 font-sans md:pb-8 selection:bg-[#843D9B] selection:text-white">
             <TailorFilterDrawer
                 isOpen={isFilterOpen}
                 onClose={() => setIsFilterOpen(false)}
@@ -211,7 +211,7 @@ const TailorListing = () => {
             />
 
             {/* Header: back, title, filter button, search, quick sort chips */}
-            <div className="sticky top-0 z-50 bg-gradient-to-b from-[#F1E4F8] to-[#FBF7FD]/95 px-4 pb-3 pt-4 backdrop-blur-md md:px-6">
+            <div className="sticky top-0 z-50 bg-white px-4 pb-3 pt-4 md:px-6">
                 <div className="mx-auto max-w-5xl">
                     <div className="flex items-center gap-3">
                         <button

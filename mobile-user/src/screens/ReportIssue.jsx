@@ -75,7 +75,7 @@ const ReportIssue = () => {
       setIsSubmitting(false);
     }
   };
-  return <Screen className="bg-[#FDFDFD]"><Box className="flex-1 bg-[#FDFDFD]">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white">
             {/* ── HEADER ── */}
             <Box className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
                 <Box className="max-w-md mx-auto px-4 h-16 flex items-center gap-4">

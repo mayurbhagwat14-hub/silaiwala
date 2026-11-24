@@ -80,12 +80,12 @@ const MyBulkOrders = () => {
     const matchesFilter = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesFilter;
   });
-  if (isLoading) return <Screen className="bg-gray-50"><Box className="flex-1 flex items-center justify-center bg-gray-50">
+  if (isLoading) return <Screen className="bg-white"><Box className="flex-1 flex items-center justify-center bg-white">
             <Spin size={40} className="text-[#843D9B]" />
         </Box></Screen>;
-  return <Screen className="bg-[#f8fafc]"><Box className="flex-1 bg-[#f8fafc] font-sans">
+  return <Screen className="bg-white" statusBg="bg-white"><Box className="flex-1 bg-white font-sans">
             {/* Header */}
-            <Box className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-4">
+            <Box className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-800 transition-all active:scale-90">
                     <I icon={ArrowLeft} size={20} />
                 </Btn>

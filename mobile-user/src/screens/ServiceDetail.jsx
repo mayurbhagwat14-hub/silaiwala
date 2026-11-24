@@ -574,7 +574,7 @@ const ServiceDetail = () => {
 
     if (isLoading) {
         return (
-            <Screen className="bg-gray-50">
+            <Screen className="bg-white">
                 <Box className="z-50 bg-white/80 px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                     <Box className="flex items-center gap-3">
                         <Box className="w-8 h-8 bg-gray-200 rounded-full" />
@@ -1181,7 +1181,7 @@ const ServiceDetail = () => {
 
     return (
         <Screen className="bg-white" bottom={false}>
-            <Box className="flex-1 bg-gray-50 font-sans">
+            <Box className="flex-1 bg-white font-sans">
                 {/* 1. Header & Stepper */}
                 <Box className="z-50 bg-white/80">
                     <Box className="px-5 py-3 flex items-center justify-between border-b border-gray-100">

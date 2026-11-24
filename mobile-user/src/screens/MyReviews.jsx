@@ -28,7 +28,7 @@ const MyReviews = () => {
   const renderStars = rating => {
     return [...Array(5)].map((_, i) => <I icon={Star} key={i} size={14} className={i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"} />);
   };
-  return <Screen className="bg-gray-50" statusBg="bg-primary" statusBar="light"><Box className="flex-1 bg-gray-50 font-sans text-gray-900">
+  return <Screen className="bg-white" statusBg="bg-primary" statusBar="light"><Box className="flex-1 bg-white font-sans text-gray-900">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-primary text-white px-4 py-4 flex items-center gap-3 shadow-lg">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors">

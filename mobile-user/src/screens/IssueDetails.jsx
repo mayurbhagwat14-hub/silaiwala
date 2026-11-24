@@ -83,7 +83,7 @@ const IssueDetails = () => {
   };
   if (isLoading) return <Screen className="bg-white"><Box className="flex-1 items-center justify-center"><Spin size={32} className="animate-spin text-primary" /></Box></Screen>;
   if (!issue) return null;
-  return <Screen className="bg-gray-50"><Box className="flex-1 flex-col bg-gray-50">
+  return <Screen className="bg-white"><Box className="flex-1 flex-col bg-white">
             {/* HEADER */}
             <Box className="bg-white border-b border-gray-100 p-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
                 <Btn onPress={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-900 active:scale-95 transition-transform">

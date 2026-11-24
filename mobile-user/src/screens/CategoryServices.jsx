@@ -58,7 +58,7 @@ const CategoryServices = () => {
 
   if (isLoading) {
     return (
-      <Screen className="bg-[#f3f9f8]">
+      <Screen className="bg-white">
         <Box className="flex-1 bg-gradient-to-b from-[#f3f9f8] to-[#e6f4f1] flex flex-col items-center justify-center p-6 text-center">
           <Spin size={40} color="#843D9B" style={{ marginBottom: 16 }} />
           <Txt className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Loading tailors for this service...</Txt>

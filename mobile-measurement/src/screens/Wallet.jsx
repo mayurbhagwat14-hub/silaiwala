@@ -4,7 +4,7 @@ import { Dialog, Sheet } from '../components/ui/Sheet';
 import { Linking } from 'react-native';
 import { SOCKET_URL } from '../lib/config';
 import React, { useState, useEffect } from "react";
-import { Wallet, ArrowLeft, CreditCard, History, Loader2, X, AlertCircle, Info, ChevronRight, Send, Building2, QrCode, Smartphone, UploadCloud, Image as ImageIcon, HelpCircle, ArrowDownCircle, Clock, ArrowDown, Landmark, ShieldCheck, Menu, ArrowUpRight } from "lucide-react-native";
+import { Wallet, ArrowLeft, CreditCard, History, Loader2, X, AlertCircle, Info, ChevronRight, Send, Building2, QrCode, Smartphone, UploadCloud, Image as ImageIcon, HelpCircle, ArrowDownCircle, Clock, ArrowDown, Landmark, ShieldCheck, ArrowUpRight } from "lucide-react-native";
 import { useNavigate } from '../lib/nav';
 import api from "../lib/api";
 import toast from '../lib/toast';
@@ -172,16 +172,8 @@ const MEWallet = () => {
             <Box className="flex-1 bg-slate-50">
             {/* Top Purple Background Area */}
             <Box className="bg-[#843D9B] pt-4 px-5 pb-32 rounded-b-[2rem] relative">
-                {/* Header */}
-                <Box className="flex items-center justify-between text-white mb-8">
-                    <Box className="flex items-center gap-4">
-                        <Btn onPress={() => navigate(-1)} className="opacity-90"><I icon={Menu} size={28} /></Btn>
-                        <Txt className="text-[22px] font-black tracking-tight">Wallet</Txt>
-                    </Box>
-                </Box>
-
                 {/* Main Balance Card */}
-                <Box className="absolute left-5 right-5 top-[5.5rem] bg-[#843D9B] rounded-[2rem] p-6 text-white shadow-[0_20px_40px_rgba(132,61,155,0.4)] overflow-hidden border border-white/10 z-10">
+                <Box className="absolute left-5 right-5 top-6 bg-[#843D9B] rounded-[2rem] p-6 text-white shadow-[0_20px_40px_rgba(132,61,155,0.4)] overflow-hidden border border-white/10 z-10">
                     {/* Background Pattern */}
                     <Box className="absolute right-0 top-0 opacity-10 scale-150 translate-x-10 -translate-y-4">
                         <I icon={Wallet} size={200} strokeWidth={1} />

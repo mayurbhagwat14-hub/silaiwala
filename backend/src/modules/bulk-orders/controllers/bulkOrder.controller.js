@@ -195,3 +195,132 @@ exports.updateBulkOrderStatus = asyncHandler(async (req, res, next) => {
       data: bulkOrder,
     });
 });
+
+// ───────────────────────── Deposit payment (customer) ─────────────────────────
+// The deposit amount is always taken from the admin's quote on the server, and a payment only
+// counts after its Razorpay signature is verified — the client can never mark itself as paid.
+const crypto = require("crypto");
+const razorpay = require("../../../config/razorpay.js");
+
+// Loads the inquiry and makes sure it belongs to the logged-in customer and is waiting for its deposit.
+const loadPayableBulkOrder = async (req, next) => {
+    const bulkOrder = await BulkOrder.findById(req.params.id);
+    if (!bulkOrder) {
+        next(new ErrorResponse("Order not found", 404));
+        return null;
+    }
+    if (String(bulkOrder.user) !== String(req.user._id)) {
+        next(new ErrorResponse("Not authorized to pay for this inquiry", 403));
+        return null;
+    }
+    return bulkOrder;
+};
+
+const markDepositPaid = async (bulkOrder, req, message, ids = {}) => {
+    bulkOrder.paymentStatus = "deposit-paid";
+    bulkOrder.status = "accepted";
+    if (ids.razorpayOrderId) bulkOrder.razorpayOrderId = ids.razorpayOrderId;
+    if (ids.razorpayPaymentId) bulkOrder.razorpayPaymentId = ids.razorpayPaymentId;
+    bulkOrder.history.push({ status: "accepted", message, updatedBy: req.user._id });
+    await bulkOrder.save();
+};
+
+// @desc    Start the security-deposit payment for a quoted bulk order
+// @route   POST /api/v1/bulk-orders/:id/razorpay/create
+// @access  Private (Customer who owns the inquiry)
+exports.createDepositPayment = asyncHandler(async (req, res, next) => {
+    const bulkOrder = await loadPayableBulkOrder(req, next);
+    if (!bulkOrder) return;
+
+    if (bulkOrder.paymentStatus !== "pending") {
+        return next(new ErrorResponse("The deposit for this order is already paid", 400));
+    }
+    if (bulkOrder.status !== "quoted") {
+        return next(new ErrorResponse("This inquiry has no active quote to pay yet", 400));
+    }
+    const deposit = Number(bulkOrder.quote?.depositRequired) || 0;
+    if (deposit <= 0) {
+        return next(new ErrorResponse("No deposit is required for this quote. Accept the quote instead.", 400));
+    }
+
+    try {
+        const rzpOrder = await razorpay.orders.create({
+            amount: Math.round(deposit * 100), // paise
+            currency: "INR",
+            receipt: `bulk_${crypto.randomBytes(5).toString("hex")}`,
+            notes: { bulkOrderId: String(bulkOrder._id), orderId: bulkOrder.orderId, paymentType: "bulk-deposit" },
+        });
+        res.status(200).json({ success: true, data: { ...rzpOrder, key: process.env.RAZORPAY_KEY_ID } });
+    } catch (error) {
+        console.error("Bulk deposit Razorpay error:", error);
+        return next(new ErrorResponse(error?.error?.description || error.message || "Could not start the payment", 502));
+    }
+});
+
+// @desc    Verify the deposit payment and accept the bulk order
+// @route   POST /api/v1/bulk-orders/:id/razorpay/verify
+// @access  Private (Customer who owns the inquiry)
+exports.verifyDepositPayment = asyncHandler(async (req, res, next) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        return next(new ErrorResponse("Missing payment verification details", 400));
+    }
+
+    const bulkOrder = await loadPayableBulkOrder(req, next);
+    if (!bulkOrder) return;
+
+    // Already applied (double tap, or the app retried): succeed without touching anything
+    if (bulkOrder.paymentStatus === "deposit-paid" && bulkOrder.razorpayPaymentId === razorpay_payment_id) {
+        return res.status(200).json({ success: true, message: "Payment already verified", data: bulkOrder });
+    }
+    if (bulkOrder.paymentStatus !== "pending") {
+        return next(new ErrorResponse("The deposit for this order is already paid", 400));
+    }
+
+    const expected = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest("hex");
+    if (expected !== razorpay_signature) {
+        return next(new ErrorResponse("Invalid payment signature", 400));
+    }
+
+    // The paid Razorpay order must be for THIS inquiry and cover the full deposit
+    try {
+        const rzpOrder = await razorpay.orders.fetch(razorpay_order_id);
+        if (String(rzpOrder?.notes?.bulkOrderId) !== String(bulkOrder._id)) {
+            return next(new ErrorResponse("This payment does not belong to this order", 400));
+        }
+        const expectedPaise = Math.round((Number(bulkOrder.quote?.depositRequired) || 0) * 100);
+        if (Number(rzpOrder.amount_paid) < expectedPaise) {
+            return next(new ErrorResponse("The amount paid does not cover the deposit", 400));
+        }
+    } catch (error) {
+        console.error("Bulk deposit verify error:", error);
+        return next(new ErrorResponse("Could not confirm the payment with Razorpay. Please contact support if money was deducted.", 502));
+    }
+
+    await markDepositPaid(bulkOrder, req, "Security deposit paid via Razorpay. Order accepted.", {
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+    });
+    res.status(200).json({ success: true, data: bulkOrder });
+});
+
+// @desc    Accept a quote that needs no deposit
+// @route   POST /api/v1/bulk-orders/:id/accept
+// @access  Private (Customer who owns the inquiry)
+exports.acceptFreeQuote = asyncHandler(async (req, res, next) => {
+    const bulkOrder = await loadPayableBulkOrder(req, next);
+    if (!bulkOrder) return;
+
+    if (bulkOrder.status !== "quoted" || bulkOrder.paymentStatus !== "pending") {
+        return next(new ErrorResponse("This quote can no longer be accepted", 400));
+    }
+    if ((Number(bulkOrder.quote?.depositRequired) || 0) > 0) {
+        return next(new ErrorResponse("A deposit is required for this quote", 400));
+    }
+
+    await markDepositPaid(bulkOrder, req, "No security deposit required. Order accepted.");
+    res.status(200).json({ success: true, data: bulkOrder });
+});

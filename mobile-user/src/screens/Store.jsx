@@ -1,5 +1,6 @@
 // Port of modules/customer/pages/Store.jsx (converted with scripts/web2rn.js, then reviewed)
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useFocusEffect } from 'expo-router';
 import { ArrowRight, ChevronRight } from "lucide-react-native";
 import StoreHeader from "../components/customer/store/StoreHeader";
 import LocationBar from "../components/customer/LocationBar"; // Reusing existing location bar
@@ -18,6 +19,11 @@ import { resolveBannerImageUrl } from "../utils/bannerImage";
 import Screen from '../components/common/Screen';
 import { Box, Img, Txt, Btn, I, Scroll } from '../components/ui/primitives';
 const StorePage = () => {
+  const scrollRef = useRef(null);
+  // The store tab stays mounted, so it would reopen wherever it was left: always start at the top
+  useFocusEffect(useCallback(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, []));
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
   const [activeCategory, setActiveCategory] = useState({
@@ -53,11 +59,11 @@ const StorePage = () => {
   };
   const getImageUrl = img => resolveBannerImageUrl(img, SOCKET_URL);
   const [activeTab, setActiveTab] = useState('store_item');
-  return <Screen className="bg-white" bottom={false}>
-            <Box className="flex-1 bg-gray-50 font-sans text-[#843D9B]">
+  return <Screen className="bg-white" bottom={false} statusBg="bg-white">
+            <Box className="flex-1 bg-white font-sans text-[#843D9B]">
             {/* 1. Header */}
             <StoreHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} onOpenFilter={() => setIsFilterOpen(true)} />
-            <Scroll className="flex-1" contentClassName="pb-24">
+            <Scroll ref={scrollRef} className="flex-1" contentClassName="pb-24">
 
             {/* 2. Dynamic Hero Banner — only admin-uploaded banners for Store page */}
             {storeBanners.length > 0 && <Box className="px-4 md:px-6 lg:px-8 py-3 max-w-[1400px] mx-auto">

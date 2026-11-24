@@ -27,7 +27,7 @@ const CustomerMainLayout = () => {
     }, [location.pathname]);
 
     return (
-        <div className="min-h-screen bg-[#F7F8FC] flex flex-col font-sans">
+        <div className="min-h-screen bg-white flex flex-col font-sans">
             {/* Desktop Navbar - Only visible on md and up */}
             <header className="hidden md:block sticky top-0 z-[110] bg-white/80 backdrop-blur-2xl border-b border-gray-100/50 shadow-sm transition-all duration-300">
                 <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">

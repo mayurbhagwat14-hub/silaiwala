@@ -5,8 +5,8 @@
  * They emulate the CSS behaviour the web relies on (text-style inheritance,
  * inline elements sizing to content, grid columns, flex shrink defaults).
  */
-import React, { createContext, useContext, useMemo, useState } from 'react';
-import { View, Text, Pressable, TextInput, ScrollView } from 'react-native';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, Pressable, TextInput, ScrollView, Keyboard } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { parse, finalizeText, color as twColor } from '../../lib/tw';
 import { resolveImageSource } from '../../lib/assets';
@@ -16,6 +16,42 @@ const TextCtx = createContext(ROOT_TEXT);
 const LayoutCtx = createContext({ flex: false, row: false, align: undefined });
 
 export const useTextStyle = () => useContext(TextCtx);
+
+/*
+ * Keyboard-aware scrolling. The screen shrinks above the keyboard (KeyboardAvoidingView in
+ * Screen), but a ScrollView does not scroll a focused field into the smaller area on its own,
+ * so lower fields stayed hidden behind the keyboard. A focused Input asks its nearest Scroll to
+ * reveal it; the Scroll measures the field and scrolls just enough to put it above the keyboard.
+ */
+const KEYBOARD_GAP = 28; // space kept between the field and the keyboard
+let keyboardTop = null; // screen Y of the keyboard's top edge while it is open
+Keyboard.addListener('keyboardDidShow', (e) => { keyboardTop = e?.endCoordinates?.screenY ?? null; });
+Keyboard.addListener('keyboardDidHide', () => { keyboardTop = null; });
+const RevealCtx = createContext(null);
+
+/*
+ * "Typing" signal: true from the moment a text field gets focus until it loses it / the keyboard closes.
+ * Footers (bottom navigation) use it to hide at once, instead of waiting for the keyboard events and
+ * visibly riding up on top of the keyboard first.
+ */
+let typing = false;
+let blurTimer = null;
+const typingSubs = new Set();
+const setTyping = (value) => {
+  if (typing === value) return;
+  typing = value;
+  typingSubs.forEach((fn) => fn(value));
+};
+Keyboard.addListener('keyboardDidHide', () => { clearTimeout(blurTimer); setTyping(false); });
+export const useTyping = () => {
+  const [value, setValue] = useState(typing);
+  useEffect(() => {
+    typingSubs.add(setValue);
+    setValue(typing);
+    return () => { typingSubs.delete(setValue); };
+  }, []);
+  return value;
+};
 
 const cx = (...parts) => parts.filter(Boolean).join(' ');
 
@@ -352,7 +388,26 @@ export function I({ icon: Icon, size, color, className, strokeWidth, fill, style
   return <Icon size={s} color={c} strokeWidth={sw ?? 2} fill={f || 'none'} style={[{ pointerEvents: 'none' }, view, style]} />;
 }
 
-export const Input = React.forwardRef(function Input({ className, style, placeholderTextColor, multiline, rows, numberOfLines, ...rest }, ref) {
+export const Input = React.forwardRef(function Input({ className, style, placeholderTextColor, multiline, rows, numberOfLines, onFocus, onBlur, ...rest }, ref) {
+  const reveal = useContext(RevealCtx);
+  const ownRef = useRef(null);
+  const setRefs = useCallback((node) => {
+    ownRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  }, [ref]);
+  const handleFocus = useCallback((e) => {
+    clearTimeout(blurTimer);
+    setTyping(true);
+    if (reveal) reveal(ownRef);
+    if (onFocus) onFocus(e);
+  }, [reveal, onFocus]);
+  const handleBlur = useCallback((e) => {
+    // a short delay lets focus jump from one field to the next without the footer flashing back
+    clearTimeout(blurTimer);
+    blurTimer = setTimeout(() => setTyping(false), 150);
+    if (onBlur) onBlur(e);
+  }, [onBlur]);
   // web <textarea rows="2">: Android crashes on a non-numeric numberOfLines, and rows implies multiline
   // web maxLength only limits typing; Android also cuts a longer existing value (e.g. +91 phone shown as 10 digits)
   if (rest.maxLength != null && rest.value != null && String(rest.value).length > Number(rest.maxLength)) {
@@ -373,7 +428,9 @@ export const Input = React.forwardRef(function Input({ className, style, placeho
   const ph = parse(variantClasses(className, 'placeholder')).text.color;
   return (
     <TextInput
-      ref={ref}
+      ref={setRefs}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       style={[{ paddingVertical: 0 }, view, textStyle, multiline ? { textAlignVertical: 'top' } : null, style]}
       placeholderTextColor={placeholderTextColor || ph || '#9ca3af'}
       multiline={multiline}
@@ -382,24 +439,69 @@ export const Input = React.forwardRef(function Input({ className, style, placeho
   );
 });
 
-export const Scroll = React.forwardRef(function Scroll({ className, contentClassName, style, contentContainerStyle, children, ...rest }, ref) {
+export const Scroll = React.forwardRef(function Scroll({ className, contentClassName, style, contentContainerStyle, children, onScroll, ...rest }, ref) {
   const p = parse(className);
   const c = parse(contentClassName);
   const isFlex = !!c.meta.flex;
   const layout = { flex: isFlex, row: !!rest.horizontal, align: undefined };
+
+  // ── keyboard-aware: keep the focused field above the keyboard (vertical scrolls only) ──
+  const scrollRef = useRef(null);
+  const offsetY = useRef(0);
+  const pending = useRef(null); // field focused before the keyboard finished opening
+  const parentReveal = useContext(RevealCtx);
+  const setRefs = useCallback((node) => {
+    scrollRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  }, [ref]);
+  const scrollFieldIntoView = useCallback((fieldRef) => {
+    // let KeyboardAvoidingView finish resizing before measuring
+    setTimeout(() => {
+      const field = fieldRef?.current;
+      if (!field?.measureInWindow || keyboardTop == null || !scrollRef.current) return;
+      field.measureInWindow((x, y, w, h) => {
+        const overlap = y + h + KEYBOARD_GAP - keyboardTop;
+        if (overlap > 0) scrollRef.current?.scrollTo({ y: offsetY.current + overlap, animated: true });
+      });
+    }, 120);
+  }, []);
+  const reveal = useCallback((fieldRef) => {
+    if (keyboardTop == null) pending.current = fieldRef;
+    else scrollFieldIntoView(fieldRef);
+  }, [scrollFieldIntoView]);
+  useEffect(() => {
+    if (rest.horizontal) return undefined;
+    const sub = Keyboard.addListener('keyboardDidShow', () => {
+      if (pending.current) {
+        scrollFieldIntoView(pending.current);
+        pending.current = null;
+      }
+    });
+    return () => sub.remove();
+  }, [rest.horizontal, scrollFieldIntoView]);
+  const handleScroll = useCallback((e) => {
+    offsetY.current = e?.nativeEvent?.contentOffset?.y || 0;
+    if (onScroll) onScroll(e);
+  }, [onScroll]);
+
   return (
     <LayoutCtx.Provider value={layout}><InTextCtx.Provider value={false}>
-      <ScrollView
-        ref={ref}
-        style={[p.view, style]}
-        contentContainerStyle={[c.view, contentContainerStyle]}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        {...rest}
-      >
-        {children}
-      </ScrollView>
+      <RevealCtx.Provider value={rest.horizontal ? parentReveal : reveal}>
+        <ScrollView
+          ref={setRefs}
+          style={[p.view, style]}
+          contentContainerStyle={[c.view, contentContainerStyle]}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          scrollEventThrottle={16}
+          {...rest}
+          onScroll={handleScroll}
+        >
+          {children}
+        </ScrollView>
+      </RevealCtx.Provider>
     </InTextCtx.Provider></LayoutCtx.Provider>
   );
 });

@@ -121,6 +121,8 @@ const bulkOrderSchema = new mongoose.Schema(
       enum: ["pending", "deposit-paid", "partially-paid", "fully-paid", "refunded"],
       default: "pending",
     },
+    razorpayOrderId: { type: String },
+    razorpayPaymentId: { type: String },
     history: [
       {
         status: String,

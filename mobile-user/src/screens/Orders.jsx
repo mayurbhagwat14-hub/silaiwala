@@ -152,7 +152,7 @@ const OrdersPage = () => {
       }).length
     };
   }, [activeData]);
-  return <Screen className="bg-[#F7F8FC]" bottom={false} statusBg="bg-[#6b2a80]" statusBar="light"><Box className="flex-1 bg-[#F7F8FC] font-sans">
+  return <Screen className="bg-white" bottom={false} statusBg="bg-[#6b2a80]" statusBar="light"><Box className="flex-1 bg-white font-sans">
             {/* 1. Purple Header */}
             <Box className="sticky top-0 z-50 bg-[#6b2a80] bg-gradient-to-r from-[#6b2a80] to-[#843D9B] shadow-md px-4 md:px-6 lg:px-8 pt-4 pb-4 rounded-b-[1.25rem]">
                 <Box className="flex justify-between items-center mb-3">

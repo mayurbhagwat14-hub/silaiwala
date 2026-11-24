@@ -1,5 +1,6 @@
 // Port of modules/customer/components/store/StoreHeader.jsx (converted with scripts/web2rn.js, then reviewed)
 import { useNavigate } from '../../../lib/nav';
+import { useNavigation } from 'expo-router';
 import React from "react";
 import { Search, ShoppingBag, Heart, SlidersHorizontal, Camera, Mic } from "lucide-react-native";
 import useCartStore from "../../../store/cartStore";
@@ -13,6 +14,12 @@ const StoreHeader = ({
   onOpenFilter
 }) => {
   const navigate = useNavigate();
+  const navigation = useNavigation();
+  // Logo = Home. Inside the tab bar, switch straight to the Home tab (never to another tab)
+  const goHome = () => {
+    if (typeof navigation?.jumpTo === 'function') navigation.jumpTo('index');
+    else navigate('/user');
+  };
   const cartCount = useCartStore(state => state.getTotalItems());
   const wishlistCount = useWishlistStore(state => state.items.length);
   const {
@@ -25,7 +32,7 @@ const StoreHeader = ({
             <Box className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-3">
                 {/* Branding Row */}
                 <Box className="flex justify-between items-center mb-3 gap-3">
-                    <Btn onPress={() => navigate("/user")} className="flex items-center gap-2.5 min-w-0 group active:scale-[0.98] transition-transform" aria-label={displayName}>
+                    <Btn onPress={goHome} className="flex items-center gap-2.5 min-w-0 group active:scale-[0.98] transition-transform" aria-label={displayName}>
                         <Box className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white border border-primary/10 shadow-sm flex items-center justify-center overflow-hidden shrink-0 ring-1 ring-black/[0.03]">
                             <Img src={logoSrc} alt={displayName} className="w-[88%] h-[88%] object-contain" fallback="/sewzella_logo-removebg-preview.png" />
                         </Box>

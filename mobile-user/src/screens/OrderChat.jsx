@@ -91,13 +91,13 @@ const OrderChat = () => {
     }
   };
   if (isLoading) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center">
                 <Spin size={32} className="animate-spin text-primary mb-4" />
                 <Txt className="text-gray-500 font-medium">Loading chat...</Txt>
             </Box></Screen>;
   }
   if (error) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center p-4">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center p-4">
                 <Box className="bg-red-50 p-6 rounded-3xl text-center border border-red-100 max-w-sm">
                     <I icon={Info} size={48} className="text-red-400 mx-auto mb-4" />
                     <Txt className="text-lg font-black text-red-900 mb-2">Access Denied</Txt>
@@ -108,7 +108,7 @@ const OrderChat = () => {
                 </Box>
             </Box></Screen>;
   }
-  return <Screen className="bg-[#FDFBF7]"><Box className="flex-1 flex flex-col bg-[#FDFBF7] font-sans relative">
+  return <Screen className="bg-white"><Box className="flex-1 flex flex-col bg-white font-sans relative">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 pt-6 pb-4 flex items-center gap-4 shadow-[0_8px_30px_-15px_rgba(0,0,0,0.05)]">
                 <Btn onPress={() => navigate(`/user/orders/${id}/track`)} className="p-2 -ml-2 rounded-full hover:bg-gray-50 active:bg-gray-100 text-gray-700 transition-colors">

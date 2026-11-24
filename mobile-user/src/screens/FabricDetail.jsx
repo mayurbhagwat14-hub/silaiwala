@@ -40,14 +40,14 @@ const FabricDetail = () => {
     };
     fetchData();
   }, [id]);
-  if (isLoading) return <Screen className="bg-gray-50"><Box className="flex-1 flex items-center justify-center bg-gray-50">
+  if (isLoading) return <Screen className="bg-white"><Box className="flex-1 flex items-center justify-center bg-white">
             <Spin size={40} className="text-[#843D9B]" />
         </Box></Screen>;
   if (!fabric || !tailor) return <Screen className="bg-white"><Box className="flex-1 flex flex-col items-center justify-center p-6 text-center">
             <Txt className="text-xl font-bold text-gray-900">Fabric Not Found</Txt>
             <Btn onPress={() => navigate(-1)} className="mt-4 text-[#843D9B] font-bold">Go Back</Btn>
         </Box></Screen>;
-  return <Screen className="bg-[#F7F8FC]"><Box className="flex-1 bg-[#F7F8FC] font-sans overflow-x-hidden">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans overflow-x-hidden">
             {/* Header */}
             <Box className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-4 pt-safe flex items-center gap-4">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-800 transition-all active:scale-90">

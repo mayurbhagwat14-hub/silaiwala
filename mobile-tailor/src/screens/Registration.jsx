@@ -3,6 +3,7 @@ import { Linking } from 'react-native';
 import storage from '../lib/storage';
 import Checkbox from '../components/ui/Checkbox';
 import { isPickedFile } from '../lib/files';
+import { persistPickedFile, fileStillExists, clearSignupFiles } from '../lib/signupFiles';
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate,  } from '../lib/nav';
@@ -14,6 +15,9 @@ import api from "../lib/api";
 import toast from '../lib/toast';
 import { compressImage } from "../utils/imageCompression";
 import { Box, I, Txt, Btn, Input, Scroll } from '../components/ui/primitives';
+// Photos picked during signup: kept as files on disk and saved in the draft as small { uri, name, type } records,
+// so they are still there after an app restart or a network drop (before, they were dropped from the draft).
+const PHOTO_KEYS = ['profileImage', 'aadharFront', 'aadharBack', 'panImage', 'licenseImage', 'portfolio1', 'portfolio2'];
 const TailorRegistration = () => {
   const [step, setStep] = useState(() => {
     const savedStep = storage.getItem('tailorSignupStep');
@@ -48,7 +52,13 @@ const TailorRegistration = () => {
       const savedData = storage.getItem('tailorSignupData');
       if (savedData) {
         try {
-          return JSON.parse(savedData);
+          const parsed = JSON.parse(savedData);
+          // a saved photo record is only useful while its file still exists
+          PHOTO_KEYS.forEach(key => {
+            const v = parsed[key];
+            if (v && typeof v === 'object' && !fileStillExists(v.uri)) delete parsed[key];
+          });
+          return parsed;
         } catch (e) {
           console.error("Error parsing saved tailor data", e);
         }
@@ -61,14 +71,22 @@ const TailorRegistration = () => {
     const valuesToSave = {
       ...formValues
     };
-    // Exclude File objects before saving to localStorage
-    ['profileImage', 'aadharFront', 'aadharBack', 'panImage', 'licenseImage', 'portfolio1', 'portfolio2'].forEach(key => {
-      if (isPickedFile(valuesToSave[key])) {
-        delete valuesToSave[key];
-      }
+    // Picked photos are saved as { uri, name, type } records (the file itself stays on disk)
+    PHOTO_KEYS.forEach(key => {
+      const v = valuesToSave[key];
+      if (isPickedFile(v)) valuesToSave[key] = { uri: v.uri, name: v.name, type: v.type, size: v.size || 0 };
     });
     storage.setItem('tailorSignupData', JSON.stringify(valuesToSave));
   }, [formValues]);
+  // setValue for the steps: a freshly picked photo is shown at once, then replaced by a copy kept on disk
+  const setValueKeepingPhotos = (name, value, options) => {
+    setValue(name, value, options);
+    if (PHOTO_KEYS.includes(name) && isPickedFile(value)) {
+      persistPickedFile(value, name).then(kept => {
+        if (kept?.uri && kept.uri !== value.uri) setValue(name, kept);
+      });
+    }
+  };
   const nextStep = () => setStep(s => s + 1);
   const prevStep = () => setStep(s => s - 1);
   const handleNext = async () => {
@@ -343,6 +361,7 @@ const TailorRegistration = () => {
         } = response.data;
         storage.removeItem('tailorSignupData');
         storage.removeItem('tailorSignupStep');
+        clearSignupFiles();
         setIsSubmitted(true);
         login(result.user ? {
           ...result.user,
@@ -359,13 +378,13 @@ const TailorRegistration = () => {
   const renderStep = () => {
     switch (step) {
       case 1:
-        return <Step1Basic register={register} errors={errors} watch={watch} setValue={setValue} setError={setError} clearErrors={clearErrors} />;
+        return <Step1Basic register={register} errors={errors} watch={watch} setValue={setValueKeepingPhotos} setError={setError} clearErrors={clearErrors} />;
       case 2:
-        return <Step2Business register={register} errors={errors} setValue={setValue} clearErrors={clearErrors} watch={watch} />;
+        return <Step2Business register={register} errors={errors} setValue={setValueKeepingPhotos} clearErrors={clearErrors} watch={watch} />;
       case 3:
-        return <Step3Docs register={register} errors={errors} watch={watch} setValue={setValue} clearErrors={clearErrors} />;
+        return <Step3Docs register={register} errors={errors} watch={watch} setValue={setValueKeepingPhotos} clearErrors={clearErrors} />;
       case 4:
-        return <Step4Portfolio register={register} errors={errors} watch={watch} setValue={setValue} clearErrors={clearErrors} />;
+        return <Step4Portfolio register={register} errors={errors} watch={watch} setValue={setValueKeepingPhotos} clearErrors={clearErrors} />;
       default:
         return null;
     }

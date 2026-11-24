@@ -242,7 +242,7 @@ const OrderTracking = () => {
     }
   }, [id, fetchOrderDetails]);
   if (isLoading) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 font-sans text-gray-900">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans text-gray-900">
                 <Box className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3 pb-4 pt-safe pt-8 flex items-center gap-3">
                     <Box className="w-9 h-9 rounded-full bg-gray-200 animate-pulse shrink-0"></Box>
                     <Box className="flex-1 space-y-2">
@@ -263,7 +263,7 @@ const OrderTracking = () => {
             </Box></Screen>;
   }
   if (error || !order) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center p-6 text-center">
                 <I icon={AlertCircle} size={48} className="text-red-400 mb-4" />
                 <Txt className="text-lg font-bold text-gray-900">{error || 'Order Not Found'}</Txt>
                 <Btn onPress={() => navigate('/user/orders')} className="mt-6 px-8 py-3 bg-[#843D9B] text-white rounded-full font-bold text-sm shadow-lg active:scale-95 transition-all">
@@ -633,7 +633,7 @@ const OrderTracking = () => {
 
   // Delivery check for rating section
   const isFinalDelivered = ['delivered', 'product-delivered', 'completed', 'order-completed'].includes((order.status || '').toLowerCase());
-  return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 font-sans text-gray-900">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans text-gray-900">
             {/* Sticky Clean Header Bar */}
             <Box className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3.5 shadow-xs">
                 <Box className="max-w-xl mx-auto flex items-center justify-between gap-3">

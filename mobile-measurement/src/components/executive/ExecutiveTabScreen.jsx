@@ -5,7 +5,8 @@ import { RefreshControl } from 'react-native';
 import { Box, Scroll } from '../ui/primitives';
 import useRefreshOnReturn from '../../lib/useRefreshOnReturn';
 
-export const withExecutiveTab = (ScreenComponent, { scroll = true } = {}) => {
+// `header`: an element shown fixed above the page; only the content below it scrolls.
+export const withExecutiveTab = (ScreenComponent, { scroll = true, header = null } = {}) => {
   const Tab = (props) => {
     const [key, setKey] = useState(0);
     const [refreshing, setRefreshing] = useState(false);
@@ -21,7 +22,7 @@ export const withExecutiveTab = (ScreenComponent, { scroll = true } = {}) => {
       </Box>
     );
     if (!scroll) return page;
-    return (
+    const scrolling = (
       <Scroll
         className="flex-1 bg-gray-50"
         contentClassName="pb-6"
@@ -31,6 +32,13 @@ export const withExecutiveTab = (ScreenComponent, { scroll = true } = {}) => {
       >
         {page}
       </Scroll>
+    );
+    if (!header) return scrolling;
+    return (
+      <Box className="flex-1 w-full">
+        {header}
+        {scrolling}
+      </Box>
     );
   };
   Tab.displayName = `withExecutiveTab(${ScreenComponent.displayName || ScreenComponent.name || 'Screen'})`;

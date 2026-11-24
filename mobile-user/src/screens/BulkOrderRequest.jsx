@@ -406,8 +406,8 @@ const BulkOrderRequest = () => {
                 <Btn onPress={() => navigate('/user')} className="w-full py-3 bg-white text-gray-400 rounded-xl font-black text-[9px] uppercase border border-gray-100">Home</Btn>
             </Box>
         </Box>;
-  return <Screen className="bg-[#f8fafc]"><Box className="flex-1 bg-[#f8fafc]">
-            <Box className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-4">
+  return <Screen className="bg-white" statusBg="bg-white"><Box className="flex-1 bg-white">
+            <Box className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-4">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 text-gray-800"><I icon={ArrowLeft} size={20} /></Btn>
                 <Box className="flex-1 leading-none"><Txt className="text-base font-black text-gray-900">Bulk Inquiry</Txt><Txt className="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Wholesale & School</Txt></Box>
             </Box>

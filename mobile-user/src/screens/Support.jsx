@@ -248,7 +248,7 @@ const Support = () => {
   const handleToggleFaq = id => {
     setExpandedFaqId(prev => prev === id ? null : id);
   };
-  return <Screen className="bg-[#F8F9FD]" bottom={false} statusBg="bg-[#843D9B]" statusBar="light"><Box className="flex-1 bg-[#F8F9FD] font-sans text-gray-900">
+  return <Screen className="bg-white" bottom={false} statusBg="bg-[#843D9B]" statusBar="light"><Box className="flex-1 bg-white font-sans text-gray-900">
             <Scroll className="flex-1" contentClassName="pb-32">
             {/* ═══ Top Hero Header ═══ */}
             <Box className="relative bg-gradient-to-br from-[#843D9B] via-[#702d84] to-[#591d6c] text-white pt-8 pb-14 px-4 sm:px-6 rounded-b-[2.5rem] shadow-xl overflow-hidden">

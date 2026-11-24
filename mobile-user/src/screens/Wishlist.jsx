@@ -18,7 +18,7 @@ const WishlistPage = () => {
     fetchWishlist();
   }, [fetchWishlist]);
   if (items.length === 0) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center p-6 text-center">
                 <Box className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                     <I icon={Heart} size={32} className="text-gray-400" />
                 </Box>
@@ -29,7 +29,7 @@ const WishlistPage = () => {
                 </Btn>
             </Box></Screen>;
   }
-  return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 font-sans relative">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans relative">
             {/* 1. Header */}
             <Box className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between pt-safe">
                 <Box className="flex items-center gap-3">

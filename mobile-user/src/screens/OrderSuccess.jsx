@@ -88,7 +88,7 @@ const OrderSuccess = () => {
 
   // Fallback if accessed without any order context
   if (!activeOrderId && !orderDetails) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center p-6 text-center">
                 <Box className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-3"><I icon={Check} size={28} className="text-white" /></Box>
                 <Txt className="text-base font-bold text-gray-900 mb-1">Order Requested!</Txt>
                 <Txt className="text-xs text-gray-500 mb-4">Your order has been submitted successfully.</Txt>
@@ -163,7 +163,7 @@ const OrderSuccess = () => {
     icon: <I icon={Truck} size={18} />,
     label: "Order delivered"
   }];
-  return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 text-center animate-in fade-in duration-500 font-sans text-gray-900">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white text-center animate-in fade-in duration-500 font-sans text-gray-900">
             <Scroll className="flex-1" contentClassName="flex-grow items-center justify-center p-4" contentContainerStyle={{ flexGrow: 1 }}>
             <Box className="w-full max-w-md space-y-4 py-4">
 

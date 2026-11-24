@@ -4,7 +4,7 @@ import { useNavigate } from '../lib/nav';
 import useAuthStore from "../store/authStore";
 import { validatePhone } from "../utils/validation";
 import api from "../lib/api";
-import { Lock, KeyRound, Truck, Eye, EyeOff, ArrowLeft, CheckCircle2 } from "lucide-react-native";
+import { Lock, KeyRound, Truck, Eye, EyeOff, ArrowLeft, CheckCircle2, Pencil } from "lucide-react-native";
 import toast from '../lib/toast';
 import { Box, Btn, I, Txt, Input, Scroll } from '../components/ui/primitives';
 const DeliveryForgotPassword = () => {
@@ -81,6 +81,12 @@ const DeliveryForgotPassword = () => {
       setVerifyingOtp(false);
     }
   };
+  // Back to the number field with the number still filled in, ready to correct
+  const editNumber = () => {
+    setStep('request');
+    setOtp('');
+    setError('');
+  };
   const handleResetPassword = async e => {
     if (isLoading) return;
     setError('');
@@ -118,8 +124,16 @@ const DeliveryForgotPassword = () => {
                     {step === 'request' ? 'Delivery Password Reset' : step === 'verify' ? 'Verify OTP' : 'Set New Password'}
                 </Txt>
                 <Txt className="text-xs sm:text-[13px] font-medium text-[#64748B] max-w-[280px] mx-auto leading-relaxed">
-                    {step === 'request' ? 'Enter your registered mobile number to receive a verification code.' : step === 'verify' ? 'Enter the OTP sent to your mobile.' : 'Create a new, strong password for your delivery account.'}
+                    {step === 'request' ? 'Enter your registered mobile number to receive a verification code.' : step === 'verify' ? 'Enter the 6-digit OTP sent to' : 'Create a new, strong password for your delivery account.'}
                 </Txt>
+                {/* Verify step: the number the OTP went to, with a one-tap way to change it */}
+                {step === 'verify' && <Box className="mt-2 flex flex-row items-center justify-center gap-2">
+                        <Txt className="text-sm font-bold text-[#0F172A]">+91 {mobileNumber}</Txt>
+                        <Btn onPress={editNumber} aria-label="Edit mobile number" className="flex flex-row items-center gap-1 px-2.5 py-1 rounded-full bg-[#F4EFFF] border border-[#E9DFFE]">
+                            <I icon={Pencil} size={12} className="text-[#843D9B]" />
+                            <Txt className="text-xs font-bold text-[#843D9B]">Edit</Txt>
+                        </Btn>
+                    </Box>}
             </Box>
 
             {error && <Box className="w-full mb-4 bg-red-50 text-red-500 text-xs font-medium p-3 rounded-xl border border-red-100 text-center">
@@ -133,10 +147,10 @@ const DeliveryForgotPassword = () => {
                             Mobile Number
                         </Txt>
                         <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center p-1.5 px-2 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
-                            <Box className="bg-white shadow-2xs rounded-xl px-3 py-2 text-xs font-bold text-[#0F172A] mr-2.5 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
+                            <Box className="bg-white shadow-2xs rounded-xl px-3 py-2 text-sm font-medium text-[#0F172A] mr-2.5 select-none flex items-center justify-center shrink-0 border border-gray-100/80">
                                 +91
                             </Box>
-                            <Input placeholder="Enter mobile number" value={mobileNumber} onChangeText={e => setMobileNumber(e.replace(/\D/g, ''))} maxLength={10} disabled={sendingOtp} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" keyboardType="phone-pad" />
+                            <Input placeholder="Enter mobile number" value={mobileNumber} onChangeText={e => setMobileNumber(e.replace(/\D/g, ''))} maxLength={10} disabled={sendingOtp} className="w-full text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" keyboardType="phone-pad" />
                         </Box>
                     </Box>
 
@@ -159,7 +173,7 @@ const DeliveryForgotPassword = () => {
                         </Box>
                         <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                             <I icon={KeyRound} size={18} className="text-[#843D9B] shrink-0" />
-                            <Input placeholder="Enter OTP" value={otp} onChangeText={e => setOtp(e.replace(/\D/g, ''))} maxLength={6} disabled={verifyingOtp} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8] tracking-widest font-mono" />
+                            <Input placeholder="Enter OTP" value={otp} onChangeText={e => setOtp(e.replace(/\D/g, ''))} maxLength={6} keyboardType="number-pad" disabled={verifyingOtp} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8] tracking-widest font-mono" />
                         </Box>
                     </Box>
 
@@ -168,15 +182,6 @@ const DeliveryForgotPassword = () => {
                         {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
                     </Btn>
                     
-                    <Box className="text-center mt-3">
-                         <Btn onPress={() => {
-          setStep('request');
-          setOtp('');
-          setError('');
-        }} className="text-xs font-medium text-gray-500 hover:text-[#843D9B] hover:underline">
-                            Change Mobile Number
-                        </Btn>
-                    </Box>
                 </Box>}
 
             {step === 'reset' && <Box className="w-full space-y-4">
@@ -187,7 +192,7 @@ const DeliveryForgotPassword = () => {
                         </Txt>
                         <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                             <I icon={Lock} size={18} className="text-[#94A3B8] shrink-0" />
-                            <Input placeholder="Enter new password" value={newPassword} onChangeText={e => setNewPassword(e)} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                            <Input placeholder="Enter new password" value={newPassword} onChangeText={e => setNewPassword(e)} secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                             <Btn onPress={() => setShowPassword(!showPassword)} className="text-[#94A3B8] hover:text-[#843D9B] transition-colors shrink-0 cursor-pointer">
                                 {showPassword ? <I icon={EyeOff} size={18} /> : <I icon={Eye} size={18} />}
                             </Btn>
@@ -201,7 +206,7 @@ const DeliveryForgotPassword = () => {
                         </Txt>
                         <Box className="w-full bg-[#F6F6F8] rounded-[18px] flex items-center px-4 py-3.5 gap-3 border border-transparent focus-within:border-[#843D9B]/30 focus-within:bg-white transition-all">
                             <I icon={Lock} size={18} className="text-[#94A3B8] shrink-0" />
-                            <Input placeholder="Confirm new password" value={confirmPassword} onChangeText={e => setConfirmPassword(e)} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
+                            <Input placeholder="Confirm new password" value={confirmPassword} onChangeText={e => setConfirmPassword(e)} secureTextEntry={!showConfirmPassword} autoCapitalize="none" autoCorrect={false} className="w-full text-xs sm:text-sm text-[#0F172A] font-medium bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-[#94A3B8]" />
                             <Btn onPress={() => setShowConfirmPassword(!showConfirmPassword)} className="text-[#94A3B8] hover:text-[#843D9B] transition-colors shrink-0 cursor-pointer">
                                 {showConfirmPassword ? <I icon={EyeOff} size={18} /> : <I icon={Eye} size={18} />}
                             </Btn>

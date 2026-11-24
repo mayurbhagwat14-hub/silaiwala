@@ -117,7 +117,7 @@ const TailorProfile = () => {
       setIsSubmitting(false);
     }
   };
-  if (isLoading) return <Screen className="bg-gray-50"><Box className="flex-1 flex items-center justify-center bg-gray-50">
+  if (isLoading) return <Screen className="bg-white"><Box className="flex-1 flex items-center justify-center bg-white">
         <Spin size={40} className="text-[#843D9B]" />
     </Box></Screen>;
   if (!tailor) return <Screen className="bg-white"><Box className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -134,7 +134,7 @@ const TailorProfile = () => {
   const bioText = tailor?.bio && tailor.bio.trim() !== '' ? tailor.bio : `Custom tailoring specialist at ${tailor?.shopName || 'SilaiWala'}. Specialized in ${tailor?.specializations?.join(', ') || 'quality stitching & alterations'}.`;
   const addressText = tailor?.location?.address || tailor?.address || [tailor?.location?.city, tailor?.location?.state].filter(Boolean).join(', ') || 'Atelier address available upon order';
   const mapQuery = encodeURIComponent(`${tailor?.shopName || ''} ${addressText}`);
-  return <Screen className="bg-[#F7F8FC]"><Box className="flex-1 bg-[#F7F8FC] font-sans overflow-x-hidden">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white font-sans overflow-x-hidden">
             <Scroll className="flex-1" contentClassName="pb-32">
             {/* 1. Dynamic Header with Parallax-like feel */}
             <Box className="relative h-44 w-full overflow-hidden bg-[#843D9B]">

@@ -39,14 +39,14 @@ const LoyaltyPointsPage = () => {
     fetchSettings();
   }, [fetchProfile]);
   if (isLoading || isLoadingSettings) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex items-center justify-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex items-center justify-center">
                 <Spin className="w-8 h-8 animate-spin text-primary" />
             </Box></Screen>;
   }
   const points = profile?.loyaltyPoints || 0;
   const redemptionValue = settings?.redemptionValuePerPoint ?? settings?.redemptionValueInINR ?? 1;
   const totalValue = (points * redemptionValue).toFixed(2);
-  return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 md:pb-8 font-sans text-gray-900">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white md:pb-8 font-sans text-gray-900">
             {/* Header */}
             <Box className="bg-white px-4 py-4 flex items-center gap-4 sticky top-0 z-50 shadow-sm border-b border-gray-100">
                 <Btn onPress={() => navigate(-1)} className="p-2 -ml-2 rounded-xl hover:bg-gray-100 transition-colors">

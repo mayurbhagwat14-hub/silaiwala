@@ -267,9 +267,10 @@ const CheckoutSummary = () => {
         return () => { cancelled = true; };
     }, [baseTotal, couponCheckoutType, isLoadingPricing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const discountAmount = appliedCoupon ? Math.round(Number(appliedCoupon.discount) || 0) : 0;
+    // coupons never apply to a bulk deposit (the server charges the quoted deposit in full)
+    const discountAmount = appliedCoupon && !bulkOrderId ? Math.round(Number(appliedCoupon.discount) || 0) : 0;
     const displayPricing = React.useMemo(() => {
-        if (!appliedCoupon || discountAmount <= 0) {
+        if (!appliedCoupon || discountAmount <= 0 || bulkOrderId) {
             return { ...currentPricing, discountAmount: 0, couponCode: '' };
         }
         return {
@@ -279,7 +280,7 @@ const CheckoutSummary = () => {
             preDiscountTotal: baseTotal,
             total: Math.max(0, baseTotal - discountAmount),
         };
-    }, [currentPricing, appliedCoupon, discountAmount, baseTotal]);
+    }, [currentPricing, appliedCoupon, discountAmount, baseTotal, bulkOrderId]);
 
     const finalTotal = Math.round(Number(displayPricing?.total) || 0);
     // The server tells us the exact advance rule it will charge (same rule as createOrder);
@@ -548,11 +549,7 @@ const CheckoutSummary = () => {
 
             // ONLY BULK ORDERS DO DEPOSIT PAYMENT HERE NOW
             if (finalTotal <= 0) {
-                const verifyRes = await api.put(`/bulk-orders/${bulkOrderId}`, {
-                    paymentStatus: 'deposit-paid',
-                    status: 'accepted',
-                    message: "No security deposit required. Order accepted."
-                });
+                const verifyRes = await api.post(`/bulk-orders/${bulkOrderId}/accept`);
 
                 if (verifyRes.data.success) {
                     navigate('/user/checkout/success', {
@@ -566,7 +563,8 @@ const CheckoutSummary = () => {
             }
 
             setLoadingText('Connecting to Secure Payment...');
-            const rzpOrderRes = await api.post('/orders/razorpay/create', { amount: finalTotal });
+            // the deposit amount is decided by the server from the quote, not sent by the browser
+            const rzpOrderRes = await api.post(`/bulk-orders/${bulkOrderId}/razorpay/create`);
             if (!rzpOrderRes.data.success) throw new Error('Razorpay order creation failed');
             const rzpOrder = rzpOrderRes.data.data;
 
@@ -579,13 +577,10 @@ const CheckoutSummary = () => {
                 order_id: rzpOrder.id,
                 handler: async function (response) {
                     try {
-                        const verifyRes = await api.put(`/bulk-orders/${bulkOrderId}`, {
-                            paymentStatus: 'deposit-paid',
-                            status: 'accepted',
+                        const verifyRes = await api.post(`/bulk-orders/${bulkOrderId}/razorpay/verify`, {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            message: "Security deposit paid via Razorpay. Order accepted."
+                            razorpay_signature: response.razorpay_signature
                         });
 
                         if (verifyRes.data.success) {
@@ -910,7 +905,7 @@ const CheckoutSummary = () => {
                 )}
 
                 {/* 4. Coupon / Offers + Bill Details */}
-                {!isCartAlteration && !isLoadingPricing && (
+                {!isCartAlteration && !bulkOrderId && !isLoadingPricing && (
                     <CouponOfferSection
                         orderAmount={baseTotal}
                         checkoutType={couponCheckoutType}
