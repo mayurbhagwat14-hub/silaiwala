@@ -193,7 +193,7 @@ const MEWallet = () => {
 
     return (
         <PullToRefresh onRefresh={async () => await fetchWalletData()}>
-            <div className="min-h-screen bg-slate-50 pb-24 animate-in fade-in duration-500">
+            <div className="min-h-screen bg-white pb-24 animate-in fade-in duration-500">
             {/* Top Purple Background Area */}
             <div className="bg-[#843D9B] pt-4 px-5 pb-32 rounded-b-[2rem] relative">
                 {/* Header */}

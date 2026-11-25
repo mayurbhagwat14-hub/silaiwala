@@ -232,7 +232,7 @@ const DeliveryProfile = () => {
   }
 
   return (
-      <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="min-h-screen bg-white">
         {/* Profile Header (Proper Logistics Style) */}
         <div className="bg-[#1E293B] pt-6 pb-12 px-4 relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />

@@ -138,7 +138,7 @@ const DeliveryDashboard = () => {
   const activeTasksList = activeOrders.filter(t => isAcceptedActiveTask(t, user));
   const currentTask = activeTasksList[0] || null;
   const hasPendingPopupOnly = activeOrders.some(t => isPendingAcceptanceTask(t, user)) || availableOrders?.length > 0;
-  return <Box className="animate-in fade-in duration-700 bg-slate-50 min-h-screen pb-24 w-full pt-4">
+  return <Box className="animate-in fade-in duration-700 bg-white min-h-screen pb-24 w-full pt-4">
             <Box className="px-5 space-y-6">
                 {/* Main Earnings Card */}
                 <Box className="bg-gradient-to-br from-[#6B2F7E] to-[#843D9B] rounded-[24px] p-6 shadow-xl relative overflow-hidden mb-2">

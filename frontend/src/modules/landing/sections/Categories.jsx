@@ -138,7 +138,7 @@ const Categories = () => {
   }, [count]);
 
   return (
-    <section id="categories" className="relative scroll-mt-24 bg-[#FBF8FD] py-20 md:py-28">
+    <section id="categories" className="relative scroll-mt-24 bg-white py-20 md:py-28">
       <div className="mx-auto max-w-[1240px] px-5 md:px-8">
         <Reveal className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <SectionHeading

@@ -144,7 +144,7 @@ const LayoutContent = () => {
     };
 
     return (
-        <div className="h-screen flex overflow-hidden bg-gray-50 font-sans text-gray-900">
+        <div className="h-screen flex overflow-hidden bg-white font-sans text-gray-900">
             {/* Static sidebar for desktop */}
             <div className="hidden md:flex md:flex-shrink-0 z-50">
                 <div className="flex flex-col w-72 bg-[#0A0A0A] border-r border-[#1C1C1C]">

@@ -164,7 +164,7 @@ const LiveTracking = () => {
 
   return (
     <PageTransition>
-      <div className="h-screen flex flex-col bg-gray-50">
+      <div className="h-screen flex flex-col bg-white">
         {/* Header */}
         <div className="bg-white shadow-sm px-4 py-3 flex items-center justify-between">
           <button

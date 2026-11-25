@@ -86,13 +86,13 @@ const TailorOrderChat = () => {
     }
   };
   if (isLoading) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center">
                 <Spin size={32} className="animate-spin text-primary mb-4" />
                 <Txt className="text-gray-500 font-medium">Loading chat...</Txt>
             </Box></Screen>;
   }
   if (error) {
-    return <Screen className="bg-gray-50"><Box className="flex-1 bg-gray-50 flex flex-col items-center justify-center p-4">
+    return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col items-center justify-center p-4">
                 <Box className="bg-red-50 p-6 rounded-3xl text-center border border-red-100 max-w-sm">
                     <I icon={Info} size={48} className="text-red-400 mx-auto mb-4" />
                     <Txt className="text-lg font-black text-red-900 mb-2">Access Denied</Txt>
@@ -103,7 +103,7 @@ const TailorOrderChat = () => {
                 </Box>
             </Box></Screen>;
   }
-  return <Screen className="bg-[#FDFBF7]"><Box className="flex flex-col flex-1 bg-[#FDFBF7] font-sans relative">
+  return <Screen className="bg-white"><Box className="flex flex-col flex-1 bg-white font-sans relative">
             {/* Background Pattern (Optional subtle touch) */}
             <Box className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
       backgroundImage: 'radial-gradient(#843D9B 1px, transparent 1px)',

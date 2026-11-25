@@ -53,7 +53,7 @@ const Notifications = () => {
         };
     }
   };
-  return <Screen className="bg-[#F5F5F5]"><Box className="flex-1 bg-[#F5F5F5] flex flex-col font-sans">
+  return <Screen className="bg-white"><Box className="flex-1 bg-white flex flex-col font-sans">
 
             {/* ── MOBILE HEADER ── */}
             <Box className="md:hidden bg-white px-5 pt-5 pb-4 flex items-center justify-between border-b border-gray-100 sticky top-0 z-50">

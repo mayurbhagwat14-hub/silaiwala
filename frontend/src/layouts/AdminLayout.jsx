@@ -275,7 +275,7 @@ const AdminLayout = () => {
     }, [location.pathname, menuItems]);
 
     return (
-        <div className="flex h-screen bg-gray-50 uppercase-none relative overflow-hidden">
+        <div className="flex h-screen bg-white uppercase-none relative overflow-hidden">
             {/* Mobile Overlay */}
             {isSidebarOpen && (
                 <div
@@ -436,7 +436,7 @@ const AdminLayout = () => {
                 </header>
 
                 {/* Scrollable Area */}
-                <div className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto bg-white custom-scrollbar">
                     <div className="p-4 lg:p-8 max-w-7xl mx-auto w-full">
                         {!isRouteAuthorized ? (
                             <div className="bg-white rounded-3xl p-10 text-center border border-gray-100 shadow-sm max-w-md mx-auto mt-12">

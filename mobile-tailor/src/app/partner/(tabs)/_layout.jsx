@@ -9,7 +9,7 @@ export default function TabsLayout() {
     <Tabs
       tabBar={() => null}
       backBehavior="firstRoute"
-      screenOptions={{ headerShown: false, animation: 'none', lazy: true, freezeOnBlur: true, sceneStyle: { backgroundColor: '#F7F8FC' } }}
+      screenOptions={{ headerShown: false, animation: 'none', lazy: true, freezeOnBlur: true, sceneStyle: { backgroundColor: '#FFFFFF' } }}
     >
       <Tabs.Screen name="index" />
       <Tabs.Screen name="orders" />

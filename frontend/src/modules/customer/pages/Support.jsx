@@ -310,7 +310,7 @@ const Support = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#F7F5FA] pb-32 font-sans text-gray-900">
+        <div className="min-h-screen bg-white pb-32 font-sans text-gray-900">
             {/* ═══ Header ═══ */}
             <div className="relative overflow-hidden rounded-b-[28px] bg-[#5E2373] px-4 pb-16 pt-4 text-white sm:px-6">
                 {/* Soft layered background */}

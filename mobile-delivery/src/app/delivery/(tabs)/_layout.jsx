@@ -12,7 +12,7 @@ export default function DeliveryTabsLayout() {
         <Tabs
           tabBar={() => null}
           backBehavior="firstRoute"
-          screenOptions={{ headerShown: false, animation: 'none', lazy: true, freezeOnBlur: true, sceneStyle: { backgroundColor: '#FAFAFB' } }}
+          screenOptions={{ headerShown: false, animation: 'none', lazy: true, freezeOnBlur: true, sceneStyle: { backgroundColor: '#FFFFFF' } }}
         >
           <Tabs.Screen name="dashboard" />
           <Tabs.Screen name="tasks" />

@@ -505,7 +505,7 @@ const RequestDetail = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#FAF8FC] flex flex-col items-center justify-center p-6">
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
                 <div className="w-16 h-16 rounded-3xl bg-[#581C87] flex items-center justify-center text-white shadow-xl shadow-purple-900/20 animate-pulse mb-4">
                     <Sparkles size={28} />
                 </div>
@@ -535,7 +535,7 @@ const RequestDetail = () => {
     const isAssignedPending = ['assigned', 'pending'].includes(request.status);
 
     return (
-        <div className="min-h-screen bg-[#FDFCFE] text-gray-900 pb-28 md:pb-12 flex flex-col items-center">
+        <div className="min-h-screen bg-white text-gray-900 pb-28 md:pb-12 flex flex-col items-center">
             {/* Top mobile width constraint for pixel-accurate mobile presentation */}
             <div className="w-full max-w-xl mx-auto flex flex-col min-h-screen bg-[#FDFCFE] shadow-[0_0_50px_rgba(0,0,0,0.03)] border-x border-gray-100/60">
                 

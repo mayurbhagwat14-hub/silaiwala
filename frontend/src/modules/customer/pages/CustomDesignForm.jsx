@@ -312,7 +312,7 @@ const CustomDesignForm = () => {
     const currentSelectedTailor = tailors.find((t) => isMatchingTailor(t, selectedTailorId));
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-sans">
+        <div className="min-h-screen bg-white pb-20 font-sans">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-[#843D9B] text-white px-4 py-4 flex items-center gap-3 pt-safe shadow-md">
                 <button

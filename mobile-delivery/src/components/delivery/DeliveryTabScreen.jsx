@@ -17,7 +17,7 @@ export const withDeliveryTab = (ScreenComponent, { fullBleed = false } = {}) => 
     }, []);
     return (
       <Scroll
-        className="flex-1 bg-[#FAFAFB]"
+        className="flex-1 bg-white"
         contentClassName={fullBleed ? 'pb-6' : 'px-4 pt-2.5 pb-6'}
         contentContainerStyle={{ flexGrow: 1 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#843D9B']} />}

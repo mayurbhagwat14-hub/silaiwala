@@ -125,7 +125,7 @@ const OrderSuccess = () => {
     // Fallback if accessed without any order context
     if (!activeOrderId && !orderDetails) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-3"><Check size={28} className="text-white" /></div>
                 <h3 className="text-base font-bold text-gray-900 mb-1">Order Requested!</h3>
                 <p className="text-xs text-gray-500 mb-4">Your order has been submitted successfully.</p>
@@ -205,7 +205,7 @@ const OrderSuccess = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6 text-center animate-in fade-in duration-500 font-sans text-gray-900">
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 sm:p-6 text-center animate-in fade-in duration-500 font-sans text-gray-900">
             <div className="w-full max-w-md space-y-4 py-4">
 
                 {/* Confetti & Top Checkmark Section */}

@@ -8,7 +8,7 @@ export default function ExecutiveTabsLayout() {
   return (
     <ExecutiveGuard>
       <MeasurementExecutiveLayout>
-        <Tabs tabBar={() => null} backBehavior="firstRoute" screenOptions={{ headerShown: false, animation: 'none', lazy: true, freezeOnBlur: true, sceneStyle: { backgroundColor: '#F9FAFB' } }}>
+        <Tabs tabBar={() => null} backBehavior="firstRoute" screenOptions={{ headerShown: false, animation: 'none', lazy: true, freezeOnBlur: true, sceneStyle: { backgroundColor: '#FFFFFF' } }}>
           <Tabs.Screen name="dashboard" />
           <Tabs.Screen name="requests" />
           <Tabs.Screen name="wallet" />

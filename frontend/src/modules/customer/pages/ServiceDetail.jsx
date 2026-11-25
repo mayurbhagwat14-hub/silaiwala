@@ -572,7 +572,7 @@ const ServiceDetail = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 pb-40">
+            <div className="min-h-screen bg-white pb-40">
                 {/* Header Skeleton */}
                 <div className="sticky top-0 z-50 bg-white/80 pt-safe px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1188,7 +1188,7 @@ const ServiceDetail = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-40 font-sans">
+        <div className="min-h-screen bg-white pb-40 font-sans">
             {/* 1. Header & Stepper Integration */}
             <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl pt-safe">
                 <div className="px-5 py-3 flex items-center justify-between border-b border-gray-100">

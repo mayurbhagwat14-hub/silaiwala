@@ -114,7 +114,7 @@ const TailorCustomDesigns = () => {
     };
 
     return (
-        <div className="pb-24 bg-gray-50/50 min-h-screen">
+        <div className="pb-24 bg-white min-h-screen">
             {/* Sleek Modern Header */}
             <div className="bg-white border-b border-gray-100 px-4 py-5 md:px-8 md:py-6 shadow-xs">
                 <div className="max-w-5xl mx-auto">

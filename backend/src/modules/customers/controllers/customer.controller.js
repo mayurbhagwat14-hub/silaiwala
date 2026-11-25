@@ -227,7 +227,12 @@ exports.getTailors = asyncHandler(async (req, res, next) => {
     if (sortBy === 'price_low') return (a.basePrice || 0) - (b.basePrice || 0);
     if (sortBy === 'price_high') return (b.basePrice || 0) - (a.basePrice || 0);
     if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-    
+    if (sortBy === 'distance') {
+      const da = Number.isFinite(a.distanceKm) ? a.distanceKm : Number.MAX_VALUE;
+      const db = Number.isFinite(b.distanceKm) ? b.distanceKm : Number.MAX_VALUE;
+      return da - db;
+    }
+
     // Default: Priority sort (higher sortOrder comes first)
     const sortA = a.activePlan?.sortOrder || 0;
     const sortB = b.activePlan?.sortOrder || 0;

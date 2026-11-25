@@ -90,7 +90,7 @@ const IssueDetails = () => {
     if (!issue) return null;
 
     return (
-        <div className="flex flex-col h-[100dvh] bg-gray-50">
+        <div className="flex flex-col h-[100dvh] bg-white">
             {/* HEADER */}
             <div className="bg-white border-b border-gray-100 p-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
                 <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-900 active:scale-95 transition-transform">

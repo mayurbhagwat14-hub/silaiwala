@@ -24,7 +24,7 @@ export const withExecutiveTab = (ScreenComponent, { scroll = true, header = null
     if (!scroll) return page;
     const scrolling = (
       <Scroll
-        className="flex-1 bg-gray-50"
+        className="flex-1 bg-white"
         contentClassName="pb-6"
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"

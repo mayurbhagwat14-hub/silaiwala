@@ -183,7 +183,7 @@ const TailorIssueDetails = () => {
     if (isLoading) return <div className="flex h-[100dvh] items-center justify-center"><Loader2 size={32} className="animate-spin text-primary" /></div>;
 
     return (
-        <div className="flex flex-col h-[100dvh] pb-[76px] md:pb-0 bg-gray-50 relative">
+        <div className="flex flex-col h-[100dvh] pb-[76px] md:pb-0 bg-white relative">
             <div className="bg-white border-b border-gray-100 p-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
                 <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-900 active:scale-95 transition-transform">
                     <ChevronLeft size={20} />

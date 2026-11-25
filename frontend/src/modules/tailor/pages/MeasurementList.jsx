@@ -63,7 +63,7 @@ const MeasurementList = () => {
     });
 
     return (
-        <div className="min-h-screen bg-[#F5F5F5] pb-24 flex flex-col relative pt-0">
+        <div className="min-h-screen bg-white pb-24 flex flex-col relative pt-0">
 
             <div className="flex-1 px-4 py-3 space-y-3.5">
                 {/* Title */}

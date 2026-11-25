@@ -109,7 +109,7 @@ const LandingSupportPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBFD] text-[#1A1A1A] flex flex-col overflow-x-hidden font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen bg-white text-[#1A1A1A] flex flex-col overflow-x-hidden font-['Plus_Jakarta_Sans',sans-serif]">
       <LandingNavbar />
 
       {/* ═══ Hero Header ═══ */}

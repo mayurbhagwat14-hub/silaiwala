@@ -220,7 +220,7 @@ const TailorEarnings = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
+            <div className="min-h-screen bg-white flex items-center justify-center">
                 <Loader2 size={32} className="animate-spin text-[#843D9B]" />
             </div>
         );

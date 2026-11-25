@@ -130,7 +130,7 @@ const VerificationStatus = () => {
     const hasRejected = documents.some(doc => doc.status === 'rejected');
 
     return (
-        <div className="space-y-4 animate-in fade-in duration-500 bg-gray-50/50 min-h-screen p-4 pb-24">
+        <div className="space-y-4 animate-in fade-in duration-500 bg-white min-h-screen p-4 pb-24">
             
             {/* Overall Status Banner */}
             {profile?.registrationStatus === 'rejected' && (

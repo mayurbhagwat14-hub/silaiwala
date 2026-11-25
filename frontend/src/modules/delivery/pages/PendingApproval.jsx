@@ -35,7 +35,7 @@ const PendingApproval = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 font-sans">
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 font-sans">
             <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 text-center relative overflow-hidden">
                 {/* Decorative background elements */}
                 <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-slate-900 to-slate-800 -z-10 rounded-t-3xl" />

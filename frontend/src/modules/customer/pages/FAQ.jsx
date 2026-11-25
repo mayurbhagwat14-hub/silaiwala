@@ -152,7 +152,7 @@ const FAQ = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#F8F9FB] pb-28 font-sans">
+        <div className="min-h-screen bg-white pb-28 font-sans">
             <div className="sticky top-0 z-50 bg-[#843D9B] px-4 py-4 flex items-center gap-3 text-white shadow-md">
                 <button
                     type="button"

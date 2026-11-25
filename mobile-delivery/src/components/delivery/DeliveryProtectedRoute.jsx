@@ -12,7 +12,7 @@ export function DeliveryGuard({ children }) {
   const { isAuthenticated, user, isLoading } = useAuthStore();
   if (isLoading && !user) {
     return (
-      <Screen className="bg-slate-50">
+      <Screen className="bg-white">
         <Box className="flex-1 items-center justify-center">
           <Spin size={40} color="#843D9B" />
         </Box>

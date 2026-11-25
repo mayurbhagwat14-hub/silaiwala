@@ -125,11 +125,11 @@ const Profile = () => {
       setDeleteConfirmText('');
     }
   };
-  if (!profile) return <Box className="min-h-screen flex items-center justify-center bg-gray-50">
+  if (!profile) return <Box className="min-h-screen flex items-center justify-center bg-white">
             <Spin size={48} className="text-[#843D9B]" />
         </Box>;
   return <>
-            <Box className="min-h-full bg-[#F5F5F5] flex flex-col font-sans">
+            <Box className="min-h-full bg-white flex flex-col font-sans">
             
             <Box className="flex-1 p-2 md:p-0">
                 

@@ -271,7 +271,7 @@ const PolicyPage = ({ type: propType, category = 'general' }) => {
 
     return (
         <div 
-            className="min-h-screen bg-[#FDFBFD] text-[#1A1A1A] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#843D9B] selection:text-white pb-28"
+            className="min-h-screen bg-white text-[#1A1A1A] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#843D9B] selection:text-white pb-28"
         >
             {/* ═══ Header ═══ */}
             <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-md">

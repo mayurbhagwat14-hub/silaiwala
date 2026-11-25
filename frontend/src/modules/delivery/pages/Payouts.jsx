@@ -111,7 +111,7 @@ const Payouts = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="min-h-screen bg-white">
         {/* Proper Logistics Header */}
         <div className="bg-[#1E293B] pt-6 pb-12 px-5 relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />

@@ -241,7 +241,7 @@ const ProfileSettings = () => {
     action: () => setActiveModal('privacy')
   }];
   if (isLoading) {
-    return <Box className="min-h-screen flex items-center justify-center bg-gray-50">
+    return <Box className="min-h-screen flex items-center justify-center bg-white">
             <Spin size={48} className="text-primary" />
         </Box>;
   }
@@ -340,7 +340,7 @@ const ProfileSettings = () => {
         return null;
     }
   };
-  return <Box className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-20">
+  return <Box className="min-h-full bg-white flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-20">
             
             {/* ── MOBILE HEADER ── */}
             <Box className={`md:hidden relative bg-[#843D9B] pt-4 ${isEditing ? 'pb-12' : 'pb-16'} px-5 text-white overflow-hidden shrink-0 shadow-xl transition-all duration-300`}>

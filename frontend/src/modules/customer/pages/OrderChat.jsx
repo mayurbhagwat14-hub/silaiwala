@@ -93,7 +93,7 @@ const OrderChat = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center">
                 <Loader2 size={32} className="animate-spin text-primary mb-4" />
                 <p className="text-gray-500 font-medium">Loading chat...</p>
             </div>
@@ -102,7 +102,7 @@ const OrderChat = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
                 <div className="bg-red-50 p-6 rounded-3xl text-center border border-red-100 max-w-sm">
                     <Info size={48} className="text-red-400 mx-auto mb-4" />
                     <h2 className="text-lg font-black text-red-900 mb-2">Access Denied</h2>
@@ -119,7 +119,7 @@ const OrderChat = () => {
     }
 
     return (
-        <div className="flex flex-col h-screen bg-[#FDFBF7] font-sans relative">
+        <div className="flex flex-col h-screen bg-white font-sans relative">
             {/* Background Pattern (Optional subtle touch) */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#843D9B 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
             {/* Header */}

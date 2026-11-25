@@ -69,7 +69,7 @@ const Overview = () => {
     walletBalance: 0
   };
   const recentActivity = dashboardData?.recentActivity || [];
-  return <Box className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white">
+  return <Box className="min-h-full bg-white flex flex-col font-sans selection:bg-[#843D9B] selection:text-white">
             {/* ── CONTENT AREA ── */}
             <Box className="flex-1 p-3 md:p-6 lg:p-8 space-y-4 md:space-y-6 pb-24 md:pb-12">
                 

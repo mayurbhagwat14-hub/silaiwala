@@ -169,7 +169,7 @@ const MEWallet = () => {
   }
   const calculatedBalance = walletData.balance || 0;
   return <>
-            <Box className="flex-1 bg-slate-50">
+            <Box className="flex-1 bg-white">
             {/* Top Purple Background Area */}
             <Box className="bg-[#843D9B] pt-4 px-5 pb-32 rounded-b-[2rem] relative">
                 {/* Main Balance Card */}

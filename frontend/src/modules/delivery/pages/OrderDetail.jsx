@@ -676,7 +676,7 @@ const DeliveryOrderDetail = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-slate-50 pb-40 relative">
+      <div className="min-h-screen bg-white pb-40 relative">
         {/* HEADER - CLEAN WHITE WITH BACK BUTTON */}
         <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">

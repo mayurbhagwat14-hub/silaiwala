@@ -35,7 +35,7 @@ const LoyaltyPointsPage = () => {
 
     if (isLoading || isLoadingSettings) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-white flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
@@ -46,7 +46,7 @@ const LoyaltyPointsPage = () => {
     const totalValue = (points * redemptionValue).toFixed(2);
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24 md:pb-8 font-sans text-gray-900">
+        <div className="min-h-screen bg-white pb-24 md:pb-8 font-sans text-gray-900">
             {/* Header */}
             <div className="bg-white px-4 py-4 flex items-center gap-4 sticky top-0 z-50 shadow-sm border-b border-gray-100">
                 <button 

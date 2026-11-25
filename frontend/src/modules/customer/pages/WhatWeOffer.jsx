@@ -64,7 +64,7 @@ const WhatWeOffer = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#F7F8FC] pb-24 font-sans">
+        <div className="min-h-screen bg-white pb-24 font-sans">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white shadow-sm px-4 py-4 flex items-center gap-4">
                 <button 

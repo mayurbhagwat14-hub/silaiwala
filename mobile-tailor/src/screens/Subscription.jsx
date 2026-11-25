@@ -111,7 +111,7 @@ const Subscription = () => {
     }
   };
   if (isLoading) {
-    return <Box className="min-h-screen flex items-center justify-center bg-gray-50/50">
+    return <Box className="min-h-screen flex items-center justify-center bg-white">
                 <Spin size={48} className="text-[#843D9B]" />
             </Box>;
   }
@@ -121,7 +121,7 @@ const Subscription = () => {
     month: 'long',
     year: 'numeric'
   }) : 'Not Subscribed';
-  return <Box className="space-y-4 animate-in fade-in duration-500 bg-gray-50/50 min-h-screen p-4 pb-20">
+  return <Box className="space-y-4 animate-in fade-in duration-500 bg-white min-h-screen p-4 pb-20">
 
             {/* Current Plan Card */}
             {activePlan ? <Box className="bg-[#843D9B] p-7 rounded-3xl text-white relative overflow-hidden shadow-xl shadow-[#843D9B]/20">

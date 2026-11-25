@@ -6,7 +6,7 @@ export const DEFAULT_TAILOR_FILTERS = {
     maxPrice: 10000,
 };
 
-const SORTS = ['priority', 'rating', 'price_low', 'price_high'];
+const SORTS = ['priority', 'rating', 'distance', 'price_low', 'price_high'];
 const RATINGS = ['', '3', '4'];
 
 /** Only non-default values go in the URL, e.g. "sortBy=rating&rating=4". */

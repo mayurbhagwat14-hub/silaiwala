@@ -17,7 +17,7 @@ const LanguageSettings = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 md:p-6 font-sans">
+        <div className="min-h-screen bg-white pb-20 md:p-6 font-sans">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-primary md:bg-transparent md:mb-8 px-4 py-4 flex items-center gap-4 text-white md:text-gray-900 border-b border-white/10 md:border-0 backdrop-blur-md">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-2xl md:bg-white md:shadow-sm hover:bg-white/10 md:hover:bg-gray-50 transition-all">

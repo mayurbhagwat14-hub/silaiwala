@@ -175,7 +175,7 @@ const MeasurementsPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24 text-gray-900 font-sans">
+        <div className="min-h-screen bg-white pb-24 text-gray-900 font-sans">
             <header className="bg-white px-6 pt-12 pb-6 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100 shadow-sm">
                 <button
                     type="button"

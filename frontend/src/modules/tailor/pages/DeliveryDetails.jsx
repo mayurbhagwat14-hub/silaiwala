@@ -22,7 +22,7 @@ const DeliveryDetails = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 bg-gray-50/50 min-h-screen">
+            <div className="flex flex-col items-center justify-center py-20 bg-white min-h-screen">
                 <Loader2 size={36} className="text-[#843D9B] animate-spin mb-4" />
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fetching active riders...</p>
             </div>
@@ -48,7 +48,7 @@ const DeliveryDetails = () => {
     }
 
     return (
-        <div className="space-y-4 animate-in fade-in duration-500 pb-20 bg-gray-50/50 min-h-screen p-4">
+        <div className="space-y-4 animate-in fade-in duration-500 pb-20 bg-white min-h-screen p-4">
 
             {/* Active Partner Card */}
             {currentPartner ? (

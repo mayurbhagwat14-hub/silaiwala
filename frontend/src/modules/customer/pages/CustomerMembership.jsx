@@ -184,7 +184,7 @@ const CustomerMembership = () => {
 
     if (!loading && !isSystemEnabled) {
         return (
-            <div className="min-h-screen bg-[#F8F9FD] flex flex-col font-sans text-gray-900">
+            <div className="min-h-screen bg-white flex flex-col font-sans text-gray-900">
                 <div className="bg-white px-4 py-4 flex items-center gap-3 shadow-sm border-b border-gray-100">
                     <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-xl hover:bg-gray-100">
                         <ArrowLeft size={20} className="text-gray-700" />
@@ -214,7 +214,7 @@ const CustomerMembership = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8F9FD] pb-24 font-sans text-gray-900">
+        <div className="min-h-screen bg-white pb-24 font-sans text-gray-900">
             {/* Header */}
             <div className="bg-white px-4 py-4 flex items-center justify-between sticky top-0 z-50 shadow-sm border-b border-gray-100">
                 <div className="flex items-center gap-3">

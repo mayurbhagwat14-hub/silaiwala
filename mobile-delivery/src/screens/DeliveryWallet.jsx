@@ -218,7 +218,7 @@ const DeliveryWallet = () => {
             </Box>;
   }
   const calculatedBalance = walletData.balance || 0;
-  return <Box className="min-h-screen bg-slate-50 pb-24 animate-in fade-in duration-500">
+  return <Box className="min-h-screen bg-white pb-24 animate-in fade-in duration-500">
             {/* Top Purple Brand Background Area */}
             <Box className="bg-[#843D9B] pt-4 px-5 pb-32 rounded-b-[2.5rem] relative shadow-lg shadow-purple-900/10">
                 {/* Header */}

@@ -108,7 +108,7 @@ const TailorAlterations = () => {
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
-  return <Box className="pb-24 bg-gray-50/50 min-h-screen">
+  return <Box className="pb-24 bg-white min-h-screen">
             {/* Sleek Modern Header */}
             <Box className="bg-white border-b border-gray-100 px-4 py-5 md:px-8 md:py-6 shadow-xs">
                 <Box className="max-w-5xl mx-auto">

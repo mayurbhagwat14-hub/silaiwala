@@ -266,7 +266,7 @@ const DeliveryLayout = ({ children }) => {
     currentY: 0,
     isPulling: false
   });
-  return <Screen className="bg-[#FAFAFB]" bottom={false}><Box className="flex-1 bg-[#FAFAFB] flex flex-col font-sans">
+  return <Screen className="bg-white" bottom={false}><Box className="flex-1 bg-white flex flex-col font-sans">
             {/* New Task Rapido-Style Alert */}
             <NewTaskAlert onTaskAccepted={orderId => {
       // Refresh data if we are on dashboard or tasks page

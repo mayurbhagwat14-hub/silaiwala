@@ -41,7 +41,7 @@ const FabricDetail = () => {
     }, [id]);
 
     if (isLoading) return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-white">
             <div className="w-10 h-10 border-4 border-[#843D9B] border-t-transparent rounded-full animate-spin" />
         </div>
     );
@@ -54,7 +54,7 @@ const FabricDetail = () => {
     );
 
     return (
-        <div className="min-h-screen bg-[#F7F8FC] pb-32 font-sans overflow-x-hidden">
+        <div className="min-h-screen bg-white pb-32 font-sans overflow-x-hidden">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-4 pt-safe flex items-center gap-4">
                 <button

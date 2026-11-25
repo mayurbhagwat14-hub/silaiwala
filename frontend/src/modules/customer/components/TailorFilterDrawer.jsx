@@ -81,6 +81,7 @@ const TailorFilterDrawer = ({ isOpen, onClose, filters, setFilters }) => {
                         {[
                             { label: 'Recommended (Priority)', value: 'priority' },
                             { label: 'Rating (High to Low)', value: 'rating' },
+                            { label: 'Nearest First', value: 'distance' },
                             { label: 'Price: Low to High', value: 'price_low' },
                             { label: 'Price: High to Low', value: 'price_high' }
                         ].map((opt) => (

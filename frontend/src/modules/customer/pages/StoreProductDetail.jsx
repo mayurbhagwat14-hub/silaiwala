@@ -170,7 +170,7 @@ const StoreProductDetail = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#FAFAFB] pb-36 font-sans relative max-w-lg mx-auto">
+        <div className="min-h-screen bg-white pb-36 font-sans relative max-w-lg mx-auto">
             {toast && (
                 <div
                     className={cn(

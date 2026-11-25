@@ -66,7 +66,7 @@ const NotificationSettings = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F7F5FA] pb-20 font-sans text-gray-900">
+        <div className="min-h-screen bg-white pb-20 font-sans text-gray-900">
             <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/90 backdrop-blur-md">
                 <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3.5">
                     <button

@@ -14,7 +14,7 @@ const WishlistPage = () => {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                     <Heart size={32} className="text-gray-400" />
                 </div>
@@ -31,7 +31,7 @@ const WishlistPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24 font-sans relative">
+        <div className="min-h-screen bg-white pb-24 font-sans relative">
             {/* 1. Header */}
             <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between pt-safe">
                 <div className="flex items-center gap-3">

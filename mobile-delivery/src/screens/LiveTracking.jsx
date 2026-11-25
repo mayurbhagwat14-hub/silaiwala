@@ -141,7 +141,7 @@ const LiveTracking = () => {
     }
   }, [orderId]);
   return <PageTransition>
-      <Screen className="bg-gray-50"><Box className="flex-1 flex flex-col bg-gray-50">
+      <Screen className="bg-white"><Box className="flex-1 flex flex-col bg-white">
         {/* Header */}
         <Box className="bg-white shadow-sm px-4 py-3 flex items-center justify-between">
           <Btn onPress={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">

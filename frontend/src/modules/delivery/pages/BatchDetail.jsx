@@ -62,7 +62,7 @@ const BatchDetail = () => {
 
   if (isLoadingBatch || !activeBatch) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
       </div>
     );
@@ -152,7 +152,7 @@ const BatchDetail = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-[#F8FAFC] pb-32">
+      <div className="min-h-screen bg-white pb-32">
         {/* Header */}
         <div className="px-6 pt-12 pb-8 bg-slate-900 text-white rounded-b-[40px] shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />

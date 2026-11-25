@@ -54,14 +54,14 @@ const Withdraw = () => {
     }
   };
   if (isLoading) {
-    return <Box className="min-h-full bg-gray-50 flex items-center justify-center">
+    return <Box className="min-h-full bg-white flex items-center justify-center">
                 <Spin size={40} className="text-[#843D9B]" />
             </Box>;
   }
 
   /* ── SUCCESS SCREEN ─── */
   if (step === 2) {
-    return <Box className="min-h-full bg-gray-50 flex items-center justify-center p-6 animate-in zoom-in duration-300">
+    return <Box className="min-h-full bg-white flex items-center justify-center p-6 animate-in zoom-in duration-300">
                 <Box className="bg-white border border-gray-100 rounded-[2.5rem] p-10 w-full max-w-sm text-center flex flex-col items-center shadow-xl">
                     <Box className="h-24 w-24 bg-[#843D9B] rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-[#843D9B]/40">
                         <I icon={Check} size={40} strokeWidth={3} className="text-white" />
@@ -78,7 +78,7 @@ const Withdraw = () => {
   }
 
   /* ── MAIN SCREEN ─── */
-  return <Box className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white">
+  return <Box className="min-h-full bg-white flex flex-col font-sans selection:bg-[#843D9B] selection:text-white">
 
             {/* ── MOBILE HEADER ── */}
             <Box className="md:hidden bg-white px-5 pt-5 pb-4 flex items-center justify-between border-b border-gray-100 sticky top-0 z-50">

@@ -110,7 +110,7 @@ export default function TailorLayout({ children, scroll = true }) {
   );
 
   return (
-    <Screen className="bg-[#F7F8FC]" bottom={false}>
+    <Screen className="bg-white" bottom={false}>
       {/* ── MOBILE TOP HEADER ── */}
       <Box className="w-full bg-white border-b border-gray-100 px-4 h-14 flex items-center justify-between shadow-sm z-40">
         <Btn onPress={() => go('/partner')} className="flex items-center gap-2.5">

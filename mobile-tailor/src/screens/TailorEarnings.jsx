@@ -215,11 +215,11 @@ const TailorEarnings = () => {
     return isToday ? `Today, ${time}` : `Yesterday, ${time}`;
   };
   if (isLoading) {
-    return <Box className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
+    return <Box className="min-h-screen bg-white flex items-center justify-center">
                 <Spin size={32} className="animate-spin text-[#843D9B]" />
             </Box>;
   }
-  return <Box className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-24 md:pb-8">
+  return <Box className="min-h-full bg-white flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-24 md:pb-8">
 
             <Box className="flex-1 p-2 md:p-0">
                 

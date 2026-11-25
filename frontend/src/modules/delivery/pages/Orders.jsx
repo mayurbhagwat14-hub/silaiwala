@@ -133,7 +133,7 @@ const DeliveryOrders = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="min-h-screen bg-white">
         {/* AI Elite Sub-Header (High-Trust) */}
         <div className="bg-[#0F172A] pt-6 pb-12 px-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />

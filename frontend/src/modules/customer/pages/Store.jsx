@@ -50,7 +50,7 @@ const StorePage = () => {
     const [activeTab, setActiveTab] = useState('store_item');
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24 md:pb-8 font-sans text-[#843D9B]">
+        <div className="min-h-screen bg-white pb-24 md:pb-8 font-sans text-[#843D9B]">
             {/* 1. Header */}
             <StoreHeader
                 searchQuery={searchQuery}

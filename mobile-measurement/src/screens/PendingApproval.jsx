@@ -47,7 +47,7 @@ const PendingApproval = () => {
     toast.success('Logged out successfully');
     await useAuthStore.getState().logout();
   };
-  return <Screen className="bg-[#F8FAFD]"><Scroll className="flex-1" contentClassName="flex flex-col items-center justify-center p-4" contentContainerStyle={{ flexGrow: 1 }}>
+  return <Screen className="bg-white"><Scroll className="flex-1" contentClassName="flex flex-col items-center justify-center p-4" contentContainerStyle={{ flexGrow: 1 }}>
             <Box className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 sm:p-8 text-center relative overflow-hidden border border-gray-100">
                 {/* Header Decoration */}
                 <Box className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-[#843D9B] to-[#E04D79] -z-0 rounded-t-3xl opacity-95" />

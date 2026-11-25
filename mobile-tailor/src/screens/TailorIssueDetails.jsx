@@ -170,7 +170,7 @@ const TailorIssueDetails = () => {
     }
   };
   if (isLoading) return <Box className="flex h-[100dvh] items-center justify-center"><Spin size={32} className="animate-spin text-primary" /></Box>;
-  return <Box className="flex flex-col h-[100dvh] pb-[76px] md:pb-0 bg-gray-50 relative">
+  return <Box className="flex flex-col h-[100dvh] pb-[76px] md:pb-0 bg-white relative">
             <Box className="bg-white border-b border-gray-100 p-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
                 <Btn onPress={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-900 active:scale-95 transition-transform">
                     <I icon={ChevronLeft} size={20} />

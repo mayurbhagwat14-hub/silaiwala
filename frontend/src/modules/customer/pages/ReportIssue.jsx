@@ -87,7 +87,7 @@ const ReportIssue = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#FDFDFD] pb-20">
+        <div className="min-h-screen bg-white pb-20">
             {/* ── HEADER ── */}
             <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
                 <div className="max-w-md mx-auto px-4 h-16 flex items-center gap-4">

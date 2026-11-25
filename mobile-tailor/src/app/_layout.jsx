@@ -38,12 +38,12 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: '#F7F8FC' }}>
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <ErrorBoundary>
           {/* TailorContextWrapper on the web: auth + notifications around every /partner route */}
           <TailorAuthProvider>
             <TailorNotificationProvider>
-              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F7F8FC' }, animation: 'none' }} />
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' }, animation: 'none' }} />
             </TailorNotificationProvider>
           </TailorAuthProvider>
           <NavPathTracker />

@@ -202,7 +202,7 @@ const Dashboard = () => {
   const isOnline = profile?.availabilityStatus === 'online';
   return <>
         <>
-            <Box className="flex-1 bg-gray-50 font-sans text-gray-900">
+            <Box className="flex-1 bg-white font-sans text-gray-900">
             {/* ── HEADER ── */}
             <Box className="px-5 pt-6 pb-4 bg-white border-b border-gray-100 shadow-sm z-50">
                 <Box className="flex items-center justify-between">

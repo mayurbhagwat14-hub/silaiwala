@@ -164,7 +164,7 @@ const DeliveryDashboard = () => {
         activeOrders.some((t) => isPendingAcceptanceTask(t, user)) || (availableOrders?.length > 0);
 
     return (
-        <div className="animate-in fade-in duration-700 bg-slate-50 min-h-screen pb-24 w-full pt-4">
+        <div className="animate-in fade-in duration-700 bg-white min-h-screen pb-24 w-full pt-4">
             <div className="px-5 space-y-6">
                 {/* Main Earnings Card */}
                 <div className="bg-gradient-to-br from-[#6B2F7E] to-[#843D9B] rounded-[24px] p-6 shadow-xl relative overflow-hidden mb-2">

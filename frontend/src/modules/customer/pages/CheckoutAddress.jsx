@@ -34,7 +34,7 @@ const CheckoutAddress = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-32 font-sans">
+        <div className="min-h-screen bg-white pb-32 font-sans">
             {/* 1. Sticky Header */}
             <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 h-16 flex items-end gap-3 pb-4">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-50 text-gray-700">

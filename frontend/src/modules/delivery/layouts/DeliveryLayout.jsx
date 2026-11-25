@@ -251,7 +251,7 @@ const DeliveryLayout = () => {
 
     return (
         <div 
-            className="min-h-[100dvh] bg-[#FAFAFB] flex flex-col font-sans selection:bg-indigo-100 selection:text-primary overflow-x-clip"
+            className="min-h-[100dvh] bg-white flex flex-col font-sans selection:bg-indigo-100 selection:text-primary overflow-x-clip"
             onTouchStart={(e) => {
                 if (window.scrollY === 0) {
                     setPullState({ startY: e.touches[0].clientY, currentY: e.touches[0].clientY, isPulling: true });

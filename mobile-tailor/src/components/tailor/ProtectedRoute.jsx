@@ -12,7 +12,7 @@ export function TailorGuard({ requiredStatus = [TAILOR_STATUS.APPROVED], childre
 
   if (loading && !user) {
     return (
-      <Screen className="bg-[#F7F8FC]">
+      <Screen className="bg-white">
         <Box className="flex-1 items-center justify-center">
           <Spin size={40} color="#843D9B" />
         </Box>

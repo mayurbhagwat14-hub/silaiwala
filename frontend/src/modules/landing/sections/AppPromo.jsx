@@ -17,7 +17,7 @@ const AppPromo = ({ appName }) => {
     reduce ? {} : { animate: { y: [0, -d, 0] }, transition: { duration: 7, delay, repeat: Infinity, ease: 'easeInOut' } };
 
   return (
-    <section id="download" aria-label={`Download the ${appName} app`} className="relative overflow-hidden bg-[#FBF8FD] py-20 md:py-28">
+    <section id="download" aria-label={`Download the ${appName} app`} className="relative overflow-hidden bg-white py-20 md:py-28">
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,#EFE0F6_0%,transparent_65%)]" />
 
       <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-14 px-5 md:px-8 lg:grid-cols-2">

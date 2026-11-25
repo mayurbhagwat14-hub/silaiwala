@@ -194,7 +194,7 @@ const TailorLayout = () => {
     ];
 
     return (
-        <div className="h-screen md:h-[100dvh] w-full bg-[#F5F5F5] flex flex-col md:flex-row font-sans selection:bg-[#843D9B] selection:text-white overflow-hidden">
+        <div className="h-screen md:h-[100dvh] w-full bg-white flex flex-col md:flex-row font-sans selection:bg-[#843D9B] selection:text-white overflow-hidden">
             {/* ── SIDEBAR (DESKTOP ONLY) ── */}
             <aside className="hidden md:flex flex-col w-72 bg-[#0A0A0A] border-r border-[#1C1C1C] h-screen shrink-0 z-50">
                 <div className="p-8">

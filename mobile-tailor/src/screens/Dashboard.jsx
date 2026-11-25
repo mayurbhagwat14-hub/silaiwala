@@ -117,7 +117,7 @@ const Dashboard = () => {
         return 'text-white/30 font-medium';
     }
   };
-  return <Box className="min-h-screen bg-gray-50 pb-32 md:pb-12 font-sans text-gray-900">
+  return <Box className="min-h-screen bg-white pb-32 md:pb-12 font-sans text-gray-900">
 
             {/* ── HEADER ─────────────────────── */}
             <Box className="px-5 pt-6 pb-4 bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">

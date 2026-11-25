@@ -543,7 +543,7 @@ const DeliveryOrderDetail = () => {
     return <Txt className="bg-slate-50 text-slate-700 px-2 py-0.5 rounded-full text-[8.5px] font-black border border-slate-100 uppercase tracking-tighter">Standard</Txt>;
   };
   return <PageTransition>
-      <Screen className="bg-slate-50"><Box className="flex-1 bg-slate-50 relative">
+      <Screen className="bg-white"><Box className="flex-1 bg-white relative">
         <Box className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm">
           <Box className="flex items-center gap-3">
             <Btn onPress={() => navigate(-1)} className="text-slate-600"><I icon={FiArrowLeft} size={20} /></Btn>

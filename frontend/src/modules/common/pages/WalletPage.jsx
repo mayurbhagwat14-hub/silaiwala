@@ -69,7 +69,7 @@ const WalletPage = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-10">
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-10">
                 <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Loading Wallet...</p>
             </div>
@@ -77,7 +77,7 @@ const WalletPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 md:p-6 font-sans">
+        <div className="min-h-screen bg-white pb-20 md:p-6 font-sans">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-primary md:bg-transparent md:mb-8 px-4 py-4 flex items-center gap-4 text-white md:text-gray-900 border-b border-white/10 md:border-0 backdrop-blur-md">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-2xl md:bg-white md:shadow-sm hover:bg-white/10 md:hover:bg-gray-50 transition-all">

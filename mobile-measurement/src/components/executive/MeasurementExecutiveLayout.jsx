@@ -20,7 +20,7 @@ export default function MeasurementExecutiveLayout({ children }) {
   const insets = useSafeAreaInsets();
   const purpleHeader = /\/executive\/(wallet|profile)/.test(location.pathname);
   return (
-    <Screen className="bg-gray-50" bottom={false} statusBg={purpleHeader ? 'bg-[#843D9B]' : 'bg-white'} statusBar={purpleHeader ? 'light' : 'dark'}>
+    <Screen className="bg-white" bottom={false} statusBg={purpleHeader ? 'bg-[#843D9B]' : 'bg-white'} statusBar={purpleHeader ? 'light' : 'dark'}>
       <Box className="flex-1">{children}</Box>
       <Box className="bg-white border-t border-gray-100 shadow-[0_-8px_30px_rgba(0,0,0,0.05)] px-4 pt-2 flex flex-row items-center justify-between gap-2" style={{ paddingBottom: 8 + insets.bottom }}>
         {NAVIGATION.map((item) => {

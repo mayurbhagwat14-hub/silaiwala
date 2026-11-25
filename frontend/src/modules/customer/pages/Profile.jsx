@@ -155,7 +155,7 @@ const ProfilePage = () => {
     }, [profile, authUser, storedUser]);
 
     return (
-        <div className="min-h-screen bg-[#F8F9FB] pb-24 font-sans text-gray-900 w-full flex flex-col items-center overflow-x-hidden">
+        <div className="min-h-screen bg-white pb-24 font-sans text-gray-900 w-full flex flex-col items-center overflow-x-hidden">
             {/* 1. Header & Stats */}
             <ProfileHeader user={displayUser} stats={profile?.stats} />
 

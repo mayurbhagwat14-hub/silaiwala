@@ -24,7 +24,7 @@ const ReportedIssues = () => {
     }
   };
   if (isLoading) return <Box className="flex h-screen items-center justify-center"><Spin size={32} className="animate-spin text-primary" /></Box>;
-  return <Box className="min-h-screen bg-gray-50 pb-20">
+  return <Box className="min-h-screen bg-white pb-20">
             {/* Header */}
             <Box className="bg-white border-b border-gray-100 p-4 sticky top-0 z-10 shadow-sm flex items-center gap-4">
                 <Btn onPress={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full active:scale-95">

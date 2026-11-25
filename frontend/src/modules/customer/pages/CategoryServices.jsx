@@ -75,7 +75,7 @@ const CategoryServices = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-[#f3f9f8] to-[#e6f4f1] flex flex-col items-center justify-center p-6 text-center">
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white">
                 <Loader2 size={40} className="text-primary animate-spin mb-4" />
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Loading tailors for this service...</p>
             </div>
@@ -83,7 +83,7 @@ const CategoryServices = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#f3f9f8] to-[#e6f4f1] pb-24 md:pb-8 font-sans">
+        <div className="min-h-screen pb-24 md:pb-8 font-sans bg-white">
             {/* Header */}
             <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-100 shadow-sm">
                 <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">

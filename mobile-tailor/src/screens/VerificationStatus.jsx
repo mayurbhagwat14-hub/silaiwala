@@ -116,7 +116,7 @@ const VerificationStatus = () => {
     setLocalDocs(newDocs);
   };
   if (isLoading) {
-    return <Box className="min-h-[400px] flex flex-col items-center justify-center gap-3 bg-gray-50">
+    return <Box className="min-h-[400px] flex flex-col items-center justify-center gap-3 bg-white">
                 <Spin className="animate-spin text-[#843D9B]" size={32} />
                 <Txt className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Checking Documents...</Txt>
             </Box>;
@@ -125,7 +125,7 @@ const VerificationStatus = () => {
   const verifiedCount = documents.filter(doc => doc.status === 'verified').length;
   const progress = documents.length > 0 ? Math.round(verifiedCount / documents.length * 100) : 0;
   const hasRejected = documents.some(doc => doc.status === 'rejected');
-  return <Box className="space-y-4 animate-in fade-in duration-500 bg-gray-50/50 min-h-screen p-4 pb-24">
+  return <Box className="space-y-4 animate-in fade-in duration-500 bg-white min-h-screen p-4 pb-24">
             
             {/* Overall Status Banner */}
             {profile?.registrationStatus === 'rejected' && <Box className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex gap-3 mb-4">

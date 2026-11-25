@@ -36,7 +36,7 @@ const ActivityHistory = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
+        <div className="min-h-screen bg-white font-sans text-gray-900 pb-20">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-4 flex items-center gap-3 pt-safe">
                 <button type="button" onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-50 transition-colors">

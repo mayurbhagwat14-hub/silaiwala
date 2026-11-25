@@ -626,7 +626,7 @@ const Orders = () => {
     // rewind an in-progress order back to the Accept Order screen.
     const isPending = order.status === 'pending';
     const canRequestApproval = ['pending', 'measurements-uploaded', 'accepted', 'measurement-verification', 'measurement-revision-required'].includes(order.status);
-    return <Scroll contentClassName="flex flex-col pb-24" className="flex-1 bg-[#F5F5F5]" nestedScrollEnabled>
+    return <Scroll contentClassName="flex flex-col pb-24" className="flex-1 bg-white" nestedScrollEnabled>
                 {/* Header */}
                 <Box className="bg-white px-5 pt-5 pb-4 flex items-center justify-between border-b border-gray-100 sticky top-0 z-50">
                     <Btn onPress={onClose} className="p-1 text-gray-600 hover:text-gray-900">
@@ -1053,7 +1053,7 @@ const Orders = () => {
                 </Box>
             </Scroll>;
   };
-  return <Box className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-24 md:pb-0">
+  return <Box className="min-h-full bg-white flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-24 md:pb-0">
             
             {/* ── HEADER ── */}
             <Box className="md:hidden bg-white pt-3 pb-2 border-b border-gray-100 text-left px-4">

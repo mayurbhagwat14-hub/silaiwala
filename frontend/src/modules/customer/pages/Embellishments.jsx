@@ -77,7 +77,7 @@ const Embellishments = () => {
     const totalSelected = Object.values(selectedDesigns).flat().length;
 
     return (
-        <div className="min-h-screen bg-[#FDFBF9] pb-40 font-sans selection:bg-[#3c1e2f] selection:text-[#E2C17D]">
+        <div className="min-h-screen bg-white pb-40 font-sans selection:bg-[#3c1e2f] selection:text-[#E2C17D]">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-[#FDFBF9]/90 backdrop-blur-xl border-b border-gray-100">
                 <div className="px-5 py-6 flex items-center justify-between">

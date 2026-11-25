@@ -116,7 +116,7 @@ const Subscription = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
+            <div className="min-h-screen flex items-center justify-center bg-white">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#843D9B]"></div>
             </div>
         );
@@ -126,7 +126,7 @@ const Subscription = () => {
     const planExpiryDate = tailorData?.planExpiryDate ? new Date(tailorData.planExpiryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not Subscribed';
 
     return (
-        <div className="space-y-4 animate-in fade-in duration-500 bg-gray-50/50 min-h-screen p-4 pb-20">
+        <div className="space-y-4 animate-in fade-in duration-500 bg-white min-h-screen p-4 pb-20">
 
             {/* Current Plan Card */}
             {activePlan ? (

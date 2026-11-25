@@ -111,7 +111,7 @@ const AddressPage = () => {
     const sorted = [...addresses].sort((a, b) => Number(!!b.isDefault) - Number(!!a.isDefault));
 
     return (
-        <div className="min-h-screen bg-[#F7F5FA] pb-28 font-sans text-gray-900">
+        <div className="min-h-screen bg-white pb-28 font-sans text-gray-900">
             {/* Header */}
             <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/90 backdrop-blur-md">
                 <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3.5">

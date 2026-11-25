@@ -47,7 +47,7 @@ const PendingApproval = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFD] flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
             <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 sm:p-8 text-center relative overflow-hidden border border-gray-100">
                 {/* Header Decoration */}
                 <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-[#843D9B] to-[#E04D79] -z-0 rounded-t-3xl opacity-95" />

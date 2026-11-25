@@ -174,14 +174,14 @@ const CustomerLiveJourney = () => {
 
     if (loadError) return <div>Error loading maps</div>;
     if (!isLoaded || !order) return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
             <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
             <p className="text-gray-500 font-medium">Initializing Tracker...</p>
         </div>
     );
 
     if (error) return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
             <XCircle className="w-12 h-12 text-red-500 mb-4" />
             <h3 className="text-lg font-bold text-gray-900 mb-2">Location Error</h3>
             <p className="text-gray-500 mb-6">{error}</p>

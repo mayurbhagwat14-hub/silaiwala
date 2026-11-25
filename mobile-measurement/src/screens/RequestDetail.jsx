@@ -575,7 +575,7 @@ const RequestDetail = () => {
     }
   };
   if (loading) {
-    return <Screen className="bg-[#FAF8FC]"><Box className="flex-1 flex flex-col items-center justify-center p-6">
+    return <Screen className="bg-white"><Box className="flex-1 flex flex-col items-center justify-center p-6">
                 <Box className="w-16 h-16 rounded-3xl bg-[#581C87] flex items-center justify-center text-white shadow-xl shadow-purple-900/20 animate-pulse mb-4">
                     <I icon={Sparkles} size={28} />
                 </Box>
@@ -584,7 +584,7 @@ const RequestDetail = () => {
             </Box></Screen>;
   }
   if (!request) {
-    return <Screen className="bg-[#FDFCFE]">
+    return <Screen className="bg-white">
                 <Header />
                 <Box className="flex-1 flex flex-col items-center justify-center p-6">
                     <I icon={AlertCircle} size={32} className="text-rose-500 mb-3" />
@@ -610,7 +610,7 @@ const RequestDetail = () => {
     return `${raw} (${isBottomActive ? 'Bottom' : 'Top'})`;
   })();
   const isAssignedPending = ['assigned', 'pending'].includes(request.status);
-  return <Screen className="bg-[#FDFCFE] text-gray-900">
+  return <Screen className="bg-white text-gray-900">
                 <Header customerPhone={request.customer?.phoneNumber} onCancelTask={['assigned', 'accepted'].includes(request.status) ? handleCancelTask : null} />
                 <Scroll ref={scrollRef} className="flex-1" contentClassName="pb-4" keyboardShouldPersistTaps="handled">
 

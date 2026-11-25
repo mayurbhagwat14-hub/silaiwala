@@ -45,7 +45,7 @@ const TailorSelection = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
                 <Loader2 size={32} className="text-[#843D9B] animate-spin mb-4" />
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Finding Available Tailors...</p>
             </div>
@@ -53,7 +53,7 @@ const TailorSelection = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-sans">
+        <div className="min-h-screen bg-white pb-20 font-sans">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-[#843D9B] text-white px-4 py-4 flex items-center gap-3 pt-safe">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors">

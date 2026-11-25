@@ -622,7 +622,7 @@ const CheckoutSummary = () => {
 
     if (!bulkOrderId && currentCheckoutItems.length === 0 && cartItems.length === 0 && !isProcessing && !hasNavigated.current) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
                 <ShoppingBag size={48} className="text-gray-300 mb-3" />
                 <h3 className="text-base font-bold text-gray-900 mb-1">Your cart is empty</h3>
                 <p className="text-xs text-gray-500 mb-4">Please select a service or product to continue.</p>
@@ -637,7 +637,7 @@ const CheckoutSummary = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-32 font-sans text-gray-900">
+        <div className="min-h-screen bg-white pb-32 font-sans text-gray-900">
             {/* Full Screen Processing Loader */}
             {isProcessing && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[1000] flex flex-col items-center justify-center text-white">

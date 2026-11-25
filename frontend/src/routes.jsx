@@ -178,7 +178,7 @@ import NotFoundRedirect from './components/Common/NotFoundRedirect';
 
 const AppRoutes = () => {
     return (
-        <React.Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div></div>}>
+        <React.Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><div className="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div></div>}>
         <Routes>
             {/* ... Auth Routes ... */}
             <Route element={<AuthLayout />}>
