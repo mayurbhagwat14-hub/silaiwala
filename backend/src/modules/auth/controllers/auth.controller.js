@@ -14,6 +14,13 @@ const { invalidateCache } = require("../../../utils/cache.js");
 const OTP = require("../../../models/OTP.js");
 const smsService = require("../../../utils/smsService.js");
 
+// Fixed test login: this number always logs in to the given portal with this OTP (no SMS is sent).
+// Works only for an account of that role, so it can't open any other panel.
+const FIXED_OTP_LOGINS = {
+  "8766556836": { otp: "1234", role: "delivery" },
+};
+const fixedOtpFor = (last10Digits) => (last10Digits && FIXED_OTP_LOGINS[last10Digits]) || null;
+
 /**
  * Generate JWT Token
  */
@@ -465,9 +472,12 @@ exports.sendOTP = asyncHandler(async (req, res, next) => {
   }
 
   // Generate 6-digit random OTP (or 123456 if default OTP is enabled)
-  const otpCode = isDefaultOtpEnabled() 
-    ? '123456' 
-    : String(Math.floor(100000 + Math.random() * 900000));
+  const fixedLogin = fixedOtpFor(cleanPhone);
+  const otpCode = fixedLogin
+    ? fixedLogin.otp
+    : isDefaultOtpEnabled()
+      ? '123456'
+      : String(Math.floor(100000 + Math.random() * 900000));
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   const phoneKeys = cleanPhone 
@@ -489,7 +499,7 @@ exports.sendOTP = asyncHandler(async (req, res, next) => {
   console.log(`===================================================\n`);
 
   // Send SMS via SMSIndiaHub Gateway
-  if (cleanPhone) {
+  if (cleanPhone && !fixedLogin) {
     await smsService.sendOTP(cleanPhone, otpCode);
   }
 
@@ -578,7 +588,9 @@ exports.login = asyncHandler(async (req, res, next) => {
     }
   } else if (otp) {
     const isBypass = (isDefaultOtpEnabled() || user.role === "admin" || user.role === "super_admin") && (otp === "123456" || otp === "000000");
-    if (isBypass) {
+    const fixedLogin = fixedOtpFor(last10Digits);
+    const isFixedLogin = Boolean(fixedLogin) && user.role === fixedLogin.role && String(otp).trim() === fixedLogin.otp;
+    if (isBypass || isFixedLogin) {
       verified = true;
     } else {
       const phoneKeys = last10Digits 
