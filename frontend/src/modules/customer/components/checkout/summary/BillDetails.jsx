@@ -1,21 +1,25 @@
 import React from 'react';
-import { FileText } from 'lucide-react';
+import { CreditCard, Info } from 'lucide-react';
 import { splitAdvanceRemaining } from '../../../../../utils/checkoutBilling';
 
 const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`;
 
-/** Label / amount row that never overflows: label wraps, amount never shrinks. */
-const Row = ({ label, sub, value, className = 'text-slate-600', valueClassName = 'font-semibold text-slate-900' }) => (
-    <div className={`flex items-start justify-between gap-3 text-xs font-medium ${className}`}>
-        <div className="min-w-0 flex-1 break-words">
-            <span>{label}</span>
+const Row = ({ label, sub, value, valueClassName = 'text-[#1A1523]', labelClassName = 'text-[#2A1F33]' }) => (
+    <div className="flex items-start justify-between gap-3 border-b border-[#F3ECF7] py-2 text-[13.5px] last:border-b-0">
+        <div className={`min-w-0 flex-1 break-words ${labelClassName}`}>
+            {label}
             {sub}
         </div>
-        <span className={`shrink-0 whitespace-nowrap text-right ${valueClassName}`}>{value}</span>
+        <span className={`shrink-0 whitespace-nowrap text-right font-medium ${valueClassName}`}>{value}</span>
     </div>
 );
 
-const BillDetails = ({ pricing, advancePercentage = 30, baseLabel = 'Stitching Charges' }) => {
+/**
+ * Price Breakdown card. Amounts come from the server price summary (`pricing`); when `items` are
+ * passed, stitching and customization lines are itemised by garment — but only if those lines add up
+ * to the server's figures, otherwise the combined line is shown so the bill always matches the total.
+ */
+const BillDetails = ({ pricing, advancePercentage = 30, baseLabel = 'Stitching Charges', items = [] }) => {
     if (!pricing) return null;
 
     const {
@@ -31,7 +35,6 @@ const BillDetails = ({ pricing, advancePercentage = 30, baseLabel = 'Stitching C
         gstPercentage = 0,
         discountAmount = 0,
         couponCode = '',
-        preDiscountTotal = null,
         membershipDiscount = 0,
         freeDeliveryMinOrder = 0,
         freeDeliveryApplied = false,
@@ -41,119 +44,84 @@ const BillDetails = ({ pricing, advancePercentage = 30, baseLabel = 'Stitching C
     const finalTotal = Math.round(Number(total) || 0);
     const couponDiscount = Math.round(Number(discountAmount) || 0);
     const memberDiscount = Math.round(Number(membershipDiscount) || 0);
-    const amountBeforeCoupon = preDiscountTotal != null
-        ? Math.round(Number(preDiscountTotal))
-        : finalTotal + couponDiscount;
     const { advanceAmount, remainingAmount } = splitAdvanceRemaining(finalTotal, advancePercentage);
     const fullAdvance = advancePercentage >= 100;
-
-    // Taxable value = items + platform fee − membership discount (delivery is not taxed).
-    // Computed from the same lines shown above so the bill always adds up on screen.
-    const taxableSubtotal = Math.max(
-        0,
-        Math.round(base) + Math.round(tailorAtHome) + Math.round(addons) + Math.round(fabric) + Math.round(platformFee) - memberDiscount
-    );
-
     const minOrder = Math.round(Number(freeDeliveryMinOrder) || 0);
-    const freeByThreshold = freeDeliveryApplied && minOrder > 0;
-    const freeByMembership = freeDeliveryApplied && !freeByThreshold && isMembershipPerkApplied;
+
+    // Itemised stitching lines (one per garment) when they match the server's base
+    const stitchLines = items.map((it) => ({
+        label: `${it.serviceDetails?.title || 'Garment'} (Stitching)`,
+        amount: Math.round(Number(it.pricing?.base) || 0),
+    }));
+    const showStitchLines = stitchLines.length > 0 && stitchLines.reduce((s, l) => s + l.amount, 0) === Math.round(base);
+
+    // Itemised customization + add-on lines when they match the server's add-ons amount
+    const extraLines = items.flatMap((it) => {
+        const c = it.configuration || {};
+        const custs = Object.entries(c.customizations || {})
+            .filter(([, v]) => v && v.enabled !== false && Number(v.price) > 0)
+            .map(([, v]) => ({ label: v.name, amount: Math.round(Number(v.price)) }));
+        const adds = (Array.isArray(c.addons) && c.addons.length ? c.addons : c.styleAddons || [])
+            .filter((a) => Number(a.price) > 0)
+            .map((a) => ({ label: a.name || a.title, amount: Math.round(Number(a.price)) }));
+        return [...custs, ...adds];
+    });
+    const showExtraLines = extraLines.length > 0 && extraLines.reduce((s, l) => s + l.amount, 0) === Math.round(addons);
 
     return (
-        <div className="overflow-hidden rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
-            <div className="mb-3 flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-[15px] font-bold text-[#1A1523]">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]"><FileText size={16} /></span>
-                    <span>Price Breakdown</span>
-                </h3>
+        <section id="price-breakdown" className="scroll-mt-28 rounded-[18px] bg-white p-4 shadow-[0_6px_20px_-14px_rgba(60,20,80,0.35)] ring-1 ring-[#EFE8F4]">
+            <div className="mb-1.5 flex items-center gap-2.5">
+                <CreditCard size={22} strokeWidth={1.7} className="text-[#6A2385]" />
+                <h3 className="text-[16px] font-bold text-[#1A1523]">Price Breakdown</h3>
             </div>
 
-            <div className="space-y-2.5 max-w-xl">
-                <Row label={baseLabel} value={inr(base)} />
+            <div>
+                {showStitchLines
+                    ? stitchLines.map((l, i) => <Row key={`s${i}`} label={l.label} value={inr(l.amount)} />)
+                    : <Row label={baseLabel} value={inr(base)} />}
 
-                {tailorAtHome > 0 && <Row label="Measurement Executive Fee" value={inr(tailorAtHome)} />}
-                {addons > 0 && <Row label="Style Add-ons" value={inr(addons)} />}
-                {fabric > 0 && <Row label="Fabric Charges" value={inr(fabric)} />}
-                {platformFee > 0 && <Row label={`Platform Fee (${platformFeePercentage}%)`} value={inr(platformFee)} />}
+                {addons > 0 && (showExtraLines
+                    ? extraLines.map((l, i) => <Row key={`a${i}`} label={l.label} value={inr(l.amount)} />)
+                    : <Row label="Customizations & Add-ons" value={inr(addons)} />)}
 
-                {memberDiscount > 0 && (
-                    <Row
-                        label="Membership Discount"
-                        value={`-${inr(memberDiscount)}`}
-                        className="text-emerald-700"
-                        valueClassName="font-bold text-emerald-700"
-                    />
-                )}
+                {fabric > 0 && <Row label="Fabric" value={inr(fabric)} />}
+                {tailorAtHome > 0 && <Row label="Home Visit (Measurement)" value={inr(tailorAtHome)} />}
 
                 <Row
-                    label="Subtotal (taxable)"
-                    value={inr(taxableSubtotal)}
-                    className="text-slate-500 pt-1.5 border-t border-dashed border-slate-200"
-                    valueClassName="font-semibold text-slate-700"
+                    label={<span className="inline-flex items-center gap-1.5">Convenience Fee{platformFeePercentage ? ` (${platformFeePercentage}%)` : ''} <Info size={13} className="text-gray-400" /></span>}
+                    value={inr(platformFee)}
                 />
-
+                {memberDiscount > 0 && <Row label="Membership Discount" value={`-${inr(memberDiscount)}`} labelClassName="text-emerald-700" valueClassName="text-emerald-700" />}
                 <Row label={`GST (${gstPercentage}%)`} value={inr(taxes)} />
-
                 <Row
                     label="Delivery"
-                    sub={
-                        freeByThreshold ? (
-                            <p className="text-[10px] text-emerald-600 font-medium mt-0.5">Free on orders {inr(minOrder)} &amp; above</p>
-                        ) : freeByMembership ? (
-                            <p className="text-[10px] text-emerald-600 font-medium mt-0.5">Free with your membership</p>
-                        ) : (!freeDeliveryApplied && minOrder > 0) ? (
-                            <p className="text-[10px] text-slate-400 font-medium mt-0.5">Free on orders {inr(minOrder)} &amp; above</p>
-                        ) : null
-                    }
+                    sub={freeDeliveryApplied && minOrder > 0
+                        ? <p className="mt-0.5 text-[11px] text-emerald-600">Free on orders {inr(minOrder)} &amp; above</p>
+                        : freeDeliveryApplied && isMembershipPerkApplied
+                            ? <p className="mt-0.5 text-[11px] text-emerald-600">Free with your membership</p>
+                            : (!freeDeliveryApplied && minOrder > 0)
+                                ? <p className="mt-0.5 text-[11px] text-gray-400">Free on orders {inr(minOrder)} &amp; above</p>
+                                : null}
                     value={delivery > 0 ? inr(delivery) : 'FREE'}
-                    valueClassName={delivery > 0 ? 'font-semibold text-slate-900' : 'text-emerald-600 font-bold'}
+                    valueClassName={delivery > 0 ? 'text-[#1A1523]' : 'font-bold text-emerald-600'}
                 />
-
                 {couponDiscount > 0 && (
-                    <>
-                        <Row
-                            label="Amount before coupon"
-                            value={inr(amountBeforeCoupon)}
-                            className="text-slate-500 pt-1"
-                            valueClassName="font-semibold text-slate-700"
-                        />
-                        <Row
-                            label={`Coupon Discount${couponCode ? ` (${couponCode})` : ''}`}
-                            value={`-${inr(couponDiscount)}`}
-                            className="text-emerald-700 font-bold"
-                            valueClassName="font-bold text-emerald-700"
-                        />
-                    </>
-                )}
-
-                <div className="my-2 flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#F8F1FB] to-[#F1E4F7] px-3 py-2.5">
-                    <span className="text-[15px] font-bold text-[#5A1A78]">Total Payable</span>
-                    <span className="text-lg font-black text-[#843D9B] shrink-0 whitespace-nowrap">{inr(finalTotal)}</span>
-                </div>
-
-                {!fullAdvance && (
-                    <div className="space-y-2 pt-1">
-                        <div className="bg-[#FAF5FF] border border-[#F3E8FF] p-3 rounded-2xl flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                                <span className="text-xs font-bold text-[#843D9B] block">
-                                    Advance Payable ({advancePercentage}%)
-                                </span>
-                                <span className="text-[9px] text-primary font-bold uppercase tracking-wider">
-                                    Required to confirm order
-                                </span>
-                            </div>
-                            <span className="text-base font-black text-[#843D9B] shrink-0 whitespace-nowrap">
-                                {inr(advanceAmount)}
-                            </span>
-                        </div>
-
-                        <Row label="To Pay On Delivery" value={inr(remainingAmount)} className="px-1 text-slate-600 items-center" valueClassName="font-bold text-slate-900" />
-                        <p className="text-[10px] text-slate-400 text-center">
-                            Advance + on delivery = {inr(finalTotal)} (after tailor accepts)
-                        </p>
-                    </div>
+                    <Row label={`Coupon Discount${couponCode ? ` (${couponCode})` : ''}`} value={`-${inr(couponDiscount)}`} labelClassName="font-semibold text-emerald-700" valueClassName="font-bold text-emerald-700" />
                 )}
             </div>
-        </div>
+
+            <div className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-[#F3E6F9] to-[#EBDDF4] px-3 py-2.5">
+                <span className="text-[17px] font-bold text-[#5A1A78]">Total Payable</span>
+                <span className="text-[19px] font-bold text-[#5A1A78]">{inr(finalTotal)}</span>
+            </div>
+
+            {!fullAdvance && (
+                <div className="mt-2.5 space-y-1 px-1 text-[12px] text-[#4B4453]">
+                    <div className="flex justify-between"><span className="font-semibold text-[#6A2385]">Pay now (advance {advancePercentage}%)</span><span className="font-bold text-[#6A2385]">{inr(advanceAmount)}</span></div>
+                    <div className="flex justify-between"><span>Pay on delivery</span><span className="font-semibold">{inr(remainingAmount)}</span></div>
+                </div>
+            )}
+        </section>
     );
 };
 

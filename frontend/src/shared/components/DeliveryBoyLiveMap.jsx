@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GoogleMap, Marker, DirectionsRenderer, Polyline } from '@react-google-maps/api';
+import { detailedRoutePath } from '../utils/routePath';
 import { Navigation, Clock, MapPin, Loader2, Bike, Ruler } from 'lucide-react';
 
 const containerStyle = { width: '100%', height: '100%' };
@@ -212,6 +213,7 @@ const DeliveryBoyLiveMap = ({
   }
 
   const center = activeOrigin || activeDest || defaultCenter;
+  const routePath = detailedRoutePath(directions);
 
   return (
     <div style={{ height }} className={rounded ? 'rounded-3xl overflow-hidden border border-slate-200/80 shadow-md relative bg-slate-50' : 'overflow-hidden relative bg-slate-50'}>
@@ -252,9 +254,9 @@ const DeliveryBoyLiveMap = ({
         )}
 
         {/* Casing / Shadow line for active route (Zomato-style depth) */}
-        {directions?.routes?.[0]?.overview_path && (
+        {routePath && (
           <Polyline
-            path={directions.routes[0].overview_path}
+            path={routePath}
             options={{
               strokeColor: '#3B0764',
               strokeOpacity: 0.22,
@@ -270,14 +272,15 @@ const DeliveryBoyLiveMap = ({
             directions={directions}
             options={{
               suppressMarkers: true,
+              suppressPolylines: true, // the line below follows every road (steps), not the simplified overview
               preserveViewport: !!edgePadding, // our fitBounds applies the padding
-              polylineOptions: {
-                strokeColor: '#843D9B',
-                strokeWeight: 5.5,
-                strokeOpacity: 1,
-                zIndex: 2,
-              },
             }}
+          />
+        )}
+        {routePath && (
+          <Polyline
+            path={routePath}
+            options={{ strokeColor: '#843D9B', strokeWeight: 5.5, strokeOpacity: 1, zIndex: 2 }}
           />
         )}
 

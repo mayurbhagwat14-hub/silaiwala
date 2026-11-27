@@ -27,8 +27,12 @@ export async function getDirections(origin, destination) {
     const route = json.status === 'OK' ? json.routes?.[0] : null;
     const leg = route?.legs?.[0];
     if (!leg) return null;
+    // Draw the route from every step's own polyline (full road detail). The overview polyline is
+    // simplified and cuts across corners / blocks when zoomed in, so it is only a fallback.
+    const stepCoords = (leg.steps || []).flatMap((st) => (st?.polyline?.points ? decodePolyline(st.polyline.points) : []));
+    const coords = stepCoords.length > 1 ? stepCoords : decodePolyline(route.overview_polyline.points);
     return {
-      coords: decodePolyline(route.overview_polyline.points),
+      coords,
       distance: leg.distance.text,
       duration: leg.duration.text,
       distanceValue: leg.distance.value,

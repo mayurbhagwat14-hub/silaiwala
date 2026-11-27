@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleMap, MarkerF, Polyline, DirectionsRenderer } from '@react-google-maps/api';
+import { detailedRoutePath } from '../utils/routePath';
 
 const containerStyle = { width: '100%', height: '100%' };
 const defaultCenter = { lat: 28.6139, lng: 77.2090 }; // Delhi
@@ -109,6 +110,8 @@ const TrackingMap = ({
     customerLocation?.lat ? customerLocation : null,
   ].filter(Boolean);
 
+  const routePath = detailedRoutePath(directions);
+
   return (
     <div style={{ height }} className={`overflow-hidden ${rounded ? 'rounded-2xl border border-slate-100' : 'h-full w-full'}`}>
       <GoogleMap
@@ -147,9 +150,9 @@ const TrackingMap = ({
             label={{ text: '📍', fontSize: '20px' }}
           />
         )}
-        {directions?.routes?.[0]?.overview_path && (
+        {routePath && (
           <Polyline
-            path={directions.routes[0].overview_path}
+            path={routePath}
             options={{
               strokeColor: '#3B0764',
               strokeOpacity: 0.2,
@@ -163,14 +166,15 @@ const TrackingMap = ({
             directions={directions}
             options={{
               suppressMarkers: true,
+              suppressPolylines: true, // the line below follows every road (steps), not the simplified overview
               preserveViewport: false,
-              polylineOptions: {
-                strokeColor: '#843D9B',
-                strokeWeight: 5.5,
-                strokeOpacity: 1,
-                zIndex: 2,
-              },
             }}
+          />
+        )}
+        {routePath && (
+          <Polyline
+            path={routePath}
+            options={{ strokeColor: '#843D9B', strokeWeight: 5.5, strokeOpacity: 1, zIndex: 2 }}
           />
         )}
       </GoogleMap>

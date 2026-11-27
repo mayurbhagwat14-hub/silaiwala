@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { resolveRazorpayKey, createRazorpayInstance } from '../../../utils/razorpay';
-import { ArrowLeft, ArrowRight, Lock, ShieldCheck, MapPin, Package, Loader2, FileText, ShoppingBag, Truck, Pencil, Calendar, Home, BadgeCheck, Headphones } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lock, ShieldCheck, MapPin, Package, Loader2, FileText, ShoppingBag, Truck, Calendar, Home, Headphones, Heart, ShoppingCart, ChevronRight, ChevronUp, Gift } from 'lucide-react';
+import BrandLogo from '../../../components/Common/BrandLogo';
 import OrderFlowStepper from '../components/OrderFlowStepper';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -10,7 +11,7 @@ import useAddressStore from '../../../store/userStore';
 import useCartStore from '../../../store/cartStore';
 import BillDetails from '../components/checkout/summary/BillDetails';
 import CouponOfferSection from '../components/checkout/summary/CouponOfferSection';
-import ServiceReviewCard from '../components/checkout/summary/ServiceReviewCard';
+import ServiceReviewCard, { ReviewCard } from '../components/checkout/summary/ServiceReviewCard';
 import MeasurementSchedulePicker from '../components/checkout/summary/MeasurementSchedulePicker';
 import { formatCheckoutAddress, splitAdvanceRemaining } from '../../../utils/checkoutBilling';
 
@@ -75,6 +76,16 @@ const CheckoutSummary = () => {
     }, [currentCheckoutItems]);
 
     const [specialInstructions, setSpecialInstructions] = useState('');
+    const instructionsRef = useRef(null);
+    // Fabric is collected from the customer when they provide it themselves
+    const needsFabricPickup = currentCheckoutItems.some((item) => (item.configuration?.fabricSource || 'customer') !== 'platform');
+    const visitFee = Math.round(currentCheckoutItems.reduce((sum, item) => sum + (Number(item.pricing?.tailorAtHome) || 0), 0));
+    // "Edit" on order-level cards goes back to the first garment's configuration
+    const editFirstService = () => {
+        const sid = currentCheckoutItems[0]?.serviceDetails?._id || currentCheckoutItems[0]?.serviceDetails?.id;
+        if (sid) navigate(`/user/services/${sid}`);
+        else navigate(-1);
+    };
     // Same delivery estimate as the service configuration page (express 10, premium 7, standard 15 days)
     const checkoutDeliveryType = String(currentCheckoutItems[0]?.configuration?.deliveryType || 'standard').toLowerCase();
     const checkoutDeliveryDays = checkoutDeliveryType === 'express' ? 10 : checkoutDeliveryType === 'premium' ? 7 : 15;
@@ -649,7 +660,7 @@ const CheckoutSummary = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white pb-32 font-sans text-gray-900">
+        <div className="min-h-screen bg-white pb-36 font-sans text-gray-900">
             {/* Full Screen Processing Loader */}
             {isProcessing && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[1000] flex flex-col items-center justify-center text-white">
@@ -659,28 +670,39 @@ const CheckoutSummary = () => {
                 </div>
             )}
             {/* 1. Header */}
-            <div className="sticky top-0 z-50 bg-white/95 px-4 pb-3 pt-4 backdrop-blur sm:px-6">
-                <div className="mx-auto flex max-w-xl items-center gap-2">
-                    <button onClick={() => navigate(-1)} aria-label="Back" className="-ml-1.5 flex h-9 w-9 shrink-0 items-center justify-center text-[#1A1523] cursor-pointer">
-                        <ArrowLeft size={22} />
-                    </button>
-                    <div className="min-w-0 flex-1 text-left">
-                        <h1 className="text-[19px] font-bold leading-tight text-[#1A1523]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Review &amp; Place Order</h1>
-                        <p className="truncate text-[11.5px] text-gray-500">
-                            {isServiceCheckout && currentCheckoutItems.length > 1
-                                ? `${currentCheckoutItems.length} garments · one tailor · one delivery`
-                                : 'Final step - confirm your details'}
-                        </p>
+            <div className="relative bg-white px-4 pb-4 pt-4 text-[#1A1523]">
+                <div className="relative mx-auto max-w-xl">
+                    <div className="flex items-center justify-between">
+                        <button onClick={() => navigate(-1)} aria-label="Back" className="-ml-1.5 flex h-10 w-10 items-center justify-center rounded-full text-[#1A1523] hover:bg-[#F6EEFA] cursor-pointer">
+                            <ArrowLeft size={24} />
+                        </button>
+                        <BrandLogo />
+                        <div className="flex items-center gap-1">
+                            <button onClick={() => navigate('/user/wishlist')} aria-label="Wishlist" className="flex h-10 w-10 items-center justify-center rounded-full text-[#6A2385] hover:bg-[#F6EEFA] cursor-pointer">
+                                <Heart size={22} />
+                            </button>
+                            <button onClick={() => navigate('/user/cart')} aria-label="Cart" className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#6A2385] hover:bg-[#F6EEFA] cursor-pointer">
+                                <ShoppingCart size={22} />
+                                {cartItems.length > 0 && (
+                                    <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#E64980] px-1 text-[9.5px] font-bold text-white">
+                                        {cartItems.length}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
                     </div>
-                    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#F6EEFA] px-2.5 py-1.5 text-[11px] font-semibold text-[#6A2385] ring-1 ring-[#E4D6EC]">
-                        <ShieldCheck size={13} /> 100% Secure
-                    </span>
+                    <h1 className="mt-3 text-center text-[21px] font-bold leading-tight text-[#1A1523]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Review &amp; Place Order</h1>
+                    <p className="mt-1 text-center text-[12.5px] text-gray-500">
+                        {isServiceCheckout && currentCheckoutItems.length > 1
+                            ? `${currentCheckoutItems.length} outfits · one tailor · one delivery`
+                            : isServiceCheckout ? 'Check your details, price and confirm your stitching order' : 'Check your details and confirm your order'}
+                    </p>
                 </div>
             </div>
 
-            <div className="max-w-xl mx-auto px-4 pb-4 pt-1 space-y-3.5 animate-in fade-in duration-500">
+            <div className="relative mx-auto mt-1 max-w-xl space-y-3 px-3 pb-4 animate-in fade-in duration-500">
 
-                {isServiceCheckout && !bulkOrderId && <OrderFlowStepper current={3} />}
+                {isServiceCheckout && !bulkOrderId ? <OrderFlowStepper current={3} /> : <div className="h-6" />}
 
                 {isCalculatingDistance && (
                     <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center gap-3 text-blue-700 animate-pulse">
@@ -717,15 +739,21 @@ const CheckoutSummary = () => {
                         </div>
                     </div>
                 ) : isServiceCheckout ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {currentCheckoutItems.map((item, idx) => (
-                            <ServiceReviewCard
-                                key={item.basketId || idx}
-                                service={item.serviceDetails}
-                                config={item.configuration}
-                                pricing={item.pricing}
-                                onRemove={!isBuyNowMode ? () => removeServiceItem(idx) : undefined}
-                            />
+                            <div key={item.basketId || idx} className="space-y-3">
+                                {currentCheckoutItems.length > 1 && (
+                                    <p className="px-1 pt-1 text-[12px] font-bold uppercase tracking-wider text-[#6A2385]">
+                                        Outfit {idx + 1} of {currentCheckoutItems.length}
+                                    </p>
+                                )}
+                                <ServiceReviewCard
+                                    service={item.serviceDetails}
+                                    config={item.configuration}
+                                    pricing={item.pricing}
+                                    onRemove={!isBuyNowMode ? () => removeServiceItem(idx) : undefined}
+                                />
+                            </div>
                         ))}
                     </div>
                 ) : (
@@ -759,54 +787,69 @@ const CheckoutSummary = () => {
                     </div>
                 )}
 
-                {/* 3. Delivery Details Card */}
-                <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                        <h3 className="flex items-center gap-2 text-[15px] font-bold text-[#1A1523]">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]"><Truck size={16} /></span>
-                            Delivery Details
-                        </h3>
-                        <button
-                            onClick={() => navigate('/user/checkout/address')}
-                            className="flex items-center gap-1 rounded-full bg-[#F6EEFA] px-3 py-1 text-[12px] font-semibold text-[#6A2385] ring-1 ring-[#E4D6EC] cursor-pointer"
-                        >
-                            <Pencil size={12} /> Edit
-                        </button>
-                    </div>
-
-                    {selectedAddress ? (
-                        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                            {isServiceCheckout && (
-                                <div className="flex items-center gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#EFE8F4]">
-                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#6A2385] ring-1 ring-[#EFE8F4]"><Calendar size={17} /></span>
-                                    <div className="min-w-0">
-                                        <p className="text-[13px] font-bold capitalize text-[#1A1523]">{checkoutDeliveryType} Delivery</p>
-                                        <p className="text-[11.5px] text-gray-500">By {estimatedDeliveryDate} · {checkoutDeliveryDays} days</p>
-                                    </div>
-                                </div>
-                            )}
-                            <div className="flex items-start gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#EFE8F4]">
-                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#6A2385] ring-1 ring-[#EFE8F4]"><MapPin size={17} /></span>
-                                <div className="min-w-0 text-left">
-                                    <p className="flex items-center gap-1.5 text-[13px] font-bold text-[#1A1523]">
-                                        <span className="truncate">Deliver to {selectedAddress?.receiverName || ''}</span>
-                                        {selectedAddress?.type && (
-                                            <span className="rounded-md bg-[#F3E9F8] px-1.5 py-0.5 text-[9.5px] font-semibold uppercase text-[#6A2385]">{selectedAddress.type}</span>
-                                        )}
-                                    </p>
-                                    <p className="text-[11.5px] leading-snug text-gray-500">{formatCheckoutAddress(selectedAddress)}</p>
-                                    {selectedAddress?.phone && <p className="mt-0.5 text-[11.5px] text-gray-500">Contact: <span className="font-semibold text-[#1A1523]">{selectedAddress.phone}</span></p>}
-                                </div>
+                {/* 3. Pickup / Home visit */}
+                {isServiceCheckout && !bulkOrderId && (
+                    <ReviewCard icon={Home} title="Pickup / Home Visit" onEdit={editFirstService}>
+                        <div className="flex items-center gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#EFE8F4]">
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center text-[#6A2385]">
+                                {hasTailorAtHome ? <Home size={28} strokeWidth={1.5} /> : needsFabricPickup ? <Truck size={28} strokeWidth={1.5} /> : <Package size={28} strokeWidth={1.5} />}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-[14px] font-bold text-[#1A1523]">
+                                    {hasTailorAtHome ? 'Home Visit Selected' : needsFabricPickup ? 'Fabric Pickup' : 'No Pickup Needed'}
+                                </p>
+                                <p className="text-[12px] leading-snug text-[#4B4453]">
+                                    {hasTailorAtHome
+                                        ? 'Our executive will collect measurements at your home at the time you pick below.'
+                                        : needsFabricPickup
+                                            ? 'Our delivery partner will pick up your fabric from your address.'
+                                            : "The tailor provides the fabric — nothing to hand over."}
+                                </p>
                             </div>
                             {hasTailorAtHome && (
-                                <div className="flex items-center gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#EFE8F4] sm:col-span-2">
-                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#6A2385] ring-1 ring-[#EFE8F4]"><Home size={17} /></span>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-[13px] font-bold text-[#1A1523]">Home Visit Selected</p>
-                                        <p className="text-[11.5px] text-gray-500">Our executive will collect measurements at your home</p>
+                                <span className={`flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-[12px] font-bold ${visitFee > 0 ? 'bg-[#F3E9F8] text-[#6A2385]' : 'bg-emerald-50 text-emerald-600'}`}>
+                                    <Gift size={13} /> {visitFee > 0 ? `₹${visitFee}` : 'FREE'}
+                                </span>
+                            )}
+                        </div>
+                    </ReviewCard>
+                )}
+
+                {/* 3.5. Measurement Visit Schedule Picker */}
+                {hasTailorAtHome && (
+                    <MeasurementSchedulePicker
+                        value={measurementSchedule}
+                        onChange={setMeasurementSchedule}
+                    />
+                )}
+
+                {/* 4. Delivery details */}
+                <ReviewCard icon={Truck} title="Delivery Details" onEdit={() => navigate('/user/checkout/address')}>
+                    {selectedAddress ? (
+                        <div className="flex items-stretch rounded-2xl ring-1 ring-[#EFE8F4]">
+                            {isServiceCheckout && (
+                                <div className="flex w-[44%] shrink-0 items-center gap-2.5 border-r border-[#EFE8F4] p-3">
+                                    <Calendar size={22} strokeWidth={1.6} className="shrink-0 text-[#6A2385]" />
+                                    <div className="min-w-0">
+                                        <p className="text-[13.5px] font-bold capitalize text-[#1A1523]">{checkoutDeliveryType} Delivery</p>
+                                        <p className="text-[12px] text-[#4B4453]">{checkoutDeliveryDays} Days · by {estimatedDeliveryDate}</p>
                                     </div>
                                 </div>
                             )}
+                            <button
+                                type="button"
+                                onClick={() => navigate('/user/checkout/address')}
+                                className="flex min-w-0 flex-1 items-center gap-2 p-3 text-left cursor-pointer"
+                            >
+                                <MapPin size={22} strokeWidth={1.6} className="shrink-0 text-[#6A2385]" />
+                                <span className="min-w-0 flex-1">
+                                    <span className="block text-[13.5px] font-bold text-[#1A1523]">Deliver to</span>
+                                    <span className="line-clamp-2 block text-[12px] leading-snug text-[#4B4453]">
+                                        {selectedAddress?.receiverName ? `${selectedAddress.receiverName}, ` : ''}{formatCheckoutAddress(selectedAddress)}
+                                    </span>
+                                </span>
+                                <ChevronRight size={18} className="shrink-0 text-gray-400" />
+                            </button>
                         </div>
                     ) : (
                         <div className="space-y-3 rounded-2xl bg-amber-50 p-5 text-center ring-1 ring-amber-100">
@@ -820,17 +863,29 @@ const CheckoutSummary = () => {
                             </button>
                         </div>
                     )}
-                </div>
+                </ReviewCard>
 
-                {/* 3.5. Measurement Visit Schedule Picker */}
-                {hasTailorAtHome && (
-                    <MeasurementSchedulePicker
-                        value={measurementSchedule}
-                        onChange={setMeasurementSchedule}
+                {isCartAlteration ? (
+                    <div className="bg-primary/5 border border-primary/10 rounded-3xl p-5 text-center">
+                        <h3 className="text-sm font-bold text-primary mb-1">Awaiting Quote</h3>
+                        <p className="text-xs text-primary/80">The tailor will review your request and send you a custom price quote. You do not need to pay anything right now.</p>
+                    </div>
+                ) : isLoadingPricing ? (
+                    <div className="bg-white rounded-[18px] p-5 ring-1 ring-[#EFE8F4] animate-pulse space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-full"></div>
+                        <div className="h-3 bg-gray-200 rounded w-full"></div>
+                    </div>
+                ) : (
+                    <BillDetails
+                        pricing={displayPricing}
+                        advancePercentage={effectiveAdvancePct}
+                        baseLabel={isCartCheckout ? "Product Charges" : "Stitching Charges"}
+                        items={isServiceCheckout && !bulkOrderId ? currentCheckoutItems : []}
                     />
                 )}
 
-                {/* 4. Coupon / Offers + Bill Details */}
+                {/* Coupons / offers (kept from the existing checkout) */}
                 {!isCartAlteration && !bulkOrderId && !isLoadingPricing && (
                     <CouponOfferSection
                         orderAmount={baseTotal}
@@ -841,55 +896,33 @@ const CheckoutSummary = () => {
                     />
                 )}
 
-                {isCartAlteration ? (
-                    <div className="bg-primary/5 border border-primary/10 rounded-3xl p-5 text-center">
-                        <h3 className="text-sm font-bold text-primary mb-1">Awaiting Quote</h3>
-                        <p className="text-xs text-primary/80">The tailor will review your request and send you a custom price quote. You do not need to pay anything right now.</p>
-                    </div>
-                ) : isLoadingPricing ? (
-                    <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-xs animate-pulse space-y-3">
-                        <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-full"></div>
-                        <div className="h-3 bg-gray-200 rounded w-full"></div>
-                    </div>
-                ) : (
-                    <BillDetails 
-                        pricing={displayPricing} 
-                        advancePercentage={effectiveAdvancePct} 
-                        baseLabel={isCartCheckout ? "Product Charges" : "Stitching Charges"}
-                    />
-                )}
-
-                {/* 5. Special Instructions (Optional) */}
-                <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
-                    <h3 className="mb-3 flex items-center gap-2 text-[15px] font-bold text-[#1A1523]">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]"><FileText size={16} /></span>
-                        Additional Instructions <span className="text-[11px] font-medium text-gray-400">(Optional)</span>
-                    </h3>
-                    <div className="rounded-2xl bg-white p-3 ring-1 ring-[#E4D6EC] focus-within:ring-2 focus-within:ring-[#B98FCF]">
+                {/* 5. Additional Instructions (Optional) */}
+                <ReviewCard icon={FileText} title="Additional Instructions" optional onEdit={() => instructionsRef.current?.focus()}>
+                    <div className="rounded-xl p-3 ring-1 ring-[#E4D6EC] focus-within:ring-2 focus-within:ring-[#B98FCF]">
                         <textarea
-                            rows={3}
+                            ref={instructionsRef}
+                            rows={2}
                             maxLength={300}
                             value={specialInstructions}
                             onChange={(e) => setSpecialInstructions(e.target.value)}
-                            placeholder="E.g., Use fine finishing and the same neck design as the reference image."
+                            placeholder="E.g., Use fine finishing and same neck design as the reference image."
                             className="w-full resize-none bg-transparent text-[13px] text-[#1A1523] outline-none placeholder:text-gray-400"
                         />
-                        <p className="text-right text-[11px] text-gray-400">{specialInstructions.length}/300</p>
+                        {specialInstructions.length > 0 && <p className="text-right text-[10.5px] text-gray-400">{specialInstructions.length}/300</p>}
                     </div>
-                </div>
+                </ReviewCard>
 
                 {/* Trust row */}
-                <div className="grid grid-cols-3 divide-x divide-[#EFE8F4] rounded-[22px] bg-[#FBF7FD] py-3 ring-1 ring-[#EFE8F4]">
+                <div className="grid grid-cols-3 divide-x divide-[#E4D6EC] rounded-[18px] bg-[#F6EEFA] py-3.5">
                     {[
-                        { icon: BadgeCheck, title: 'Verified Tailors', sub: 'Checked partners' },
-                        { icon: Lock, title: 'Secure Payment', sub: 'Safe & encrypted' },
-                        { icon: Headphones, title: 'Support', sub: 'Chat or call' },
+                        { icon: ShieldCheck, title: 'Verified Tailors', sub: '100% checked' },
+                        { icon: Lock, title: 'Secure Payment', sub: 'Safe & Encrypted' },
+                        { icon: Headphones, title: 'Support', sub: 'Chat or Call' },
                     ].map(({ icon: Icon, title, sub }) => (
                         <div key={title} className="flex flex-col items-center px-1 text-center">
-                            <Icon size={20} className="text-[#6A2385]" />
-                            <p className="mt-1 text-[11.5px] font-bold text-[#1A1523]">{title}</p>
-                            <p className="text-[10px] text-gray-500">{sub}</p>
+                            <Icon size={24} strokeWidth={1.6} className="text-[#6A2385]" />
+                            <p className="mt-1.5 text-[12.5px] font-bold text-[#1A1523]">{title}</p>
+                            <p className="text-[11px] text-[#4B4453]">{sub}</p>
                         </div>
                     ))}
                 </div>
@@ -897,22 +930,28 @@ const CheckoutSummary = () => {
             </div>
 
             {/* Sticky Bottom Bar */}
-            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[24px] bg-white/95 px-4 py-3 shadow-[0_-12px_36px_-12px_rgba(42,15,56,0.22)] backdrop-blur sm:px-6">
+            <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#EFE8F4] bg-white px-4 pt-3 shadow-[0_-10px_30px_-14px_rgba(42,15,56,0.3)]" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
                 <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
                     <div className="min-w-0 text-left">
-                        <p className="text-[11px] font-semibold text-gray-500">Total Payable</p>
-                        <p className="text-[22px] font-bold leading-tight text-[#1A1523]">₹{finalTotal.toLocaleString('en-IN')}</p>
-                        {discountAmount > 0 && (
-                            <p className="text-[10.5px] font-semibold text-emerald-600">Coupon saved ₹{discountAmount.toLocaleString('en-IN')}</p>
-                        )}
+                        <p className="text-[12.5px] text-[#4B4453]">Total Payable</p>
+                        <div className="flex items-baseline gap-2.5">
+                            <span className="text-[24px] font-bold leading-tight text-[#5A1A78]">₹{finalTotal.toLocaleString('en-IN')}</span>
+                            <button
+                                type="button"
+                                onClick={() => document.getElementById('price-breakdown')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                                className="flex items-center gap-0.5 whitespace-nowrap text-[12.5px] font-semibold text-[#6A2385] cursor-pointer"
+                            >
+                                View Breakdown <ChevronUp size={14} />
+                            </button>
+                        </div>
                         {effectiveAdvancePct < 100 && (
-                            <p className="text-[11px] font-semibold text-[#6A2385]">Advance ({effectiveAdvancePct}%) ₹{advanceAmount.toLocaleString('en-IN')}</p>
+                            <p className="text-[11px] font-semibold text-[#6A2385]">Pay now ₹{advanceAmount.toLocaleString('en-IN')} (advance {effectiveAdvancePct}%)</p>
                         )}
                     </div>
                     <button
                         onClick={handlePayment}
                         disabled={isProcessing || !selectedAddress}
-                        className="flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-[#8A3FA6] to-[#5A1A78] px-7 py-3.5 text-[15px] font-bold text-white shadow-[0_14px_28px_-14px_rgba(90,26,120,0.9)] transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                        className="flex shrink-0 items-center gap-2 rounded-[14px] bg-gradient-to-r from-[#7B2D93] to-[#4A1265] px-7 py-3.5 text-[16px] font-bold text-white shadow-[0_12px_24px_-12px_rgba(74,18,101,0.9)] transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                     >
                         {isProcessing ? (
                             <><Loader2 size={18} className="animate-spin" /> Submitting...</>

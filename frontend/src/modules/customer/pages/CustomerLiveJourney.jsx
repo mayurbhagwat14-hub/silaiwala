@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useJsApiLoader, GoogleMap, Marker, DirectionsRenderer, Polyline } from '@react-google-maps/api';
+import { detailedRoutePath } from '../../../shared/utils/routePath';
 import { ChevronLeft, MapPin, Navigation, Bike, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import api from '../../../utils/api';
 import { io } from 'socket.io-client';
@@ -189,6 +190,8 @@ const CustomerLiveJourney = () => {
         </div>
     );
 
+    const routePath = detailedRoutePath(directions);
+
     return (
         <div className="fixed inset-0 bg-gray-50 z-50 flex flex-col font-sans">
             <div className="bg-white px-4 py-4 pt-safe pt-8 shadow-sm z-10 flex items-center justify-between sticky top-0 border-b border-gray-100">
@@ -210,9 +213,9 @@ const CustomerLiveJourney = () => {
                     options={{ disableDefaultUI: true, zoomControl: false, styles: [] }}
                     onLoad={map => { mapRef.current = map; }}
                 >
-                    {directions?.routes?.[0]?.overview_path && (
+                    {routePath && (
                         <Polyline
-                            path={directions.routes[0].overview_path}
+                            path={routePath}
                             options={{
                                 strokeColor: '#3B0764',
                                 strokeOpacity: 0.22,
@@ -226,9 +229,15 @@ const CustomerLiveJourney = () => {
                             directions={directions}
                             options={{
                                 suppressMarkers: true,
+                                suppressPolylines: true, // the line below follows every road (steps), not the simplified overview
                                 preserveViewport: false,
-                                polylineOptions: { strokeColor: '#843D9B', strokeOpacity: 1, strokeWeight: 5.5, zIndex: 2 }
                             }}
+                        />
+                    )}
+                    {routePath && (
+                        <Polyline
+                            path={routePath}
+                            options={{ strokeColor: '#843D9B', strokeOpacity: 1, strokeWeight: 5.5, zIndex: 2 }}
                         />
                     )}
                     {currentLocation && (

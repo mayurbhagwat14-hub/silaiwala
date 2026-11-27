@@ -17,7 +17,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 // --- Premium Tailored SVG Icons in Theme Color ---
 
-const NecklineIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
+export const NecklineIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <path d="M4 6.5C7 5 9.5 4.5 12 4.5C14.5 4.5 17 5 20 6.5L18.5 11L15 9.5C14 13.5 13 15 12 15C11 15 10 13.5 9 9.5L5.5 11L4 6.5Z" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.15" />
         <path d="M12 4.5V15" stroke="currentColor" strokeWidth={strokeWidth} strokeDasharray="1.5 2" strokeLinecap="round" />
@@ -27,7 +27,7 @@ const NecklineIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     </svg>
 );
 
-const SleeveIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
+export const SleeveIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <path d="M7 4L3.5 8L6.5 19.5C6.5 20.3 7.2 21 8 21H16C16.8 21 17.5 20.3 17.5 19.5L20.5 8L17 4H7Z" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.15" />
         <path d="M3.5 8L8 10.5M20.5 8L16 10.5" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
@@ -36,7 +36,7 @@ const SleeveIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     </svg>
 );
 
-const BottomIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
+export const BottomIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <path d="M5.5 4H18.5L19.5 7.5L18 20C18 20.6 17.5 21 17 21H13.5L12 12L10.5 21H7C6.5 21 6 20.6 6 20L4.5 7.5L5.5 4Z" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.15" />
         <path d="M5.5 7.5H18.5" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
@@ -45,7 +45,7 @@ const BottomIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     </svg>
 );
 
-const EmbroideryIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
+export const EmbroideryIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <path d="M19 4L14 9.5M19 4C19.8 3.2 20.8 3.5 21.2 4C21.7 4.5 21.5 5.5 20.5 6.2L15 11.5" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" />
         <circle cx="19.5" cy="4.5" r="0.75" fill="currentColor" />
@@ -56,7 +56,7 @@ const EmbroideryIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     </svg>
 );
 
-const LaceIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
+export const LaceIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <path d="M3 6.5H21" stroke="currentColor" strokeWidth={strokeWidth + 0.4} strokeLinecap="round" />
         <path d="M3 10H21" stroke="currentColor" strokeWidth={strokeWidth} strokeDasharray="1.5 2" strokeLinecap="round" />
@@ -67,7 +67,7 @@ const LaceIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     </svg>
 );
 
-const LiningIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
+export const LiningIcon = ({ className = "w-5 h-5", strokeWidth = 1.8 }) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <rect x="4" y="4" width="11" height="11" rx="2.5" stroke="currentColor" strokeWidth={strokeWidth} fill="currentColor" fillOpacity="0.15" />
         <rect x="9" y="9" width="11" height="11" rx="2.5" stroke="currentColor" strokeWidth={strokeWidth} fill="currentColor" fillOpacity="0.25" />

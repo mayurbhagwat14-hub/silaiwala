@@ -2,11 +2,12 @@ import React from 'react';
 import { Check, Scissors, PencilRuler, Ruler, ClipboardCheck } from 'lucide-react';
 
 /** Stitching booking flow shared by the service configuration and checkout summary pages. */
+// `sub` while the step is pending / active, `doneSub` once it is finished
 const STEPS = [
-    { label: 'Service', sub: 'Selected', icon: Scissors },
-    { label: 'Configure', sub: 'Add Details', icon: PencilRuler },
-    { label: 'Measurements', sub: 'Provide Size', icon: Ruler },
-    { label: 'Review', sub: 'Confirm Order', icon: ClipboardCheck },
+    { label: 'Service', sub: 'Selected', doneSub: 'Selected', icon: Scissors },
+    { label: 'Configure', sub: 'Add Details', doneSub: 'Customized', icon: PencilRuler },
+    { label: 'Measurements', sub: 'Provide Size', doneSub: 'Provided', icon: Ruler },
+    { label: 'Review', sub: 'Place Order', doneSub: 'Placed', icon: ClipboardCheck },
 ];
 
 /** `current` = index of the active step (0-3); earlier steps show as done. */
@@ -37,7 +38,9 @@ const OrderFlowStepper = ({ current = 0, className = '' }) => (
                             <span className={`mt-1.5 whitespace-nowrap text-[11.5px] leading-tight ${done || active ? 'font-bold text-[#1A1523]' : 'font-semibold text-gray-400'}`}>
                                 {step.label}
                             </span>
-                            <span className="whitespace-nowrap text-[9.5px] leading-tight text-gray-400">{step.sub}</span>
+                            <span className={`whitespace-nowrap text-[9.5px] leading-tight ${active ? 'font-semibold text-[#6A2385]' : 'text-gray-400'}`}>
+                                {done ? step.doneSub : step.sub}
+                            </span>
                         </div>
                     </React.Fragment>
                 );
