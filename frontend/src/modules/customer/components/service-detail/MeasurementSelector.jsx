@@ -111,22 +111,25 @@ const MeasurementSelector = ({ selectedType, onSelectType, onMeasurementComplete
         );
 
     return (
-        <div className="bg-white rounded-2xl p-3.5 mb-3 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-3 gap-2">
-                <div className="min-w-0">
-                    <h3 className="text-sm font-bold text-gray-900">Measurement Options</h3>
-                    {categoryName && (
-                        <p className="text-[10px] text-primary font-bold mt-0.5 truncate">
-                            Form for: {categoryName}
+        <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+            <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]">
+                        <Ruler size={18} />
+                    </span>
+                    <div className="min-w-0">
+                        <h3 className="text-[15px] font-bold leading-tight text-[#1A1523]">Measurements</h3>
+                        <p className="truncate text-[11.5px] text-gray-500">
+                            Choose how you want to provide measurements{categoryName ? ` · ${categoryName}` : ''}
                         </p>
-                    )}
+                    </div>
                 </div>
                 <button
                     type="button"
                     onClick={() => setIsGuideOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary hover:bg-primary-dark active:scale-95 text-white shadow-md shadow-primary/20 text-xs font-bold transition-all cursor-pointer shrink-0"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#F6EEFA] px-3 py-1.5 text-[12px] font-semibold text-[#6A2385] ring-1 ring-[#E4D6EC] transition-all active:scale-95 cursor-pointer"
                 >
-                    <BookOpen size={14} className="text-white" />
+                    <BookOpen size={14} />
                     <span>Guide</span>
                 </button>
             </div>

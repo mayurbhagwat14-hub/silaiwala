@@ -59,11 +59,11 @@ const BillDetails = ({ pricing, advancePercentage = 30, baseLabel = 'Stitching C
     const freeByMembership = freeDeliveryApplied && !freeByThreshold && isMembershipPerkApplied;
 
     return (
-        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xs mb-4 overflow-hidden">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <FileText size={18} className="text-[#843D9B]" />
-                    <span>Bill Details</span>
+        <div className="overflow-hidden rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+            <div className="mb-3 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 text-[15px] font-bold text-[#1A1523]">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]"><FileText size={16} /></span>
+                    <span>Price Breakdown</span>
                 </h3>
             </div>
 
@@ -125,8 +125,8 @@ const BillDetails = ({ pricing, advancePercentage = 30, baseLabel = 'Stitching C
                     </>
                 )}
 
-                <div className="border-t border-slate-200 my-2 pt-2 flex justify-between items-center gap-3">
-                    <span className="text-base font-extrabold text-slate-900">Total Amount</span>
+                <div className="my-2 flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#F8F1FB] to-[#F1E4F7] px-3 py-2.5">
+                    <span className="text-[15px] font-bold text-[#5A1A78]">Total Payable</span>
                     <span className="text-lg font-black text-[#843D9B] shrink-0 whitespace-nowrap">{inr(finalTotal)}</span>
                 </div>
 

@@ -895,8 +895,12 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
     bridalTime,
     scheduledDate,
     scheduledTimeSlot,
-    scheduledTime
+    scheduledTime,
+    specialInstructions
   } = req.body;
+  const cleanInstructions = typeof specialInstructions === 'string'
+    ? specialInstructions.trim().slice(0, 300)
+    : '';
 
   // Single Service-Type Validation for Order Creation
   if (items && items.length > 0) {
@@ -1392,6 +1396,7 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
     advancePaymentAmount: advanceAmount,
     remainingPaymentAmount: remainingAmount,
     deliveryAddress,
+    specialInstructions: cleanInstructions || undefined,
     status: initialStatus,
     createdByAdmin: !!isAdminUser,
     adminCreator: isAdminUser ? req.user.id : undefined,

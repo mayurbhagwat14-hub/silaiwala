@@ -10,7 +10,8 @@ import {
     RotateCcw,
     SlidersHorizontal,
     Info,
-    ChevronLeft
+    ChevronLeft,
+    Pencil
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -263,8 +264,9 @@ const CustomizationSelector = ({ categoryName = '', catalogAddons = [], selected
         return matchesCategory(a.category, categoryName);
     });
 
-    const totalActiveCount = Object.values(selectedCustomizations || {}).filter(
-        item => item && item.enabled && (item.name || item.refImage || item.notes)
+    // "fit" (Slim / Regular / Loose) is chosen in its own section, not here
+    const totalActiveCount = Object.entries(selectedCustomizations || {}).filter(
+        ([key, item]) => key !== 'fit' && item && item.enabled && (item.name || item.refImage || item.notes)
     ).length;
 
     const totalCustomizationPrice = Object.values(selectedCustomizations || {}).reduce((sum, item) => {
@@ -290,116 +292,94 @@ const CustomizationSelector = ({ categoryName = '', catalogAddons = [], selected
 
     return (
         <>
-            {/* 1. In-Page Garment Customizations Card */}
-            <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-[#843D9B]/15 hover:shadow-md transition-all">
-                {/* Header with theme gradient badge */}
-                <div className="flex items-center justify-between gap-3 mb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 bg-gradient-to-br from-[#843D9B] to-[#682a7c] rounded-2xl flex items-center justify-center text-white shadow-md shadow-[#843D9B]/25">
-                            <Scissors size={20} className="stroke-[2.2]" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider leading-tight">
-                                    Garment Customizations
-                                </h3>
-                                {totalActiveCount > 0 && (
-                                    <span className="px-2.5 py-0.5 rounded-full bg-[#843D9B] text-white text-[9px] font-black shadow-xs">
-                                        {totalActiveCount} Selected
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-[11px] text-gray-500 font-medium leading-none mt-1">
-                                Tap any design option to customize in full studio view
+            {/* 1. In-page "Detailed Customizations": each slot with its catalog options as picture tiles */}
+            <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]">
+                            <SlidersHorizontal size={18} />
+                        </span>
+                        <div className="min-w-0">
+                            <h3 className="text-[15px] font-bold leading-tight text-[#1A1523]">Detailed Customizations</h3>
+                            <p className="text-[11.5px] text-gray-500">
+                                {totalActiveCount > 0 ? `${totalActiveCount} selected${totalCustomizationPrice > 0 ? ` · +₹${totalCustomizationPrice}` : ''}` : 'Choose neck, sleeves, work and more'}
                             </p>
                         </div>
                     </div>
-
                     <button
                         type="button"
                         onClick={() => openStudioAtSlot(availableSlots[0].key)}
-                        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#843D9B]/10 hover:bg-[#843D9B]/20 text-[#843D9B] text-[11px] font-black tracking-wider uppercase transition-colors cursor-pointer"
+                        className="flex shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[12px] font-semibold text-[#6A2385] ring-1 ring-[#D9C2E6] transition-colors hover:bg-[#F8F1FB] cursor-pointer"
                     >
-                        <SlidersHorizontal size={13} />
-                        Studio
+                        <Pencil size={12} /> Edit All
                     </button>
                 </div>
 
-                {/* List of Customization Slot Cards */}
-                <div className="grid grid-cols-1 gap-2.5">
+                <div className="divide-y divide-[#F3ECF7]">
                     {availableSlots.map((slot) => {
                         const SlotIcon = slot.Icon || Scissors;
                         const slotData = selectedCustomizations[slot.key] || { name: '', price: 0, refImage: '', enabled: false };
                         const isSelected = slotData.enabled && (slotData.name || slotData.refImage || slotData.notes);
+                        const optional = ['embroidery', 'lacePiping', 'lining'].includes(slot.key);
+                        const options = catalogAddons.filter((a) => {
+                            const isStyleAddon = a.addonType === 'embellishment' || a.addonType === 'styleAddon' || a.addonType === 'addon';
+                            if (isStyleAddon || a.customizationType !== slot.key || a.isActive === false) return false;
+                            return matchesCategory(a.category, categoryName);
+                        });
 
                         return (
-                            <div
-                                key={slot.key}
-                                onClick={() => openStudioAtSlot(slot.key)}
-                                className={`group relative p-3.5 rounded-2xl border cursor-pointer transition-all duration-200 flex items-center justify-between gap-3 ${
-                                    isSelected
-                                        ? 'border-[#843D9B]/40 bg-gradient-to-r from-[#843D9B]/10 via-[#843D9B]/5 to-white shadow-xs hover:border-[#843D9B]'
-                                        : 'border-gray-200/80 bg-gray-50/50 hover:bg-white hover:border-[#843D9B]/30 hover:shadow-xs'
-                                }`}
-                            >
-                                <div className="flex items-center gap-3 min-w-0 flex-1">
-                                    {/* Icon / Image Preview */}
-                                    {slotData.refImage ? (
-                                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-gray-100 border border-[#843D9B]/30 shrink-0 shadow-xs">
-                                            <img src={slotData.refImage} alt={slot.label} className="w-full h-full object-cover" />
-                                        </div>
-                                    ) : (
-                                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 border ${
-                                            isSelected ? 'bg-[#843D9B] text-white border-[#843D9B] shadow-sm shadow-[#843D9B]/20' : 'bg-[#843D9B]/10 text-[#843D9B] border-[#843D9B]/20 shadow-2xs'
-                                        }`}>
-                                            <SlotIcon className="w-5 h-5" strokeWidth={2} />
-                                        </div>
-                                    )}
+                            <div key={slot.key} className="py-2.5 first:pt-0 last:pb-0">
+                                <button
+                                    type="button"
+                                    onClick={() => openStudioAtSlot(slot.key)}
+                                    className="flex w-full items-center gap-2.5 text-left cursor-pointer"
+                                >
+                                    <SlotIcon className="h-5 w-5 shrink-0 text-[#6A2385]" strokeWidth={1.8} />
+                                    <span className="min-w-0 flex-1 truncate text-[13.5px] font-bold text-[#1A1523]">
+                                        {slot.label}
+                                        {optional && <span className="ml-1 text-[11px] font-medium text-gray-400">(Optional)</span>}
+                                    </span>
+                                    <span className="flex min-w-0 shrink items-center gap-0.5 text-[12px] font-semibold text-[#6A2385]">
+                                        <span className="truncate">
+                                            {isSelected ? (slotData.name || 'Custom') : 'Select'}
+                                            {isSelected && slotData.price > 0 ? ` (+₹${slotData.price})` : ''}
+                                        </span>
+                                        <ChevronRight size={15} className="shrink-0" />
+                                    </span>
+                                </button>
 
-                                    {/* Title & Status */}
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <h4 className="text-xs font-black text-gray-900 uppercase tracking-wider truncate">
-                                                {slot.label}
-                                            </h4>
-                                            {isSelected && (
-                                                <span className="shrink-0 flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                                                    <Check size={10} className="stroke-[3]" />
-                                                    Active
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {isSelected ? (
-                                            <p className="text-[11px] font-bold text-[#843D9B] truncate mt-0.5 flex items-center gap-1.5">
-                                                <span className="truncate">{slotData.name || 'Custom Option'}</span>
-                                                {slotData.price > 0 && (
-                                                    <span className="bg-[#843D9B]/15 text-[#843D9B] px-1.5 py-0.2 rounded text-[10px] font-black shrink-0">
-                                                        +₹{slotData.price}
-                                                    </span>
-                                                )}
-                                            </p>
-                                        ) : (
-                                            <p className="text-[11px] text-gray-400 font-medium truncate mt-0.5">
-                                                Tap to select design or add notes
-                                            </p>
-                                        )}
+                                {options.length > 0 && (
+                                    <div className="no-scrollbar -mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-0.5">
+                                        {options.map((opt) => {
+                                            const chosen = slotData.enabled && !slotData.isCustom && slotData.name === opt.name;
+                                            return (
+                                                <button
+                                                    key={opt._id || opt.name}
+                                                    type="button"
+                                                    onClick={() => handleSelectCatalogOption(slot.key, opt)}
+                                                    className={`relative w-[66px] shrink-0 overflow-hidden rounded-xl bg-white text-center transition-all cursor-pointer ${chosen ? 'ring-2 ring-[#6A2385]' : 'ring-1 ring-[#EFE8F4] hover:ring-[#D9C2E6]'}`}
+                                                >
+                                                    <div className="aspect-square bg-[#FBF7FD]">
+                                                        {opt.image ? (
+                                                            <img src={opt.image} alt={opt.name} className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <span className="flex h-full w-full items-center justify-center text-[#C9A8D8]"><SlotIcon className="h-6 w-6" /></span>
+                                                        )}
+                                                    </div>
+                                                    <p className={`truncate px-1 py-1 text-[10px] font-semibold ${chosen ? 'bg-[#F3E9F8] text-[#5A1A78]' : 'text-[#2A1F33]'}`}>{opt.name}</p>
+                                                    {Number(opt.price) > 0 && (
+                                                        <span className="absolute left-1 top-1 rounded-md bg-white/95 px-1 text-[9px] font-bold text-[#6A2385] shadow-sm">+₹{opt.price}</span>
+                                                    )}
+                                                    {chosen && (
+                                                        <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#6A2385] text-white">
+                                                            <Check size={10} strokeWidth={3} />
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                </div>
-
-                                {/* Right Action Chevron / Edit Pill */}
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    {isSelected ? (
-                                        <span className="text-[10px] font-black text-[#843D9B] bg-white border border-[#843D9B]/30 px-2.5 py-1 rounded-xl shadow-2xs group-hover:bg-[#843D9B] group-hover:text-white transition-colors">
-                                            Edit
-                                        </span>
-                                    ) : (
-                                        <span className="text-[10px] font-black text-gray-600 bg-white border border-gray-200/80 px-2.5 py-1 rounded-xl shadow-2xs group-hover:border-[#843D9B]/40 group-hover:text-[#843D9B] transition-colors flex items-center gap-1">
-                                            Select
-                                            <ChevronRight size={12} />
-                                        </span>
-                                    )}
-                                </div>
+                                )}
                             </div>
                         );
                     })}

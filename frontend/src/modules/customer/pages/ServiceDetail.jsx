@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useRequireAuth } from '../../../hooks/useRequireAuth';
-import BookingStepper from '../components/BookingStepper';
-import { ArrowLeft, ChevronDown, ChevronUp, ChevronRight, Clock, ShoppingBag, Ruler, CheckCircle2, ShieldCheck, Info, Tag, Scissors, Wand2, MapPin, X, Upload, Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
+import OrderFlowStepper from '../components/OrderFlowStepper';
+import { ArrowLeft, ChevronDown, ChevronUp, ChevronRight, Clock, ShoppingBag, Ruler, CheckCircle2, ShieldCheck, Info, Tag, Scissors, Wand2, MapPin, X, Upload, Camera, Image as ImageIcon, Loader2, Shirt, SlidersHorizontal, Eye, Pencil, Maximize2, ClipboardList } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../utils/cn';
 import ServiceHero from '../components/service-detail/ServiceHero';
@@ -701,7 +701,6 @@ const ServiceDetail = () => {
     
     // Delivery fee is outside GST calculation on backend
     // Current Total for active service configuration
-    const currentTotal = taxableAmount + taxes + deliveryPrice;
 
     // Accurately compute order totals matching backend checkoutPricing.js exactly:
     const otherBase = otherBasketItems.reduce((sum, item) => sum + (Number(item.pricing?.base) || 0), 0);
@@ -1187,81 +1186,119 @@ const ServiceDetail = () => {
         });
     };
 
+    // Add-ons shown inline: category add-ons + active catalog embellishments for this category (same as the add-on sheet)
+    const addonCategoryName = String(serviceData?.category?.name || '').toLowerCase().trim();
+    const inlineAddons = (() => {
+        const list = [];
+        (serviceData?.category?.styleAddons || []).filter((a) => a?.name?.trim()).forEach((item, i) => {
+            list.push({
+                _id: item._id || `cat_addon_${i}_${String(item.name).toLowerCase().trim().replace(/[^a-z0-9]/g, '')}`,
+                name: item.name,
+                price: item.price || 0,
+                description: item.description || '',
+                image: item.image || '',
+                category: serviceData?.category?.name || 'Service Custom',
+                _source: 'schema',
+            });
+        });
+        (catalogCustomizations || []).forEach((a) => {
+            if (a?.addonType !== 'embellishment' || a.isActive === false) return;
+            const cat = String(a.category || '').toLowerCase().trim();
+            const universal = !cat || ['all', 'universal', 'all services', 'all categories'].includes(cat);
+            const matches = universal || (addonCategoryName && (cat === addonCategoryName || addonCategoryName.includes(cat) || cat.includes(addonCategoryName)));
+            if (!matches || list.some((x) => String(x.name).toLowerCase().trim() === String(a.name).toLowerCase().trim())) return;
+            list.push({ ...a, _source: 'catalog' });
+        });
+        return list;
+    })();
+
     return (
         <div className="min-h-screen bg-white pb-40 font-sans">
-            {/* 1. Header & Stepper Integration */}
-            <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl pt-safe">
-                <div className="px-5 py-3 flex items-center justify-between border-b border-gray-100">
-                    <div className="flex items-center gap-3">
+            {/* 1. Purple header: title, service card, then the booking steps */}
+            <div className="relative bg-gradient-to-br from-[#5A1A78] via-[#6F2A8C] to-[#8A3FA6] px-4 pb-14 pt-4 pt-safe">
+                <span className="pointer-events-none absolute -right-12 -top-10 h-44 w-44 rounded-full bg-white/10" />
+                <span className="pointer-events-none absolute left-1/3 top-24 h-24 w-24 rounded-full bg-white/5" />
+                <div className="relative mx-auto max-w-2xl">
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={() => navigate(-1)}
-                            className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-all active:scale-90"
+                            className="-ml-1.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-all hover:bg-white/10 active:scale-90"
                             aria-label="Back"
                         >
-                            <ArrowLeft size={22} className="text-gray-900" />
+                            <ArrowLeft size={22} />
                         </button>
-                        <div>
-                            <h1 className="text-base font-black text-gray-900 leading-none">{serviceData.title}</h1>
-                            <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1">Configuring Order</p>
+                        <div className="min-w-0 flex-1 text-center">
+                            <h1 className="truncate text-[18px] font-bold leading-tight text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                {isAlteration ? 'Alteration Order' : 'Stitching Order Configuration'}
+                            </h1>
+                            <p className="mt-0.5 truncate text-[11.5px] text-white/75">Customize your outfit, add details and get it stitched by top tailors</p>
                         </div>
+                        {serviceItems.length > 0 ? (
+                            <button
+                                type="button"
+                                onClick={() => document.getElementById('order-basket')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="flex h-9 shrink-0 items-center gap-1 rounded-full bg-white/15 px-2.5 text-white ring-1 ring-white/25"
+                                aria-label={`${serviceItems.length} items in basket`}
+                            >
+                                <ShoppingBag size={14} />
+                                <span className="text-[11px] font-bold">{serviceItems.length}</span>
+                            </button>
+                        ) : (
+                            <span className="w-9 shrink-0" />
+                        )}
                     </div>
-                    {serviceItems.length > 0 && (
-                        <div className="flex items-center gap-1.5 bg-primary text-white px-3 py-1.5 rounded-full shadow-lg shadow-indigo-100">
-                            <ShoppingBag size={12} />
-                            <span className="text-[10px] font-black">{serviceItems.length} Items</span>
-                        </div>
-                    )}
-                </div>
-                {!isAlteration && (
-                    <BookingStepper currentStepId={measurements ? 'review' : (measurementType ? 'details' : 'fabric')} />
-                )}
-            </div>
 
-            <div className="max-w-2xl mx-auto px-4 mt-4 space-y-3.5 pb-44">
-
-                {/* Current Service Header - Always clearly visible */}
-                <section className="bg-white rounded-[1.5rem] p-3.5 border border-primary/15 shadow-sm space-y-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-16 h-20 rounded-xl overflow-hidden bg-gray-100 border border-gray-100 shrink-0">
+                    {/* Current service */}
+                    <div className="mt-4 flex items-center gap-3 rounded-[20px] bg-white p-3 shadow-[0_14px_30px_-18px_rgba(20,5,30,0.7)]">
+                        <div className="h-[84px] w-[72px] shrink-0 overflow-hidden rounded-2xl bg-[#F6EEFA]">
                             <img
                                 src={getImageUrl(serviceData.image) || 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800'}
                                 alt={serviceData.title}
-                                className="w-full h-full object-cover"
+                                className="h-full w-full object-cover"
                                 onError={(e) => {
                                     e.currentTarget.src = 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800';
                                 }}
                             />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-1">
-                                <span className="text-[9px] font-black uppercase tracking-wider text-primary">
-                                    {preSelectedTailor?.shopName ? `By ${preSelectedTailor.shopName}` : 'Selected Service'}
-                                </span>
-                                <span className="text-sm font-black text-primary">₹{(serviceData.basePrice || 0).toLocaleString()}</span>
-                            </div>
-                            <h2 className="text-sm font-black text-gray-900 truncate mt-0.5">{serviceData.title}</h2>
-                            <p className="text-[11px] font-medium text-gray-500 mt-0.5">
-                                {fabricSource === 'platform' ? 'Tailor Fabric' : 'Customer Fabric'}
-                                {selectedStyle?.name ? ` · ${selectedStyle.name}` : ''}
-                                {isMeasurementValid ? ' · Measurements ✓' : ' · Measurements required'}
+                            <h2 className="truncate text-[16px] font-bold leading-tight text-[#1A1523]">{serviceData.title}</h2>
+                            <p className="mt-1 flex items-center gap-1 truncate text-[12px] text-gray-500">
+                                <Scissors size={12} className="shrink-0 text-[#6A2385]" />
+                                <span className="truncate">{preSelectedTailor?.shopName ? `By ${preSelectedTailor.shopName}` : (isAlteration ? 'Alteration Service' : 'Stitching Service')}</span>
                             </p>
+                            <button
+                                type="button"
+                                onClick={handleSaveAndAddAnother}
+                                className="mt-2 flex items-center gap-1 rounded-full bg-[#F6EEFA] px-2.5 py-1 text-[11px] font-semibold text-[#6A2385] ring-1 ring-[#E4D6EC] transition-colors hover:bg-[#EDDDF5]"
+                            >
+                                <ShoppingBag size={12} /> Add Another Service
+                            </button>
+                        </div>
+                        <div className="shrink-0 self-start text-right">
+                            <p className="text-[10.5px] text-gray-500">Starting from</p>
+                            <p className="text-[18px] font-bold text-[#5A1A78]">₹{(serviceData.basePrice || 0).toLocaleString('en-IN')}</p>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <button
-                        type="button"
-                        onClick={handleSaveAndAddAnother}
-                        className="w-full py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-black text-[11px] uppercase tracking-wider active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                        <ShoppingBag size={14} />
-                        + Add another service to order
-                    </button>
-                </section>
+            <div className="relative mx-auto -mt-10 max-w-2xl space-y-3.5 px-4 pb-44">
+                {!isAlteration && (
+                    <OrderFlowStepper current={isMeasurementValid ? 3 : (measurementType ? 2 : 1)} />
+                )}
+                {isAlteration && <div className="h-4" />}
+
+                {/* Summary of what's chosen so far */}
+                <p className="px-1 text-[11.5px] text-gray-500">
+                    {fabricSource === 'platform' ? 'Tailor fabric' : 'Your fabric'}
+                    {selectedStyle?.name ? ` · ${selectedStyle.name}` : ''}
+                    {isMeasurementValid ? ' · Measurements added ✓' : ' · Measurements required'}
+                </p>
 
                 {/* Basket — visible as soon as items exist (incl. auto-pending on open) */}
                 {storeHydrated && serviceItems.length > 0 && (
                     <section id="order-basket" className="animate-in fade-in slide-in-from-top-4 scroll-mt-24">
-                        <div className="bg-white rounded-[2rem] p-5 shadow-sm border border-primary/15 overflow-hidden relative">
+                        <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4] relative overflow-hidden">
                             <div className="flex items-center justify-between mb-3 gap-2">
                                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                     Your order basket ({serviceItems.length})
@@ -1385,122 +1422,173 @@ const ServiceDetail = () => {
                     </section>
                 )}
 
-                {/* 2.5 Style Variant & Custom Photo Upload Section */}
-                {!isAlteration && (
-                    <section className="animate-in fade-in slide-in-from-bottom-3 duration-400">
-                        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-3">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-primary">
-                                    <Scissors size={18} />
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest leading-tight">Choose Style Variant / Upload Design</h3>
-                                    <p className="text-[10px] text-gray-400 font-bold leading-none mt-0.5">Select a style design or upload your custom reference photo</p>
+                {/* 2.5 Browse styles + upload own design */}
+                {!isAlteration && (() => {
+                    const styleList = (serviceData?.selectedStyles && serviceData.selectedStyles.length > 0)
+                        ? serviceData.selectedStyles
+                        : serviceData?.category?.styles || [];
+                    return (
+                        <section id="browse-styles" className="scroll-mt-24 rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+                            <div className="mb-3 flex items-center gap-2.5">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]">
+                                    <Shirt size={18} />
+                                </span>
+                                <div className="min-w-0">
+                                    <h3 className="text-[15px] font-bold leading-tight text-[#1A1523]">Browse Styles</h3>
+                                    <p className="text-[11.5px] text-gray-500">Pick a style or upload your own design</p>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2.5">
-                                {/* Custom Photo Upload Card */}
-                                <div 
-                                    className={`p-3 rounded-2xl border transition-all flex flex-col justify-between relative overflow-hidden ${
-                                        selectedStyle?.isCustom 
-                                            ? 'border-primary bg-purple-50/60 shadow-md ring-2 ring-primary/20' 
-                                            : 'border-dashed border-gray-300 bg-gray-50/70 hover:border-purple-300'
-                                    }`}
-                                >
-                                    {selectedStyle?.isCustom && selectedStyle.image ? (
-                                        <div className="relative group">
-                                            <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-gray-100">
-                                                <img src={selectedStyle.image} alt="Custom Reference" className="w-full h-full object-cover" />
-                                            </div>
+                            {styleList.length > 0 && (
+                                <div className="mb-3 grid grid-cols-4 gap-2">
+                                    {styleList.map((style, idx) => {
+                                        const styleName = style.name || style;
+                                        const isSelected = selectedStyle?.name === styleName && !selectedStyle?.isCustom;
+                                        return (
                                             <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedStyle(null);
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isSelected) {
+                                                        setSelectedStyle(null);
+                                                    } else {
+                                                        setSelectedStyle({ name: styleName, image: style.image, description: style.description, isCustom: false });
+                                                    }
                                                 }}
-                                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 cursor-pointer"
-                                                title="Remove photo"
+                                                className={`relative overflow-hidden rounded-2xl bg-white text-left transition-all ${isSelected ? 'ring-2 ring-[#6A2385] shadow-[0_10px_22px_-14px_rgba(90,26,120,0.9)]' : 'ring-1 ring-[#EFE8F4] hover:ring-[#D9C2E6]'}`}
                                             >
-                                                <X size={12} />
+                                                <div className="aspect-[3/4] bg-[#F6EEFA]">
+                                                    {style.image ? (
+                                                        <img src={style.image} alt={styleName} className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <span className="flex h-full w-full items-center justify-center text-[#C9A8D8]"><Shirt size={28} /></span>
+                                                    )}
+                                                </div>
+                                                <p className={`truncate px-2 py-1.5 text-center text-[11.5px] font-semibold ${isSelected ? 'text-[#5A1A78]' : 'text-[#1A1523]'}`}>{styleName}</p>
+                                                {isSelected && (
+                                                    <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#6A2385] text-white shadow">
+                                                        <CheckCircle2 size={14} />
+                                                    </span>
+                                                )}
                                             </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Upload own design */}
+                            {selectedStyle?.isCustom && selectedStyle.image ? (
+                                <div className="flex items-center gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-2 ring-[#6A2385]">
+                                    <img src={selectedStyle.image} alt="Your design" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[13px] font-bold text-[#1A1523]">Your Design Uploaded</p>
+                                        <p className="text-[11.5px] text-gray-500">The tailor will stitch it like this photo</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedStyle(null)}
+                                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-red-500 ring-1 ring-red-100"
+                                        aria-label="Remove design photo"
+                                    >
+                                        <X size={15} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <label className="relative flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-dashed border-[#D9C2E6] bg-[#FDFBFE] p-3 transition-colors hover:bg-[#F8F1FB]">
+                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#6A2385] shadow-sm ring-1 ring-[#EFE8F4]">
+                                        {isUploadingCustomStyle ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block text-[13px] font-bold text-[#1A1523]">{isUploadingCustomStyle ? 'Uploading...' : 'Upload Your Design'}</span>
+                                        <span className="block text-[11.5px] text-gray-500">Have a design? Upload it and get it stitched</span>
+                                    </span>
+                                    <ChevronRight size={18} className="shrink-0 text-[#6A2385]" />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onClick={(e) => { e.target.value = null; }}
+                                        onChange={handleCustomStyleUpload}
+                                        disabled={isUploadingCustomStyle}
+                                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                                    />
+                                </label>
+                            )}
+                        </section>
+                    );
+                })()}
+
+                {/* 2.55 Customize your outfit: live preview of the chosen design */}
+                {!isAlteration && (() => {
+                    const styleList = (serviceData?.selectedStyles && serviceData.selectedStyles.length > 0)
+                        ? serviceData.selectedStyles
+                        : serviceData?.category?.styles || [];
+                    const previewImg = selectedStyle?.image || getImageUrl(serviceData.image);
+                    const thumbs = styleList.filter((st) => st.image && (st.name || st) !== selectedStyle?.name).slice(0, 3);
+                    return (
+                        <section className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+                            <div className="mb-3 flex items-center gap-2.5">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]">
+                                    <SlidersHorizontal size={18} />
+                                </span>
+                                <div className="min-w-0">
+                                    <h3 className="text-[15px] font-bold leading-tight text-[#1A1523]">Customize Your Outfit</h3>
+                                    <p className="text-[11.5px] text-gray-500">Select your design, fit and custom details</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <div className="relative w-[42%] shrink-0 overflow-hidden rounded-2xl bg-[#F6EEFA] ring-1 ring-[#EFE8F4]">
+                                    {previewImg ? (
+                                        <img src={previewImg} alt={selectedStyle?.name || serviceData.title} className="aspect-[3/4] h-full w-full object-cover" />
+                                    ) : (
+                                        <span className="flex aspect-[3/4] items-center justify-center text-[#C9A8D8]"><Shirt size={36} /></span>
+                                    )}
+                                    {selectedStyle?.name && (
+                                        <span className="absolute inset-x-2 bottom-2 truncate rounded-full bg-white/95 px-2 py-1 text-center text-[11px] font-semibold text-[#5A1A78] shadow-sm">
+                                            {selectedStyle.name}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex min-w-0 flex-1 flex-col rounded-2xl bg-[#FBF7FD] p-2.5 ring-1 ring-[#EFE8F4]">
+                                    <p className="mb-2 flex items-center gap-1.5 text-[12.5px] font-bold text-[#5A1A78]"><Eye size={14} /> Live Design Preview</p>
+                                    {thumbs.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            {thumbs.map((st) => (
+                                                <button
+                                                    key={st.name || st}
+                                                    type="button"
+                                                    onClick={() => setSelectedStyle({ name: st.name || st, image: st.image, description: st.description, isCustom: false })}
+                                                    className="overflow-hidden rounded-xl ring-1 ring-[#EFE8F4] hover:ring-[#B98FCF]"
+                                                    title={st.name || st}
+                                                >
+                                                    <img src={st.image} alt={st.name || st} className="aspect-[3/4] w-full object-cover" />
+                                                </button>
+                                            ))}
                                         </div>
                                     ) : (
-                                        <label className="relative flex flex-col items-center justify-center py-4 cursor-pointer">
-                                            {isUploadingCustomStyle ? (
-                                                <Loader2 size={24} className="animate-spin text-primary mb-2" />
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-full bg-purple-100 text-primary flex items-center justify-center mb-2 shadow-xs">
-                                                    <Upload size={18} />
-                                                </div>
-                                            )}
-                                            <span className="text-xs font-black text-purple-900 text-center">
-                                                {isUploadingCustomStyle ? 'Uploading...' : 'Upload Design Photo'}
-                                            </span>
-                                            <span className="text-[9px] text-gray-400 font-medium text-center mt-0.5">
-                                                Photo of preferred design
-                                            </span>
-                                            <input 
-                                                type="file" 
-                                                accept="image/*" 
-                                                onClick={(e) => { e.target.value = null; }}
-                                                onChange={handleCustomStyleUpload} 
-                                                disabled={isUploadingCustomStyle} 
-                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-                                            />
-                                        </label>
+                                        <p className="text-[11.5px] leading-snug text-gray-500">Pick a style below or upload your own design to see it here.</p>
                                     )}
-
-                                    {selectedStyle?.isCustom && (
-                                        <div className="mt-1">
-                                            <h4 className="text-xs font-black text-purple-900 truncate">Custom Reference Photo</h4>
-                                            <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-primary text-white inline-block mt-1">
-                                                Uploaded ✓
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Predefined Style Cards (if any exist) */}
-                                {((serviceData?.selectedStyles && serviceData.selectedStyles.length > 0) ? serviceData.selectedStyles : serviceData?.category?.styles || []).map((style, idx) => {
-                                    const styleName = style.name || style;
-                                    const isSelected = selectedStyle?.name === styleName && !selectedStyle?.isCustom;
-                                    return (
-                                        <div
-                                            key={idx}
-                                            onClick={() => {
-                                                if (isSelected) {
-                                                    setSelectedStyle(null);
-                                                } else {
-                                                    setSelectedStyle({ name: styleName, image: style.image, description: style.description, isCustom: false });
-                                                }
-                                            }}
-                                            className={`p-3 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between relative overflow-hidden ${
-                                                isSelected 
-                                                    ? 'border-primary bg-purple-50/60 shadow-md ring-2 ring-primary/20' 
-                                                    : 'border-gray-100 bg-gray-50/50 hover:border-gray-200'
-                                            }`}
+                                    <div className="mt-auto grid grid-cols-2 gap-1.5 pt-2.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => document.getElementById('browse-styles')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                                            className="flex items-center justify-center gap-1 rounded-full bg-white px-2 py-1.5 text-[11px] font-semibold text-[#6A2385] ring-1 ring-[#D9C2E6]"
                                         >
-                                            {style.image && (
-                                                <div className="aspect-[4/3] rounded-xl overflow-hidden mb-2 bg-gray-100">
-                                                    <img src={style.image} alt={styleName} className="w-full h-full object-cover" />
-                                                </div>
-                                            )}
-                                            <div>
-                                                <h4 className={`text-xs font-black truncate ${isSelected ? 'text-purple-900' : 'text-gray-900'}`}>{styleName}</h4>
-                                                {style.description && <p className="text-[9px] text-gray-500 font-medium line-clamp-2 mt-0.5">{style.description}</p>}
-                                            </div>
-                                            <div className="mt-2 flex justify-between items-center">
-                                                <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${isSelected ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}`}>
-                                                    {isSelected ? 'Selected ✓' : 'Select'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                            <Pencil size={12} /> Change Design
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => previewImg && window.open(previewImg, '_blank')}
+                                            disabled={!previewImg}
+                                            className="flex items-center justify-center gap-1 rounded-full bg-white px-2 py-1.5 text-[11px] font-semibold text-[#6A2385] ring-1 ring-[#D9C2E6] disabled:opacity-50"
+                                        >
+                                            <Maximize2 size={12} /> Full View
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </section>
-                )}
+                        </section>
+                    );
+                })()}
 
                 {/* 2.6 Garment Customizations Section */}
                 {!isAlteration && (
@@ -1514,18 +1602,55 @@ const ServiceDetail = () => {
                     </section>
                 )}
 
+                {/* 2.7 Fit preference (saved with the customizations as "fit") */}
+                {!isAlteration && (
+                    <section className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+                        <div className="mb-3 flex items-center gap-2.5">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]">
+                                <Shirt size={18} />
+                            </span>
+                            <h3 className="text-[15px] font-bold leading-tight text-[#1A1523]">Fit Preference</h3>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            {[
+                                { name: 'Slim Fit' },
+                                { name: 'Regular Fit', note: 'Most Popular' },
+                                { name: 'Loose Fit' },
+                            ].map((fit) => {
+                                const active = selectedCustomizations?.fit?.enabled && selectedCustomizations.fit.name === fit.name;
+                                return (
+                                    <button
+                                        key={fit.name}
+                                        type="button"
+                                        onClick={() => setSelectedCustomizations((prev) => ({
+                                            ...prev,
+                                            fit: active
+                                                ? { name: '', price: 0, refImage: '', enabled: false, isCustom: false, notes: '' }
+                                                : { name: fit.name, price: 0, refImage: '', enabled: true, isCustom: false, notes: '' },
+                                        }))}
+                                        className={`relative flex items-center gap-2 rounded-2xl px-2.5 py-2.5 text-left transition-all ${active ? 'bg-[#FBF7FD] ring-2 ring-[#6A2385]' : 'bg-white ring-1 ring-[#EFE8F4] hover:ring-[#D9C2E6]'}`}
+                                    >
+                                        <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${active ? 'bg-[#6A2385]' : 'ring-2 ring-gray-300'}`}>
+                                            {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                                        </span>
+                                        <span className="min-w-0">
+                                            <span className="block text-[12px] font-semibold text-[#1A1523]">{fit.name}</span>
+                                            {fit.note && <span className="block text-[9.5px] text-gray-500">({fit.note})</span>}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </section>
+                )}
+
                 {!isAlteration && (
                     <section id="measurement-section" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="mb-2 px-1 flex items-center justify-between gap-2">
-                            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
-                                Measurements for
+                        {editBasketIndex != null && (
+                            <p className="mb-2 px-1 text-[11.5px] font-semibold text-[#6A2385]">
+                                Editing measurements for {editBasketIndex + 1}. {serviceItems[editBasketIndex]?.serviceDetails?.title || serviceData?.title || 'Item'}
                             </p>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                                {editBasketIndex != null
-                                    ? `${editBasketIndex + 1}. ${serviceItems[editBasketIndex]?.serviceDetails?.title || serviceData?.title || 'Item'}`
-                                    : (serviceData?.category?.name || serviceData?.title || 'This garment')}
-                            </span>
-                        </div>
+                        )}
                         <MeasurementSelector
                             key={`measure-${id}-${editBasketIndex ?? 'x'}-${formEpoch}`}
                             selectedType={measurementType}
@@ -1557,6 +1682,18 @@ const ServiceDetail = () => {
                                     setIsTailorAtHome(false);
                                     setMeasurementType(null);
                                     setMeasurements((prev) => (prev?.type === 'home' ? null : prev));
+                                } else if (measurementType === 'sample') {
+                                    // Tapping "Provide Sample Garment" again removes it
+                                    setMeasurementType(null);
+                                    setMeasurements((prev) => {
+                                        if (!prev || prev.type === 'sample') return null;
+                                        const { sampleGarment: _sampleGarment, ...rest } = prev;
+                                        return rest;
+                                    });
+                                } else {
+                                    // Collapse the open option (Enter Measurements / Upload Slip / saved);
+                                    // entered values stay in `measurements`
+                                    setMeasurementType(null);
                                 }
                                 // Collapse after self/slip complete: keep measurements so Book Now stays enabled
                             }}
@@ -1595,88 +1732,98 @@ const ServiceDetail = () => {
                     </section>
                 )}
 
-                {/* 3.5 Style Add-ons Section */}
-                <section className="animate-in fade-in slide-in-from-bottom-5 duration-600">
-                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-primary">
-                                    <Wand2 size={18} />
-                                </div>
-                                <div>
-                                    <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-widest leading-tight">Style Add-ons</h3>
-                                    <p className="text-[9px] text-gray-400 font-bold leading-none mt-0.5">Pockets, Padding, etc.</p>
-                                </div>
-                            </div>
-                            <button 
-                                onClick={() => setIsAddonModalOpen(true)}
-                                className="px-3 py-2 bg-primary/5 text-primary text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-primary/10 transition-all active:scale-95 shrink-0"
-                            >
-                                {selectedAddons.length > 0 ? 'Edit' : 'Browse'}
-                            </button>
-                        </div>
-
-                        {selectedAddons.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                                {selectedAddons.map(addon => (
-                                    <div key={addon._id} className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-xl group">
-                                        <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center border border-gray-200">
-                                            <CheckCircle2 size={10} className="text-green-500" />
-                                        </div>
-                                        <span className="text-[10px] font-bold text-gray-700">{addon.name}</span>
-                                        <button 
-                                            onClick={() => setSelectedAddons(prev => prev.filter(a => a._id !== addon._id))}
-                                            className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X size={10} className="text-red-400" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="p-4 border-2 border-dashed border-gray-100 rounded-2xl text-center">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">No add-ons selected</p>
-                            </div>
-                        )}
-                    </div>
-                </section>
-
                 {/* 4. Delivery Selection */}
                 <section className="animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <DeliverySelector selected={deliveryType} onSelect={setDeliveryType} />
                 </section>
 
-                {/* 5. Additional Info Card */}
-                <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-primary">
-                            <Info size={18} />
+                {/* 4.5 Add-ons (optional) — admin style add-ons as a checklist */}
+                {inlineAddons.length > 0 && (
+                    <section className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2.5">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]">
+                                    <Wand2 size={18} />
+                                </span>
+                                <h3 className="text-[15px] font-bold leading-tight text-[#1A1523]">
+                                    Add-Ons <span className="text-[11.5px] font-medium text-gray-400">(Optional)</span>
+                                </h3>
+                            </div>
+                            {inlineAddons.length > 4 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAddonModalOpen(true)}
+                                    className="shrink-0 text-[12px] font-semibold text-[#6A2385]"
+                                >
+                                    View All
+                                </button>
+                            )}
                         </div>
-                        <div>
-                            <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Order Policies</h3>
-                            <p className="text-[10px] text-gray-400 font-bold">Standard terms of service</p>
+                        <div className="divide-y divide-[#F3ECF7]">
+                            {inlineAddons.slice(0, 4).map((addon) => {
+                                const checked = selectedAddons.some((a) => a._id === addon._id || (a.name && a.name === addon.name));
+                                return (
+                                    <label key={addon._id} className="flex cursor-pointer items-center gap-3 py-2.5">
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => setSelectedAddons((prev) => (checked
+                                                ? prev.filter((a) => a._id !== addon._id && a.name !== addon.name)
+                                                : [...prev, addon]))}
+                                            className="h-[18px] w-[18px] shrink-0 cursor-pointer rounded accent-[#6A2385]"
+                                        />
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block truncate text-[13px] font-semibold text-[#1A1523]">{addon.name}</span>
+                                            {addon.description && <span className="block truncate text-[11px] text-gray-500">{addon.description}</span>}
+                                        </span>
+                                        <span className={`shrink-0 text-[13px] font-bold ${Number(addon.price) > 0 ? 'text-[#5A1A78]' : 'text-emerald-600'}`}>
+                                            {Number(addon.price) > 0 ? `+₹${Number(addon.price)}` : 'FREE'}
+                                        </span>
+                                    </label>
+                                );
+                            })}
                         </div>
-                    </div>
+                        {selectedAddons.filter((a) => !inlineAddons.slice(0, 4).some((x) => x._id === a._id || x.name === a.name)).length > 0 && (
+                            <p className="mt-1 text-[11px] text-gray-500">
+                                Also selected: {selectedAddons.filter((a) => !inlineAddons.slice(0, 4).some((x) => x._id === a._id || x.name === a.name)).map((a) => a.name).join(', ')}
+                            </p>
+                        )}
+                    </section>
+                )}
 
-                    <div className="space-y-4">
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1"><CheckCircle2 size={12} className="text-green-500" /></div>
-                            <p className="text-[11px] text-gray-500 font-medium">Free alteration within 7 days of delivery for perfect fitting.</p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1"><CheckCircle2 size={12} className="text-green-500" /></div>
-                            <p className="text-[11px] text-gray-500 font-medium">Free cancellation before tailor picks up your fabric.</p>
-                        </div>
+                {/* 5. Order summary for this garment */}
+                <section className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+                    <div className="mb-3 flex items-center gap-2.5">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]">
+                            <ClipboardList size={18} />
+                        </span>
+                        <h3 className="text-[15px] font-bold leading-tight text-[#1A1523]">Order Summary</h3>
                     </div>
-                </div>
-
-                {/* 6. FAQ Section */}
-                <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest mb-4 opacity-40">Frequently Asked</h3>
-                    <FAQItem question="How do I give my measurements?" answer="You can enter measurements manually, upload a photo of your fitting garment, or request a master visit for home measurements." />
-                    <FAQItem question="What if my fabric is short?" answer="The tailor will inspect the fabric upon pickup. If it's insufficient for the design, we'll notify you before cutting." />
-                    <FAQItem question="Is GST included?" answer="Yes, all prices shown on the Live Bill include necessary taxes and platform fees." />
-                </div>
+                    <div className="space-y-1.5 text-[12.5px] text-[#2A1F33]">
+                        <div className="flex justify-between gap-3"><span className="truncate">{serviceData.title} (Stitching)</span><span className="shrink-0">₹{basePrice.toLocaleString('en-IN')}</span></div>
+                        {Object.entries(selectedCustomizations || {})
+                            .filter(([, c]) => c && c.enabled && Number(c.price) > 0)
+                            .map(([key, c]) => (
+                                <div key={key} className="flex justify-between gap-3"><span className="truncate">{c.name}</span><span className="shrink-0">₹{Number(c.price).toLocaleString('en-IN')}</span></div>
+                            ))}
+                        {selectedAddons.filter((a) => Number(a.price) > 0).map((a) => (
+                            <div key={a._id || a.name} className="flex justify-between gap-3"><span className="truncate">{a.name}</span><span className="shrink-0">₹{Number(a.price).toLocaleString('en-IN')}</span></div>
+                        ))}
+                        {fabricPrice > 0 && <div className="flex justify-between gap-3"><span>Fabric</span><span>₹{fabricPrice.toLocaleString('en-IN')}</span></div>}
+                        {deliveryPrice > 0 && <div className="flex justify-between gap-3"><span className="capitalize">{deliveryType} Delivery</span><span>₹{deliveryPrice.toLocaleString('en-IN')}</span></div>}
+                        {isTailorAtHome && !isVisitCoveredInOrder && tailorAtHomePrice > 0 && (
+                            <div className="flex justify-between gap-3"><span>Home Visit</span><span>₹{tailorAtHomePrice.toLocaleString('en-IN')}</span></div>
+                        )}
+                        {otherBasketItems.length > 0 && (
+                            <div className="flex justify-between gap-3 text-[#6A2385]"><span>Other basket items ({otherBasketItems.length})</span><span>₹{otherBasketTotal.toLocaleString('en-IN')}</span></div>
+                        )}
+                        <div className="flex justify-between gap-3 text-gray-500"><span>Platform fee &amp; GST</span><span>Included in total</span></div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#F8F1FB] to-[#F1E4F7] px-3 py-2.5">
+                        <span className="text-[14px] font-bold text-[#5A1A78]">Total Estimated Price</span>
+                        <span className="text-[18px] font-bold text-[#5A1A78]">₹{grandTotal.toLocaleString('en-IN')}</span>
+                    </div>
+                </section>
             </div>
 
             {/* 7. LIVE BILL - Sticky Transparent Footer */}
@@ -1687,51 +1834,30 @@ const ServiceDetail = () => {
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 200, opacity: 0 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-2xl border-t border-gray-100 p-3 pb-4 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
+                        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[24px] bg-white/95 px-4 pb-4 pt-3.5 shadow-[0_-12px_36px_-12px_rgba(42,15,56,0.22)] backdrop-blur-2xl"
                     >
-                        <div className="max-w-md mx-auto">
-                            {/* Live Bill Header - Compact */}
-                            <div className="flex justify-between items-center mb-3">
-                                <div className="flex flex-col">
-                                    <div className="flex items-center gap-1.5 mb-0.5">
-                                        <span className="text-[9px] font-black text-primary uppercase tracking-tighter">
-                                            Live Bill
-                                        </span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                    </div>
-                                    <h4 className="text-xl font-black text-gray-900 flex items-baseline gap-1 leading-none">
-                                        ₹{grandTotal.toLocaleString()}
-                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Incl. GST</span>
-                                        <button 
-                                            onClick={() => setShowPriceBreakdown(!showPriceBreakdown)}
-                                            className="ml-1 p-0.5 rounded-full hover:bg-gray-100 transition-colors"
-                                        >
-                                            {showPriceBreakdown ? <ChevronDown size={14} className="text-gray-500" /> : <ChevronUp size={14} className="text-gray-500" />}
-                                        </button>
-                                    </h4>
+                        <div className="mx-auto max-w-2xl">
+                            {/* Estimated price + breakdown toggle */}
+                            <div className="mb-2.5 flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500">
+                                        Estimated Price
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                        <span className="flex items-center gap-0.5 text-[#6A2385]"><Clock size={10} /> {getDeliveryDays()} days</span>
+                                    </p>
+                                    <p className="text-[22px] font-bold leading-tight text-[#1A1523]">
+                                        ₹{grandTotal.toLocaleString('en-IN')}
+                                        <span className="ml-1 text-[10px] font-semibold text-gray-400">incl. GST</span>
+                                    </p>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-tighter mb-0.5">Est. Arrival</p>
-                                    <div className="flex items-center justify-end gap-1 text-primary bg-indigo-50 px-2 py-0.5 rounded-lg border border-primary/10">
-                                        <Clock size={10} />
-                                        <span className="text-[10px] font-black">{getDeliveryDays()} Days</span>
-                                    </div>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPriceBreakdown(!showPriceBreakdown)}
+                                    className="flex shrink-0 items-center gap-1 rounded-full bg-[#F6EEFA] px-3 py-1.5 text-[12px] font-semibold text-[#6A2385] ring-1 ring-[#E4D6EC]"
+                                >
+                                    View Breakdown {showPriceBreakdown ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                                </button>
                             </div>
-
-                            {/* Quick Breakdown - Mini Tags (local estimate; hidden once the server bill is in) */}
-                            {!bill && <div className="flex gap-1.5 overflow-x-auto pb-3 no-scrollbar">
-                                <div className="shrink-0 bg-gray-50 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1.5">
-                                    <Scissors size={8} className="text-gray-400" />
-                                    <span className="text-[9px] font-black text-gray-500 uppercase">Current: ₹{currentTotal}</span>
-                                </div>
-                                {otherBasketItems.length > 0 && (
-                                    <div className="shrink-0 bg-indigo-50 px-2 py-1 rounded-md border border-primary/10 flex items-center gap-1.5">
-                                        <ShoppingBag size={8} className="text-primary" />
-                                        <span className="text-[9px] font-black text-primary uppercase">Basket: ₹{otherBasketTotal}</span>
-                                    </div>
-                                )}
-                            </div>}
 
                             {/* Action Buttons */}
                             <AnimatePresence>
@@ -1742,7 +1868,7 @@ const ServiceDetail = () => {
                                         exit={{ height: 0, opacity: 0 }}
                                         className="overflow-hidden mb-3"
                                     >
-                                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-1.5 text-xs text-gray-600">
+                                        <div className="space-y-1.5 rounded-2xl bg-[#FBF7FD] p-3 text-xs text-gray-600 ring-1 ring-[#EFE8F4]">
                                             {bill ? (
                                                 <>
                                                     <div className="flex justify-between"><span>{otherBasketItems.length > 0 ? `Stitching (${otherBasketItems.length + 1} items)` : 'Stitching'}</span><span>₹{bill.base.toLocaleString()}</span></div>
@@ -1826,10 +1952,10 @@ const ServiceDetail = () => {
                                 <button
                                     onClick={handleBuyNow}
                                     className={cn(
-                                        "w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer min-h-[52px]",
+                                        "w-full py-3.5 rounded-full font-bold text-[14.5px] flex items-center justify-center gap-2 transition-all cursor-pointer min-h-[52px]",
                                         isMeasurementValid
-                                            ? "bg-primary text-white shadow-primary/20 active:scale-[0.98] hover:bg-primary-dark" 
-                                            : "bg-gradient-to-r from-gray-200 to-gray-300 text-gray-600 hover:from-gray-300 hover:to-gray-400"
+                                            ? "bg-gradient-to-r from-[#8A3FA6] to-[#5A1A78] text-white shadow-[0_14px_28px_-14px_rgba(90,26,120,0.9)] active:scale-[0.98]"
+                                            : "bg-gradient-to-r from-[#8A3FA6] to-[#5A1A78] text-white opacity-90 shadow-[0_14px_28px_-14px_rgba(90,26,120,0.9)]"
                                     )}
                                 >
                                     {isMeasurementValid ? (
@@ -1841,7 +1967,7 @@ const ServiceDetail = () => {
                                             <>Book Now <ChevronRight size={16} /></>
                                         )
                                     ) : (
-                                        <>Enter Details to Proceed <ChevronUp size={14} className="text-gray-500 animate-bounce" /></>
+                                        <>Continue to Measurements <ChevronRight size={16} /></>
                                     )}
                                 </button>
                             </div>

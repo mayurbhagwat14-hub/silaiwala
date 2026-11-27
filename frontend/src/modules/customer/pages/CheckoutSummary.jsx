@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { resolveRazorpayKey, createRazorpayInstance } from '../../../utils/razorpay';
-import { ArrowLeft, ArrowRight, CreditCard, Lock, ShieldCheck, MapPin, Package, Loader2, FileText, ShoppingBag, Ruler, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lock, ShieldCheck, MapPin, Package, Loader2, FileText, ShoppingBag, Truck, Pencil, Calendar, Home, BadgeCheck, Headphones } from 'lucide-react';
+import OrderFlowStepper from '../components/OrderFlowStepper';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import api from '../../../utils/api';
@@ -11,7 +12,6 @@ import BillDetails from '../components/checkout/summary/BillDetails';
 import CouponOfferSection from '../components/checkout/summary/CouponOfferSection';
 import ServiceReviewCard from '../components/checkout/summary/ServiceReviewCard';
 import MeasurementSchedulePicker from '../components/checkout/summary/MeasurementSchedulePicker';
-import { cn } from '../../../utils/cn';
 import { formatCheckoutAddress, splitAdvanceRemaining } from '../../../utils/checkoutBilling';
 
 import useOrderStore from '../../../store/orderStore';
@@ -73,6 +73,16 @@ const CheckoutSummary = () => {
             (item.pricing?.tailorAtHome && item.pricing.tailorAtHome > 0)
         );
     }, [currentCheckoutItems]);
+
+    const [specialInstructions, setSpecialInstructions] = useState('');
+    // Same delivery estimate as the service configuration page (express 10, premium 7, standard 15 days)
+    const checkoutDeliveryType = String(currentCheckoutItems[0]?.configuration?.deliveryType || 'standard').toLowerCase();
+    const checkoutDeliveryDays = checkoutDeliveryType === 'express' ? 10 : checkoutDeliveryType === 'premium' ? 7 : 15;
+    const estimatedDeliveryDate = (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + checkoutDeliveryDays);
+        return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+    })();
 
     const existingScheduleItem = currentCheckoutItems.find(item => 
         item.configuration?.scheduledDate || item.configuration?.scheduledTimeSlot || item.configuration?.measurementSchedule
@@ -400,6 +410,7 @@ const CheckoutSummary = () => {
                         }),
                         totalAmount: finalTotal,
                         promoCode: appliedCoupon?.code || undefined,
+                        specialInstructions: specialInstructions.trim() || undefined,
                         deliveryFee: currentPricing.delivery || 0,
                         platformFee: currentPricing.platformFee || 0,
                         gstAmount: currentPricing.taxes || 0,
@@ -432,6 +443,7 @@ const CheckoutSummary = () => {
                         }),
                         totalAmount: finalTotal,
                         promoCode: appliedCoupon?.code || undefined,
+                        specialInstructions: specialInstructions.trim() || undefined,
                         deliveryFee: currentPricing.delivery || 0,
                         platformFee: currentPricing.platformFee || 0,
                         gstAmount: currentPricing.taxes || 0,
@@ -647,94 +659,28 @@ const CheckoutSummary = () => {
                 </div>
             )}
             {/* 1. Header */}
-            <div className="sticky top-0 z-50 bg-primary shadow-md px-4 sm:px-6 pt-5 pb-5 rounded-b-3xl flex items-center justify-between text-white">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0">
-                        <ArrowLeft size={18} />
+            <div className="sticky top-0 z-50 bg-white/95 px-4 pb-3 pt-4 backdrop-blur sm:px-6">
+                <div className="mx-auto flex max-w-xl items-center gap-2">
+                    <button onClick={() => navigate(-1)} aria-label="Back" className="-ml-1.5 flex h-9 w-9 shrink-0 items-center justify-center text-[#1A1523] cursor-pointer">
+                        <ArrowLeft size={22} />
                     </button>
-                    <div className="text-left">
-                        <h1 className="text-base sm:text-lg font-extrabold text-white leading-tight">Order Summary</h1>
-                        {isServiceCheckout && currentCheckoutItems.length > 1 && (
-                            <p className="text-[10px] font-bold text-white/80">
-                                {currentCheckoutItems.length} garments · one tailor · one delivery
-                            </p>
-                        )}
-                        <p className="text-xs text-white/80 font-medium">Final step - Confirm & place your order</p>
+                    <div className="min-w-0 flex-1 text-left">
+                        <h1 className="text-[19px] font-bold leading-tight text-[#1A1523]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Review &amp; Place Order</h1>
+                        <p className="truncate text-[11.5px] text-gray-500">
+                            {isServiceCheckout && currentCheckoutItems.length > 1
+                                ? `${currentCheckoutItems.length} garments · one tailor · one delivery`
+                                : 'Final step - confirm your details'}
+                        </p>
                     </div>
-                </div>
-
-                <div className="flex items-center gap-2 bg-white/10 border border-white/20 px-3 py-1.5 rounded-2xl text-white backdrop-blur-xs shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                        <ShieldCheck size={13} className="text-white" />
-                    </div>
-                    <div className="text-left leading-tight">
-                        <p className="font-extrabold text-[11px]">100% Secure</p>
-                        <p className="text-[9px] text-white/80 font-medium">Safe & Encrypted</p>
-                    </div>
+                    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#F6EEFA] px-2.5 py-1.5 text-[11px] font-semibold text-[#6A2385] ring-1 ring-[#E4D6EC]">
+                        <ShieldCheck size={13} /> 100% Secure
+                    </span>
                 </div>
             </div>
 
-            <div className="max-w-xl mx-auto p-3 sm:p-4 space-y-3.5 animate-in fade-in duration-500">
+            <div className="max-w-xl mx-auto px-4 pb-4 pt-1 space-y-3.5 animate-in fade-in duration-500">
 
-                {/* Top Step Progress Tracker Wizard */}
-                <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-xs border border-gray-100/80">
-                    <div className="relative flex items-center justify-between px-2 sm:px-8">
-                        {/* Dotted Connecting Line */}
-                        <div className="absolute top-5 left-10 right-10 border-t-2 border-dashed border-primary/20 z-0" />
-
-                        {/* Step 1: Service */}
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="flex items-center gap-1">
-                                <div className="w-9 h-9 rounded-full bg-primary/5 border border-primary/10 text-primary flex items-center justify-center">
-                                    <ShoppingBag size={16} />
-                                </div>
-                                <div className="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center">
-                                    <Check size={10} strokeWidth={3} />
-                                </div>
-                            </div>
-                            <span className="text-[11px] font-bold text-gray-700 mt-1.5">Service</span>
-                        </div>
-
-                        {/* Step 2: Measurements */}
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="flex items-center gap-1">
-                                <div className="w-9 h-9 rounded-full bg-primary/5 border border-primary/10 text-primary flex items-center justify-center">
-                                    <Ruler size={16} />
-                                </div>
-                                <div className="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center">
-                                    <Check size={10} strokeWidth={3} />
-                                </div>
-                            </div>
-                            <span className="text-[11px] font-bold text-gray-700 mt-1.5">Measurements</span>
-                        </div>
-
-                        {/* Step 3: Address */}
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="flex items-center gap-1">
-                                <div className="w-9 h-9 rounded-full bg-primary/5 border border-primary/10 text-primary flex items-center justify-center">
-                                    <MapPin size={16} />
-                                </div>
-                                <div className="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center">
-                                    <Check size={10} strokeWidth={3} />
-                                </div>
-                            </div>
-                            <span className="text-[11px] font-bold text-gray-700 mt-1.5">Address</span>
-                        </div>
-
-                        {/* Step 4: Payment (Active) */}
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="flex items-center gap-1">
-                                <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center shadow-2xs">
-                                    <CreditCard size={16} />
-                                </div>
-                                <div className="w-4 h-4 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
-                                    4
-                                </div>
-                            </div>
-                            <span className="text-[11px] font-extrabold text-primary mt-1.5">Payment</span>
-                        </div>
-                    </div>
-                </div>
+                {isServiceCheckout && !bulkOrderId && <OrderFlowStepper current={3} />}
 
                 {isCalculatingDistance && (
                     <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center gap-3 text-blue-700 animate-pulse">
@@ -814,81 +760,61 @@ const CheckoutSummary = () => {
                 )}
 
                 {/* 3. Delivery Details Card */}
-                <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-xs">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                            <MapPin size={18} className="text-primary" />
-                            <span>Delivery Details</span>
+                <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                        <h3 className="flex items-center gap-2 text-[15px] font-bold text-[#1A1523]">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]"><Truck size={16} /></span>
+                            Delivery Details
                         </h3>
                         <button
                             onClick={() => navigate('/user/checkout/address')}
-                            className="text-xs font-bold text-primary hover:underline uppercase tracking-wider cursor-pointer"
+                            className="flex items-center gap-1 rounded-full bg-[#F6EEFA] px-3 py-1 text-[12px] font-semibold text-[#6A2385] ring-1 ring-[#E4D6EC] cursor-pointer"
                         >
-                            CHANGE
+                            <Pencil size={12} /> Edit
                         </button>
                     </div>
 
                     {selectedAddress ? (
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            
-                            {/* Address Text Info (7 cols) */}
-                            <div className="md:col-span-7 space-y-1.5 text-xs text-gray-600 leading-relaxed text-left">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-extrabold text-gray-900 text-sm">{selectedAddress?.receiverName || 'Turab'}</span>
-                                    <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase tracking-wide">
-                                        {selectedAddress?.type || 'HOME'}
-                                    </span>
+                        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                            {isServiceCheckout && (
+                                <div className="flex items-center gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#EFE8F4]">
+                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#6A2385] ring-1 ring-[#EFE8F4]"><Calendar size={17} /></span>
+                                    <div className="min-w-0">
+                                        <p className="text-[13px] font-bold capitalize text-[#1A1523]">{checkoutDeliveryType} Delivery</p>
+                                        <p className="text-[11.5px] text-gray-500">By {estimatedDeliveryDate} · {checkoutDeliveryDays} days</p>
+                                    </div>
                                 </div>
-                                <p className="text-gray-600 font-medium">
-                                    {formatCheckoutAddress(selectedAddress)}
-                                </p>
-                                <p className="pt-1 text-slate-600 font-medium">
-                                    Contact: <span className="font-bold text-slate-900">{selectedAddress?.phone || '9070000338'}</span>
-                                </p>
+                            )}
+                            <div className="flex items-start gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#EFE8F4]">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#6A2385] ring-1 ring-[#EFE8F4]"><MapPin size={17} /></span>
+                                <div className="min-w-0 text-left">
+                                    <p className="flex items-center gap-1.5 text-[13px] font-bold text-[#1A1523]">
+                                        <span className="truncate">Deliver to {selectedAddress?.receiverName || ''}</span>
+                                        {selectedAddress?.type && (
+                                            <span className="rounded-md bg-[#F3E9F8] px-1.5 py-0.5 text-[9.5px] font-semibold uppercase text-[#6A2385]">{selectedAddress.type}</span>
+                                        )}
+                                    </p>
+                                    <p className="text-[11.5px] leading-snug text-gray-500">{formatCheckoutAddress(selectedAddress)}</p>
+                                    {selectedAddress?.phone && <p className="mt-0.5 text-[11.5px] text-gray-500">Contact: <span className="font-semibold text-[#1A1523]">{selectedAddress.phone}</span></p>}
+                                </div>
                             </div>
-
-                            {/* Estimated Delivery & Visit Box (5 cols) */}
-                            <div className="md:col-span-5 bg-primary/5 border border-primary/10 rounded-2xl p-3.5 space-y-3 text-xs">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                                        📅
-                                    </div>
-                                    <div className="text-left">
-                                        <p className="text-[10px] text-gray-500 font-semibold">Estimated Delivery</p>
-                                        <p className="font-bold text-gray-900">Thu, Aug 13, 2026</p>
+                            {hasTailorAtHome && (
+                                <div className="flex items-center gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#EFE8F4] sm:col-span-2">
+                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#6A2385] ring-1 ring-[#EFE8F4]"><Home size={17} /></span>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[13px] font-bold text-[#1A1523]">Home Visit Selected</p>
+                                        <p className="text-[11.5px] text-gray-500">Our executive will collect measurements at your home</p>
                                     </div>
                                 </div>
-
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                                        🛵
-                                    </div>
-                                    <div className="text-left">
-                                        <p className="text-[10px] text-gray-500 font-semibold">Delivery Type</p>
-                                        <p className="font-bold text-gray-900">Standard Delivery</p>
-                                    </div>
-                                </div>
-
-                                {hasTailorAtHome && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                                            👤
-                                        </div>
-                                        <div className="text-left">
-                                            <p className="text-[10px] text-gray-500 font-semibold">Tailor Visit</p>
-                                            <p className="font-bold text-gray-900">At Your Home</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            )}
                         </div>
                     ) : (
-                        <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 text-center space-y-3">
-                            <MapPin size={32} className="mx-auto text-amber-500 opacity-50" />
+                        <div className="space-y-3 rounded-2xl bg-amber-50 p-5 text-center ring-1 ring-amber-100">
+                            <MapPin size={30} className="mx-auto text-amber-500 opacity-60" />
                             <p className="text-xs font-bold text-amber-900">No Address Selected</p>
                             <button
                                 onClick={() => navigate('/user/checkout/address')}
-                                className="px-4 py-2 bg-amber-500 text-white rounded-full text-xs font-bold uppercase tracking-wider cursor-pointer"
+                                className="rounded-full bg-amber-500 px-4 py-2 text-xs font-bold text-white cursor-pointer"
                             >
                                 Select Address Now
                             </button>
@@ -935,72 +861,63 @@ const CheckoutSummary = () => {
                 )}
 
                 {/* 5. Special Instructions (Optional) */}
-                <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-xs">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-                        <FileText size={18} className="text-primary" />
-                        <span>Special Instructions (Optional)</span>
+                <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+                    <h3 className="mb-3 flex items-center gap-2 text-[15px] font-bold text-[#1A1523]">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]"><FileText size={16} /></span>
+                        Additional Instructions <span className="text-[11px] font-medium text-gray-400">(Optional)</span>
                     </h3>
-                    <div className="relative">
+                    <div className="rounded-2xl bg-white p-3 ring-1 ring-[#E4D6EC] focus-within:ring-2 focus-within:ring-[#B98FCF]">
                         <textarea
                             rows={3}
-                            maxLength={150}
-                            placeholder="Add any special instructions for the tailor..."
-                            className="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-medium text-gray-800 focus:outline-none focus:border-primary focus:bg-white transition-all resize-none"
+                            maxLength={300}
+                            value={specialInstructions}
+                            onChange={(e) => setSpecialInstructions(e.target.value)}
+                            placeholder="E.g., Use fine finishing and the same neck design as the reference image."
+                            className="w-full resize-none bg-transparent text-[13px] text-[#1A1523] outline-none placeholder:text-gray-400"
                         />
-                        <span className="absolute bottom-3 right-3 text-[10px] text-gray-400 font-semibold">0/150</span>
+                        <p className="text-right text-[11px] text-gray-400">{specialInstructions.length}/300</p>
                     </div>
                 </div>
 
-
+                {/* Trust row */}
+                <div className="grid grid-cols-3 divide-x divide-[#EFE8F4] rounded-[22px] bg-[#FBF7FD] py-3 ring-1 ring-[#EFE8F4]">
+                    {[
+                        { icon: BadgeCheck, title: 'Verified Tailors', sub: 'Checked partners' },
+                        { icon: Lock, title: 'Secure Payment', sub: 'Safe & encrypted' },
+                        { icon: Headphones, title: 'Support', sub: 'Chat or call' },
+                    ].map(({ icon: Icon, title, sub }) => (
+                        <div key={title} className="flex flex-col items-center px-1 text-center">
+                            <Icon size={20} className="text-[#6A2385]" />
+                            <p className="mt-1 text-[11.5px] font-bold text-[#1A1523]">{title}</p>
+                            <p className="text-[10px] text-gray-500">{sub}</p>
+                        </div>
+                    ))}
+                </div>
 
             </div>
 
             {/* Sticky Bottom Bar */}
-            <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 px-4 py-3 sm:px-6 shadow-xl z-50">
-                <div className="max-w-xl mx-auto flex items-center justify-between gap-4">
-                    
-                    {/* Left: Total & Advance Amounts */}
-                    <div className="text-left">
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-xs text-gray-500 font-semibold">Total Amount</span>
-                            <span className="text-lg sm:text-xl font-black text-gray-900">
-                                ₹{finalTotal.toLocaleString('en-IN')}
-                            </span>
-                        </div>
+            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[24px] bg-white/95 px-4 py-3 shadow-[0_-12px_36px_-12px_rgba(42,15,56,0.22)] backdrop-blur sm:px-6">
+                <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
+                    <div className="min-w-0 text-left">
+                        <p className="text-[11px] font-semibold text-gray-500">Total Payable</p>
+                        <p className="text-[22px] font-bold leading-tight text-[#1A1523]">₹{finalTotal.toLocaleString('en-IN')}</p>
                         {discountAmount > 0 && (
-                            <p className="text-[10px] text-emerald-600 font-bold">
-                                Coupon saved ₹{discountAmount.toLocaleString('en-IN')}
-                            </p>
+                            <p className="text-[10.5px] font-semibold text-emerald-600">Coupon saved ₹{discountAmount.toLocaleString('en-IN')}</p>
                         )}
-                        <div className="flex items-baseline gap-1.5">
-                            <span className="text-xs text-primary font-bold">
-                                {effectiveAdvancePct >= 100 ? 'Payable now' : `Advance (${effectiveAdvancePct}%)`}
-                            </span>
-                            <span className="text-sm font-extrabold text-primary">
-                                ₹{advanceAmount.toLocaleString('en-IN')}
-                            </span>
-                        </div>
+                        {effectiveAdvancePct < 100 && (
+                            <p className="text-[11px] font-semibold text-[#6A2385]">Advance ({effectiveAdvancePct}%) ₹{advanceAmount.toLocaleString('en-IN')}</p>
+                        )}
                     </div>
-
-                    {/* Middle: Secure Payment Badge (Desktop) */}
-                    <div className="hidden md:flex items-center gap-1.5 text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-                        <ShieldCheck size={16} />
-                        <span>Secure Payment • 100% Safe & Secure</span>
-                    </div>
-
-                    {/* Right: Solid Purple Place Order Button */}
                     <button
                         onClick={handlePayment}
                         disabled={isProcessing || !selectedAddress}
-                        className="py-3.5 px-6 sm:px-8 bg-primary hover:bg-primary/90 active:bg-primary/80 text-white font-extrabold rounded-2xl text-base shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                        className="flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-[#8A3FA6] to-[#5A1A78] px-7 py-3.5 text-[15px] font-bold text-white shadow-[0_14px_28px_-14px_rgba(90,26,120,0.9)] transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                     >
                         {isProcessing ? (
                             <><Loader2 size={18} className="animate-spin" /> Submitting...</>
                         ) : (
-                            <>
-                                <span>Place Order</span>
-                                <ArrowRight size={18} />
-                            </>
+                            <>Place Order <ArrowRight size={18} /></>
                         )}
                     </button>
                 </div>

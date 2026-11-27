@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Scissors, ShoppingBag, ChevronRight, X, Loader2 } from 'lucide-react';
+import { Scissors, ShoppingBag, ChevronRight, X, Loader2, Layers, Check } from 'lucide-react';
 import { cn } from '../../../../utils/cn';
 import api from '../../../../utils/api';
 
@@ -32,47 +32,55 @@ const FabricSelector = ({ selected, onSelect, selectedFabric, onSelectFabric, ta
     }, [tailor?._id, showFabricPicker]);
 
     return (
-        <div className="bg-white rounded-2xl p-3.5 mb-3 shadow-sm border border-gray-100 relative">
-            <h3 className="text-sm font-bold text-gray-900 mb-3">Fabric Source</h3>
+        <div className="relative rounded-[22px] bg-white p-4 shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+            <div className="mb-3 flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F3E9F8] text-[#6A2385]">
+                    <Layers size={18} />
+                </span>
+                <div className="min-w-0">
+                    <h3 className="text-[15px] font-bold leading-tight text-[#1A1523]">Fabric Source</h3>
+                    <p className="text-[11.5px] text-gray-500">Use your own fabric or buy from the tailor</p>
+                </div>
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* Customer Provides */}
-                <div
-                    onClick={() => onSelect('customer')}
-                    className={cn(
-                        "p-3 rounded-xl border cursor-pointer transition-all text-center",
-                        selected === 'customer' ? "border-primary bg-primary-soft ring-1 ring-primary" : "border-gray-100 hover:border-gray-200"
-                    )}
-                >
-                    <div className="w-10 h-10 mx-auto bg-gray-100 rounded-full flex items-center justify-center text-gray-600 mb-2">
-                        <Scissors size={20} />
-                    </div>
-                    <p className="text-xs font-bold text-gray-900">I will provide</p>
-                    <p className="text-[10px] text-gray-500 mt-1">Pickup from your location</p>
-                </div>
-
-                {/* Platform Provides */}
-                <div
-                    onClick={() => {
-                        onSelect('platform');
-                        if (!selectedFabric && tailor) setShowFabricPicker(true);
-                    }}
-                    className={cn(
-                        "p-3 rounded-xl border cursor-pointer transition-all text-center",
-                        selected === 'platform' ? "border-primary bg-primary-soft ring-1 ring-primary" : "border-gray-100 hover:border-gray-200"
-                    )}
-                >
-                    <div className="w-10 h-10 mx-auto bg-indigo-50 rounded-full flex items-center justify-center text-primary mb-2">
-                        <ShoppingBag size={20} />
-                    </div>
-                    <p className="text-xs font-bold text-gray-900">Buy from Tailor</p>
-                    <p className="text-[10px] text-gray-500 mt-1">Direct from tailor's store</p>
-                </div>
+                {[
+                    { key: 'customer', icon: Scissors, title: "I'll Provide Fabric", sub: 'Use my own fabric · we pick it up' },
+                    { key: 'platform', icon: ShoppingBag, title: 'Buy from Tailor', sub: "Choose from the tailor's fabrics" },
+                ].map((opt) => {
+                    const active = selected === opt.key;
+                    const Icon = opt.icon;
+                    return (
+                        <button
+                            key={opt.key}
+                            type="button"
+                            onClick={() => {
+                                onSelect(opt.key);
+                                if (opt.key === 'platform' && !selectedFabric && tailor) setShowFabricPicker(true);
+                            }}
+                            className={cn(
+                                'relative flex flex-col items-center rounded-2xl p-3 text-center transition-all',
+                                active ? 'bg-[#FBF7FD] ring-2 ring-[#6A2385]' : 'bg-white ring-1 ring-[#EFE8F4] hover:ring-[#D9C2E6]'
+                            )}
+                        >
+                            {active && (
+                                <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#6A2385] text-white">
+                                    <Check size={12} strokeWidth={3} />
+                                </span>
+                            )}
+                            <span className={cn('mb-2 flex h-14 w-14 items-center justify-center rounded-2xl', active ? 'bg-gradient-to-br from-[#8A3FA6] to-[#5A1A78] text-white' : 'bg-[#F3E9F8] text-[#6A2385]')}>
+                                <Icon size={24} />
+                            </span>
+                            <span className="text-[13px] font-bold text-[#1A1523]">{opt.title}</span>
+                            <span className="mt-0.5 text-[11px] leading-snug text-gray-500">{opt.sub}</span>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Selected Fabric Info (NEW) */}
             {selectedFabric && selected === 'platform' ? (
-                <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-dashed border-primary/30 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                <div className="mt-3 flex items-center gap-3 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#E4D6EC] animate-in fade-in slide-in-from-top-2">
                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
                         <img src={selectedFabric.image} alt={selectedFabric.name} className="w-full h-full object-cover" />
                     </div>
@@ -91,7 +99,7 @@ const FabricSelector = ({ selected, onSelect, selectedFabric, onSelectFabric, ta
                     </div>
                 </div>
             ) : selected === 'platform' && !selectedFabric && (
-                <div className="mt-4">
+                <div className="mt-3">
                     {!tailor ? (
                         <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 text-center">
                             <p className="text-[10px] text-amber-700 font-medium">Please select a tailor first to see their available fabrics.</p>
@@ -99,7 +107,7 @@ const FabricSelector = ({ selected, onSelect, selectedFabric, onSelectFabric, ta
                     ) : (
                         <button
                             onClick={() => setShowFabricPicker(true)}
-                            className="w-full p-3 bg-primary text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform"
+                            className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#8A3FA6] to-[#5A1A78] p-3 text-[12.5px] font-semibold text-white shadow-md transition-transform active:scale-95"
                         >
                             Select Fabric from {tailor.shopName || 'Tailor Partner'} <ChevronRight size={14} />
                         </button>

@@ -198,6 +198,12 @@ const orderSchema = new mongoose.Schema(
     bridalNotes: {
         type: String
     },
+    // Customer's note for the tailor, entered on the checkout summary page
+    specialInstructions: {
+        type: String,
+        trim: true,
+        maxlength: 300,
+    },
     bridalDate: {
         type: String
     },

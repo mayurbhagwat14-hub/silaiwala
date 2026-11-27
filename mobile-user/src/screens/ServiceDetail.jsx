@@ -1389,6 +1389,18 @@ const ServiceDetail = () => {
                                         setIsTailorAtHome(false);
                                         setMeasurementType(null);
                                         setMeasurements((prev) => (prev?.type === 'home' ? null : prev));
+                                    } else if (measurementType === 'sample') {
+                                        // Tapping "Provide Sample Garment" again removes it
+                                        setMeasurementType(null);
+                                        setMeasurements((prev) => {
+                                            if (!prev || prev.type === 'sample') return null;
+                                            const { sampleGarment: _sampleGarment, ...rest } = prev;
+                                            return rest;
+                                        });
+                                    } else {
+                                        // Collapse the open option (Enter Measurements / Upload Slip / saved);
+                                        // entered values stay in `measurements`
+                                        setMeasurementType(null);
                                     }
                                 }}
                                 onMeasurementComplete={(data) => {

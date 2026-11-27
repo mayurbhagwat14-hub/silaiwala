@@ -1,21 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Ruler, Scissors, Shirt, X, Star, CheckCircle2, ChevronRight, User, BadgeCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Ruler, Scissors, Shirt, X, Star, ChevronRight, BadgeCheck, Sparkles, Layers, Home, CheckCircle2, Wand2, StickyNote } from 'lucide-react';
 import api from '../../../../../utils/api';
 import SafeImage from '../../../../../components/Common/SafeImage';
 import AboutShopModal from './AboutShopModal';
 
+const SLOT_LABELS = {
+    neck: 'Neck Design',
+    sleeve: 'Sleeve Style',
+    bottom: 'Bottom Style',
+    embroidery: 'Embroidery Work',
+    lacePiping: 'Lace / Piping',
+    lining: 'Inner Lining',
+    fit: 'Fit Preference',
+    other: 'Customization',
+};
+const NON_MEASURE_KEYS = ['type', 'notes', 'slipImage', 'image', 'url', 'slipUrl', 'file', 'isConfirmed', 'saveProfile', 'sampleGarment', 'slipAttached', 'data', 'option'];
+
+const SectionHead = ({ icon: Icon, title, right }) => (
+    <div className="mb-2.5 flex items-center justify-between gap-2">
+        <h4 className="flex items-center gap-2 text-[14px] font-bold text-[#1A1523]">
+            <Icon size={16} className="text-[#6A2385]" /> {title}
+        </h4>
+        {right}
+    </div>
+);
+
+/** One garment on the checkout summary: item, customizations, fabric, measurements and tailor. */
 const ServiceReviewCard = ({ service, config, pricing, onRemove }) => {
-    const navigate = useNavigate();
     const [tailorData, setTailorData] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    if (!service) return null;
 
     const tailorId = service?.tailorId || (typeof service?.tailor === 'object' ? (service?.tailor?._id || service?.tailor?.id) : service?.tailor);
 
     useEffect(() => {
-        if (!tailorId) return;
+        if (!tailorId) return undefined;
 
         let isMounted = true;
         const fetchTailorInfo = async () => {
@@ -35,326 +53,219 @@ const ServiceReviewCard = ({ service, config, pricing, onRemove }) => {
         return () => { isMounted = false; };
     }, [tailorId]);
 
-    const deliveryDate = new Date();
-    const deliveryDays = config?.deliveryType === 'express' ? 7 : 14;
-    deliveryDate.setDate(deliveryDate.getDate() + deliveryDays);
-    const dateString = deliveryDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    if (!service) return null;
 
-    // Derive Tailor Profile Info (shop name only — privacy)
+    // Tailor (shop name only — privacy). Rating / experience only when real data exists.
     const shopName = tailorData?.shopName || service.tailorName || 'Tailor Partner';
-    const avatarImg = tailorData?.user?.profileImage || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop';
-    const rating = tailorData?.rating || 4.8;
-    const totalReviews = tailorData?.totalReviews || 320;
-    const experienceText = tailorData?.experienceInYears ? `${tailorData.experienceInYears}+ Years Exp.` : '8+ Years Exp.';
+    const avatarImg = tailorData?.user?.profileImage;
+    const rating = Number(tailorData?.rating) || 0;
+    const totalReviews = Number(tailorData?.totalReviews) || 0;
+    const hasRating = rating > 0 && totalReviews > 0;
+    const experience = Number(tailorData?.experienceInYears) || 0;
 
     const isHomeVisitSelected = Boolean(
-        config?.isTailorAtHome || 
-        config?.measurements?.option === 'visit' || 
+        config?.isTailorAtHome ||
+        config?.measurements?.option === 'visit' ||
         (pricing?.tailorAtHome && pricing.tailorAtHome > 0)
     );
 
+    const garmentPrice = (Number(pricing?.base) || 0) + (Number(pricing?.addons) || 0) + (Number(pricing?.fabric) || 0) + (Number(pricing?.customizations) || 0);
+    const displayGarmentPrice = Math.round(garmentPrice > 0 ? garmentPrice : (Number(pricing?.total) || 0));
+
+    const measureType = config?.measurements?.type;
+    const measureLabel = isHomeVisitSelected
+        ? 'Home visit by our executive'
+        : measureType === 'slip' ? 'Measurement slip uploaded'
+            : measureType === 'sample' ? 'Sample garment pickup'
+                : measureType === 'saved' ? 'Saved measurement profile'
+                    : 'Measurements provided';
+    const measureValues = !isHomeVisitSelected && config?.measurements
+        ? Object.entries(config.measurements).filter(([key, val]) => !NON_MEASURE_KEYS.includes(key) && val !== '' && val != null && typeof val !== 'object')
+        : [];
+
+    const custs = Object.entries(config?.customizations || {})
+        .filter(([, val]) => val && val.enabled !== false && (val.name || val.refImage || Number(val.price) > 0));
+    const addonsList = Array.isArray(config?.addons) && config.addons.length > 0
+        ? config.addons
+        : (Array.isArray(config?.styleAddons) ? config.styleAddons : []);
+
+    const fabric = config?.selectedFabric;
+    const fabricName = config?.fabricSource === 'customer' ? 'My Own Fabric' : (fabric?.name || "Tailor's Fabric");
+    const fabricSub = config?.fabricSource === 'customer' ? 'I will provide the fabric · picked up from you' : "Bought from the tailor's store";
+    const fabricImage = config?.fabricSource !== 'customer' ? (fabric?.image || fabric?.images?.[0]) : null;
+
     return (
-        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xs mb-4 relative overflow-hidden">
-            {onRemove && (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        onRemove();
-                    }}
-                    className="absolute top-3 right-3 p-1.5 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-colors z-10 cursor-pointer"
-                    title="Remove Item"
-                >
-                    <X size={14} />
-                </button>
-            )}
-
-            {/* Section Title & Price */}
-            {(() => {
-                const garmentPrice = (Number(pricing?.base) || 0) + (Number(pricing?.addons) || 0) + (Number(pricing?.fabric) || 0) + (Number(pricing?.customizations) || 0);
-                const displayGarmentPrice = garmentPrice > 0 ? garmentPrice : (Number(pricing?.total) || 0);
-                return (
-                    <div className="flex items-center justify-between mb-3.5 pr-6">
-                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                            <Shirt size={16} className="text-[#843D9B]" />
-                            <span>Service & Details</span>
-                        </h3>
-                        <span className="text-sm sm:text-base font-extrabold text-slate-900">
-                            ₹{Math.round(displayGarmentPrice).toLocaleString('en-IN')}
-                        </span>
-                    </div>
-                );
-            })()}
-
-            {/* Main Item Layout */}
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-3.5">
-                
-                {/* Left Side: Thumbnail & Service Details */}
-                <div className="flex-1 flex gap-3 items-start min-w-0">
+        <div className="relative overflow-hidden rounded-[22px] bg-white shadow-[0_8px_24px_-18px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
+            {/* Order details */}
+            <div className="p-4">
+                <SectionHead
+                    icon={Shirt}
+                    title="Order Details"
+                    right={onRemove && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onRemove(); }}
+                            className="flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-500 transition-colors hover:bg-red-100 cursor-pointer"
+                            title="Remove item"
+                        >
+                            <X size={12} /> Remove
+                        </button>
+                    )}
+                />
+                <div className="flex gap-3">
                     <img
                         src={service.image}
                         alt={service.title}
-                        className="w-20 h-24 sm:w-24 sm:h-28 object-cover rounded-2xl border border-slate-100 shrink-0 shadow-2xs"
+                        className="h-[100px] w-[84px] shrink-0 rounded-2xl object-cover ring-1 ring-[#EFE8F4]"
                     />
-
-                    <div className="flex-1 space-y-1 min-w-0 text-left">
-                        <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
-                            {service.title}
-                        </h4>
-
-                        {/* Attribute Badges */}
-                        <div className="flex flex-wrap gap-1 pt-0.5">
-                            <div className="flex items-center gap-1 text-[10px] font-semibold text-[#843D9B] bg-[#FAF5FF] px-2 py-0.5 rounded-full border border-purple-100/80">
-                                <Scissors size={10} />
-                                <span>{config?.fabricSource === 'customer' ? 'Your Fabric' : 'Fabric Provided'}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] font-semibold text-[#843D9B] bg-[#FAF5FF] px-2 py-0.5 rounded-full border border-purple-100/80">
-                                <Ruler size={10} />
-                                <span>
-                                    {isHomeVisitSelected
-                                        ? 'Executive Visit'
-                                        : config?.measurements?.type === 'slip'
-                                            ? 'Slip Upload'
-                                            : config?.measurements?.type === 'sample'
-                                                ? 'Sample Garment'
-                                                : config?.measurements?.type === 'saved'
-                                                    ? 'Saved Profile'
-                                                    : 'Self Measured'}
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                            <h3 className="text-[15px] font-bold leading-snug text-[#1A1523]">{service.title}</h3>
+                            <span className="shrink-0 text-[16px] font-bold text-[#1A1523]">₹{displayGarmentPrice.toLocaleString('en-IN')}</span>
+                        </div>
+                        <p className="mt-0.5 flex items-center gap-1 text-[12px] text-gray-500">
+                            <Scissors size={12} className="text-[#6A2385]" /> Stitching Service
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                            {config?.selectedStyle && (
+                                <span className="rounded-full bg-[#F3E9F8] px-2 py-0.5 text-[10.5px] font-semibold text-[#6A2385]">
+                                    {config.selectedStyle.isCustom ? 'Custom Design' : config.selectedStyle.name}
                                 </span>
-                            </div>
-                        </div>
-
-                        {/* Per-item measurement snapshot (multi-garment orders) */}
-                        {!isHomeVisitSelected && config?.measurements && (
-                            <div className="mt-1.5 w-full rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-2">
-                                <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1">
-                                    Measurements for this garment
-                                </p>
-                                {config.measurements.type === 'slip' && (config.measurements.slipImage || config.measurements.image) ? (
-                                    <p className="text-[10px] font-semibold text-slate-600">Measurement slip attached</p>
-                                ) : config.measurements.type === 'sample' ? (
-                                    <p className="text-[10px] font-semibold text-slate-600">Sample garment pickup</p>
-                                ) : (
-                                    <div className="flex flex-wrap gap-1">
-                                        {Object.entries(config.measurements)
-                                            .filter(([key, val]) =>
-                                                !['type', 'notes', 'slipImage', 'image', 'url', 'slipUrl', 'file', 'isConfirmed', 'saveProfile', 'sampleGarment', 'slipAttached', 'data'].includes(key)
-                                                && val !== '' && val != null && typeof val !== 'object'
-                                            )
-                                            .slice(0, 6)
-                                            .map(([key, val]) => (
-                                                <span
-                                                    key={key}
-                                                    className="text-[9px] font-bold text-slate-700 bg-white border border-slate-100 px-1.5 py-0.5 rounded-md"
-                                                >
-                                                    {key}: {val}
-                                                </span>
-                                            ))}
-                                        {Object.entries(config.measurements).filter(([key, val]) =>
-                                            !['type', 'notes', 'slipImage', 'image', 'url', 'slipUrl', 'file', 'isConfirmed', 'saveProfile', 'sampleGarment', 'slipAttached', 'data'].includes(key)
-                                            && val !== '' && val != null && typeof val !== 'object'
-                                        ).length === 0 && (
-                                            <p className="text-[10px] font-semibold text-slate-500">Custom fit details saved</p>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        {isHomeVisitSelected && (
-                            <p className="mt-1.5 text-[9px] font-semibold text-sky-700 bg-sky-50 border border-sky-100 rounded-lg px-2 py-1">
-                                Home visit: executive will take measurements for this order (shared visit if multiple garments).
-                            </p>
-                        )}
-
-                        {/* Selected Style / Custom Reference Design */}
-                        {config?.selectedStyle && (
-                            <div className="flex items-center gap-2 mt-2 p-2 bg-purple-50/70 border border-purple-100 rounded-xl">
-                                {config.selectedStyle.image && (
-                                    <img 
-                                        src={config.selectedStyle.image} 
-                                        alt="Style" 
-                                        className="w-10 h-10 rounded-lg object-cover border border-purple-200 shrink-0 cursor-pointer shadow-2xs" 
-                                        onClick={() => window.open(config.selectedStyle.image, '_blank')}
-                                    />
-                                )}
-                                <div className="text-left min-w-0 flex-1">
-                                    <p className="text-[11px] font-bold text-slate-900 truncate">{config.selectedStyle.name || 'Custom Style'}</p>
-                                    <p className="text-[9px] text-primary font-bold uppercase">{config.selectedStyle.isCustom ? '📸 Custom Reference Photo' : '✂️ Selected Variant'}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Style Addons */}
-                        {(() => {
-                            const addonsList = Array.isArray(config?.addons) && config.addons.length > 0 
-                                ? config.addons 
-                                : (Array.isArray(config?.styleAddons) ? config.styleAddons : []);
-                            if (!addonsList.length) return null;
-                            return (
-                                <div className="flex flex-col gap-1.5 mt-2 p-2.5 bg-indigo-50/60 border border-indigo-100 rounded-xl">
-                                    <p className="text-[10px] font-black uppercase text-indigo-700 tracking-wider flex items-center gap-1">
-                                        ✨ Style Add-ons ({addonsList.length})
-                                    </p>
-                                    {addonsList.map((addon, aIdx) => (
-                                        <div key={addon._id || aIdx} className="flex justify-between items-center text-[11px] font-bold text-slate-700">
-                                            <span className="truncate pr-2">• {addon.name || addon.title}</span>
-                                            <span className="text-[#843D9B] shrink-0 font-black">+₹{Number(addon.price || 0)}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            );
-                        })()}
-
-                        {/* Customizations */}
-                        {(() => {
-                            const custs = config?.customizations || {};
-                            const activeCusts = Object.entries(custs).filter(([_, val]) => val && val.enabled !== false && (val.name || val.refImage || Number(val.price) > 0));
-                            if (activeCusts.length === 0) return null;
-                            const slotLabels = {
-                                neck: 'Neck Design',
-                                sleeve: 'Sleeve Style',
-                                bottom: 'Bottom Style',
-                                embroidery: 'Embroidery Work',
-                                lacePiping: 'Lace / Piping',
-                                lining: 'Inner Lining',
-                                other: 'Customization'
-                            };
-                            return (
-                                <div className="flex flex-col gap-2 mt-2 p-2.5 bg-purple-50/70 border border-purple-100 rounded-xl">
-                                    <p className="text-[10px] font-black uppercase text-[#843D9B] tracking-wider flex items-center gap-1">
-                                        <Scissors size={12} /> Customizations ({activeCusts.length})
-                                    </p>
-                                    <div className="space-y-1.5">
-                                        {activeCusts.map(([key, val]) => (
-                                            <div key={key} className="flex flex-col gap-1 p-1.5 bg-white rounded-lg border border-purple-100/60">
-                                                <div className="flex justify-between items-center text-[11px] font-bold text-slate-700">
-                                                    <span className="text-slate-500 uppercase text-[9px] font-black">{slotLabels[key] || key}: <span className="text-slate-900 font-bold capitalize">{val.name || 'Custom Spec'}</span></span>
-                                                    {Number(val.price) > 0 && <span className="text-[#843D9B] font-black text-xs shrink-0">+₹{val.price}</span>}
-                                                </div>
-                                                {val.notes && (
-                                                    <div className="text-[10px] text-amber-900 bg-amber-50/90 border border-amber-200/60 rounded px-1.5 py-0.5">
-                                                        <span className="font-bold text-amber-700">📌 Note: </span>
-                                                        <span>{val.notes}</span>
-                                                    </div>
-                                                )}
-                                                {val.refImage && (
-                                                    <img
-                                                        src={val.refImage}
-                                                        alt={val.name || key}
-                                                        className="h-14 w-auto self-start rounded-md object-cover border border-purple-100 cursor-pointer"
-                                                        onClick={() => window.open(val.refImage, '_blank')}
-                                                    />
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-
-                        {/* Delivery Estimated Chip */}
-                        <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#047857] bg-[#ECFDF5] px-2 py-0.5 rounded-md border border-[#A7F3D0] w-fit mt-1">
-                            <Calendar size={11} />
-                            <span>Delivery by {dateString}</span>
-                        </div>
-
-                        {/* Tagline: Measurement Executive or Boutique Tailor */}
-                        <div className="pt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-[#843D9B] font-extrabold uppercase tracking-wide">
-                            {isHomeVisitSelected ? (
-                                <>
-                                    <Ruler size={10} />
-                                    <span>MEASUREMENT EXECUTIVE AT HOME</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Scissors size={10} />
-                                    <span>TAILORED BY: {shopName}</span>
-                                </>
                             )}
+                            {custs.some(([key]) => key === 'embroidery') && (
+                                <span className="rounded-full bg-[#F3E9F8] px-2 py-0.5 text-[10.5px] font-semibold text-[#6A2385]">With Embroidery</span>
+                            )}
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10.5px] font-medium text-gray-600">Qty: 1</span>
                         </div>
                     </div>
                 </div>
-
-                {/* Right Side: Tailor Profile Card or Measurement Executive Badge */}
-                {!isHomeVisitSelected ? (
-                    <div className="flex flex-col items-start sm:items-end gap-2 shrink-0 pt-1 sm:pt-0">
-                        <div className="flex items-center gap-2 bg-[#F8FAFC] p-2 rounded-2xl border border-slate-100 min-w-[155px]">
-                            <SafeImage
-                                src={avatarImg}
-                                alt={shopName}
-                                className="w-9 h-9 rounded-full object-cover border-2 border-purple-200 shadow-2xs bg-purple-100 shrink-0"
-                                onError={(e) => {
-                                    e.target.src = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop';
-                                }}
-                            />
-
-                            <div className="text-left space-y-0.5 min-w-0">
-                                <div className="flex items-center gap-1">
-                                    <h5 className="text-[11px] font-bold text-slate-900 truncate">{shopName}</h5>
-                                    <span className="bg-[#843D9B] text-white text-[8px] font-bold uppercase px-1.5 py-0.2 rounded-full">
-                                        VERIFIED
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-700">
-                                    <Star size={10} className="fill-amber-400 text-amber-400" />
-                                    <span>{rating}</span>
-                                    <span className="text-slate-400">({totalReviews})</span>
-                                </div>
-
-                                <p className="text-[8px] text-slate-500 font-medium">{experienceText}</p>
-                            </div>
-                        </div>
-
-                        {/* View Profile Action Button */}
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="w-full py-1 px-3 bg-white border border-slate-200 hover:border-[#843D9B] hover:bg-purple-50/50 text-slate-800 hover:text-[#843D9B] rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 shadow-2xs group cursor-pointer"
-                        >
-                            <span>View Profile</span>
-                            <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                        </button>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-start sm:items-end gap-1.5 shrink-0 pt-1 sm:pt-0">
-                        <div className="flex items-center gap-2 bg-[#FAF5FF] p-2.5 rounded-2xl border border-purple-100 min-w-[155px]">
-                            <div className="w-8 h-8 rounded-full bg-purple-100 text-[#843D9B] flex items-center justify-center font-bold text-xs shrink-0">
-                                📏
-                            </div>
-                            <div className="text-left space-y-0.5">
-                                <div className="flex items-center gap-1">
-                                    <h5 className="text-[11px] font-bold text-slate-900">Home Visit</h5>
-                                    <span className="bg-[#843D9B] text-white text-[8px] font-bold uppercase px-1.5 py-0.2 rounded-full">
-                                        Executive
-                                    </span>
-                                </div>
-                                <p className="text-[9px] text-primary font-semibold">Verified Professional</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {/* Bottom Row: Measurement Executive Visit Status */}
-            {isHomeVisitSelected && (
-                <div className="pt-2.5 mt-2.5 border-t border-purple-100 flex items-center justify-between text-xs font-semibold text-slate-600">
-                    <span className="flex items-center gap-1.5 text-[#843D9B] font-bold">
-                        <Ruler size={13} className="text-[#843D9B]" /> Measurement Executive Visit
-                    </span>
-                    <span className="text-[10px] font-bold text-[#843D9B] bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
-                        Shared for this Order
-                    </span>
+            {/* Customization summary */}
+            {(custs.length > 0 || addonsList.length > 0) && (
+                <div className="border-t border-[#F3ECF7] p-4">
+                    <SectionHead icon={Wand2} title="Customization Summary" />
+                    {custs.length > 0 && (
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                            {custs.map(([key, val]) => (
+                                <div key={key} className="flex min-w-0 gap-2">
+                                    {val.refImage ? (
+                                        <img src={val.refImage} alt={val.name || key} className="h-9 w-9 shrink-0 cursor-pointer rounded-lg object-cover ring-1 ring-[#EFE8F4]" onClick={() => window.open(val.refImage, '_blank')} />
+                                    ) : (
+                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F6EEFA] text-[#6A2385]"><Scissors size={15} /></span>
+                                    )}
+                                    <div className="min-w-0">
+                                        <p className="truncate text-[12px] font-semibold text-[#1A1523]">{SLOT_LABELS[key] || key}</p>
+                                        <p className="truncate text-[11px] capitalize text-gray-500">
+                                            {val.name || 'Custom spec'}{Number(val.price) > 0 ? ` · +₹${val.price}` : ''}
+                                        </p>
+                                        {val.notes && <p className="line-clamp-2 text-[10.5px] text-amber-700">Note: {val.notes}</p>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {addonsList.length > 0 && (
+                        <div className={`flex flex-wrap gap-1.5 ${custs.length > 0 ? 'mt-3' : ''}`}>
+                            {addonsList.map((addon, aIdx) => (
+                                <span key={addon._id || aIdx} className="flex items-center gap-1 rounded-full bg-[#F6EEFA] px-2.5 py-1 text-[11px] font-semibold text-[#6A2385]">
+                                    <Sparkles size={11} /> {addon.name || addon.title}
+                                    {Number(addon.price) > 0 && <span className="text-[#5A1A78]">+₹{Number(addon.price)}</span>}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Instructions if any */}
+            {/* Style reference photo */}
+            {config?.selectedStyle?.image && (
+                <div className="flex items-center gap-3 border-t border-[#F3ECF7] px-4 py-3">
+                    <img
+                        src={config.selectedStyle.image}
+                        alt="Style"
+                        className="h-11 w-11 shrink-0 cursor-pointer rounded-xl object-cover ring-1 ring-[#EFE8F4]"
+                        onClick={() => window.open(config.selectedStyle.image, '_blank')}
+                    />
+                    <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-[#1A1523]">{config.selectedStyle.name || 'Custom Style'}</p>
+                        <p className="text-[11px] text-gray-500">{config.selectedStyle.isCustom ? 'Your reference photo' : 'Selected style'}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Fabric */}
+            <div className="border-t border-[#F3ECF7] p-4">
+                <SectionHead icon={Layers} title="Fabric Details" />
+                <div className="flex items-center gap-3">
+                    {fabricImage ? (
+                        <img src={fabricImage} alt={fabricName} className="h-12 w-12 shrink-0 rounded-xl object-cover ring-1 ring-[#EFE8F4]" />
+                    ) : (
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#B66DD0] to-[#6A2385] text-white"><Layers size={20} /></span>
+                    )}
+                    <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-[#1A1523]">{fabricName}</p>
+                        <p className="text-[11.5px] text-gray-500">{fabricSub}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Measurements */}
+            <div className="border-t border-[#F3ECF7] p-4">
+                <SectionHead icon={Ruler} title="Measurements" />
+                <div className="flex items-start gap-2.5 rounded-2xl bg-[#FBF7FD] p-3 ring-1 ring-[#EFE8F4]">
+                    {isHomeVisitSelected ? <Home size={17} className="mt-0.5 shrink-0 text-[#6A2385]" /> : <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-600" />}
+                    <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-semibold text-[#1A1523]">{measureLabel}</p>
+                        {isHomeVisitSelected ? (
+                            <p className="text-[11.5px] text-gray-500">Our executive will take measurements at your home (one visit for the whole order).</p>
+                        ) : measureValues.length > 0 ? (
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                                {measureValues.slice(0, 6).map(([key, val]) => (
+                                    <span key={key} className="rounded-md bg-white px-1.5 py-0.5 text-[10.5px] font-medium text-[#2A1F33] ring-1 ring-[#EFE8F4]">
+                                        {key}: {val}
+                                    </span>
+                                ))}
+                                {measureValues.length > 6 && <span className="px-1 text-[10.5px] text-gray-400">+{measureValues.length - 6} more</span>}
+                            </div>
+                        ) : null}
+                    </div>
+                </div>
+            </div>
+
+            {/* Tailor */}
+            <div className="flex items-center gap-3 border-t border-[#F3ECF7] p-4">
+                <span className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F6EEFA] ring-2 ring-[#EFE8F4]">
+                    <SafeImage src={avatarImg} alt={shopName} className="h-full w-full object-cover" />
+                </span>
+                <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-1 text-[13.5px] font-bold text-[#1A1523]">
+                        <span className="truncate">{shopName}</span>
+                        <BadgeCheck size={15} className="shrink-0 fill-[#6A2385] text-white" />
+                    </p>
+                    <p className="flex items-center gap-1 text-[11.5px] text-gray-500">
+                        {hasRating ? (
+                            <><Star size={11} className="fill-[#F5A623] text-[#F5A623]" /> {rating.toFixed(1)} ({totalReviews})</>
+                        ) : (
+                            <><Sparkles size={11} className="text-[#6A2385]" /> New tailor</>
+                        )}
+                        {experience > 0 && <span>· {experience}+ yrs exp.</span>}
+                    </p>
+                </div>
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex shrink-0 items-center gap-0.5 rounded-full bg-[#F6EEFA] px-3 py-1.5 text-[11.5px] font-semibold text-[#6A2385] ring-1 ring-[#E4D6EC] cursor-pointer"
+                >
+                    View Profile <ChevronRight size={13} />
+                </button>
+            </div>
+
+            {/* Instructions saved with the item */}
             {config?.instructions && typeof config.instructions === 'string' && (
-                <div className="mt-3 p-2.5 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-900 italic">
-                    Note: "{config.instructions}"
+                <div className="mx-4 mb-4 flex gap-2 rounded-xl bg-amber-50 p-2.5 text-[12px] text-amber-900 ring-1 ring-amber-100">
+                    <StickyNote size={14} className="mt-0.5 shrink-0" /> {config.instructions}
                 </div>
             )}
 
-            {/* About Shop Modal Popup */}
             <AboutShopModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -366,4 +277,3 @@ const ServiceReviewCard = ({ service, config, pricing, onRemove }) => {
 };
 
 export default ServiceReviewCard;
-
