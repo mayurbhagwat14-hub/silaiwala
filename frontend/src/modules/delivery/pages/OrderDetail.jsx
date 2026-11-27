@@ -25,6 +25,7 @@ import {
 import CancellationModal from '../components/CancellationModal';
 import TrackingMap from '../../../shared/components/TrackingMap';
 import DeliveryBoyLiveMap from '../../../shared/components/DeliveryBoyLiveMap';
+import { googleNavUrl } from '../utils/taskStops';
 import PageTransition from '../../../shared/components/PageTransition';
 import { formatPrice } from '../../../shared/utils/helpers';
 import toast from 'react-hot-toast';
@@ -707,9 +708,19 @@ const DeliveryOrderDetail = () => {
                 />
                  
                  {/* FLOATING PROMPT LIKE SCREENSHOT */}
-                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white px-5 py-2.5 rounded-full shadow-lg border border-slate-100 whitespace-nowrap text-[11px] font-bold text-slate-600 shadow-slate-200/50 z-20">
-                    {isAvailableTask ? 'Review the task details below.' : "Start when you're ready to head to the pickup."}
-                 </div>
+                 {isAvailableTask ? (
+                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white px-5 py-2.5 rounded-full shadow-lg border border-slate-100 whitespace-nowrap text-[11px] font-bold text-slate-600 shadow-slate-200/50 z-20">
+                      Review the task details below.
+                   </div>
+                 ) : (
+                   <button
+                     type="button"
+                     onClick={() => navigate(`/delivery/orders/${id}/tracking`)}
+                     className="absolute -bottom-5 left-1/2 z-20 flex h-11 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-[#6A2385] px-6 text-[13px] font-bold text-white shadow-lg transition-all hover:bg-[#5A1A78] active:scale-95"
+                   >
+                     <FiNavigation size={16} /> {currentPhase === 'pickup' ? 'Navigate to Pickup' : 'Navigate to Drop'}
+                   </button>
+                 )}
                  
                  {/* Distance/ETA Overlay - moved top right for cleaner look */}
                  <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-slate-100 flex gap-3">
@@ -764,7 +775,7 @@ const DeliveryOrderDetail = () => {
 
                 <div className="flex gap-2">
                    <a 
-                     href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupAddress)}`}
+                     href={googleNavUrl({ coords: pickupLat && pickupLng ? { lat: Number(pickupLat), lng: Number(pickupLng) } : null, address: pickupAddress }) || undefined}
                      target="_blank"
                      rel="noopener noreferrer"
                      className={`w-14 h-11 rounded-2xl flex items-center justify-center shadow-sm active:scale-95 transition-all ${currentPhase !== 'pickup' ? 'bg-slate-50 text-slate-400' : 'bg-blue-50 text-blue-600'}`}
@@ -810,7 +821,7 @@ const DeliveryOrderDetail = () => {
 
                 <div className="flex gap-2">
                    <a 
-                     href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dropoffAddress)}`}
+                     href={googleNavUrl({ coords: dropoffLat && dropoffLng ? { lat: Number(dropoffLat), lng: Number(dropoffLng) } : null, address: dropoffAddress }) || undefined}
                      target="_blank"
                      rel="noopener noreferrer"
                      className="w-14 h-11 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm active:scale-95 transition-all"

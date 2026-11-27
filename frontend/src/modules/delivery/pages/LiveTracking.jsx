@@ -1,240 +1,238 @@
+// Navigation page for the rider (like food-delivery apps): full map with the road route to the
+// current stop, distance / ETA, the stop's name + address, call, and "Start Navigation"
+// (opens Google Maps turn-by-turn, two-wheeler). Same screen as mobile-delivery/src/screens/LiveTracking.jsx.
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
-import { FiArrowLeft, FiNavigation, FiPackage, FiMapPin } from 'react-icons/fi';
+import { ArrowLeft, Navigation, LocateFixed, Phone, Route, Clock, MapPin, ChevronRight, Store, User, Loader2 } from 'lucide-react';
+import { useJsApiLoader } from '@react-google-maps/api';
+import toast from 'react-hot-toast';
 import { useDeliveryAuthStore } from '../store/deliveryStore';
 import { useDeliveryTracking } from '../../../shared/hooks/useDeliveryTracking';
-import { getToken } from '../../../utils/auth';
-import { API_URL } from '../../../config/constants';
-import { useDistanceTracker } from '../../../shared/hooks/useDistanceTracker';
 import DeliveryBoyLiveMap from '../../../shared/components/DeliveryBoyLiveMap';
-import PageTransition from '../../../shared/components/PageTransition';
-import toast from 'react-hot-toast';
-
-import { useJsApiLoader } from '@react-google-maps/api';
+import { getTaskStops, googleNavUrl } from '../utils/taskStops';
 
 const GOOGLE_MAPS_LIBRARIES = ['places', 'geometry', 'drawing'];
+
+// Testing override saved by the delivery dashboard ("manual_location"), if any
+const readManualLocation = () => {
+  try {
+    const raw = localStorage.getItem('manual_location');
+    if (!raw) return null;
+    const loc = JSON.parse(raw);
+    return loc?.latitude && loc?.longitude ? { lat: loc.latitude, lng: loc.longitude } : null;
+  } catch {
+    return null;
+  }
+};
 
 const LiveTracking = () => {
   const outletCtx = useOutletContext();
   const { isLoaded: localIsLoaded } = useJsApiLoader({
-      id: 'google-map-script',
-      googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-      libraries: GOOGLE_MAPS_LIBRARIES
+    id: 'google-map-script',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
   const isLoaded = outletCtx?.isLoaded !== undefined ? outletCtx.isLoaded : localIsLoaded;
 
   const navigate = useNavigate();
-  const { orderId } = useParams();
-  const { deliveryBoy, updateLocation } = useDeliveryAuthStore();
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const [orderDetails, setOrderDetails] = useState(null);
-  const [destination, setDestination] = useState(null);
+  const params = useParams();
+  const orderId = params.id || params.orderId; // route is /delivery/orders/:id/tracking
+  const { deliveryBoy, updateLocation, fetchOrderById } = useDeliveryAuthStore();
 
-  const [routeDistance, setRouteDistance] = useState(0);
-  const [settings, setSettings] = useState(null);
+  const [order, setOrder] = useState(null);
+  const [loadError, setLoadError] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState(readManualLocation);
+  const [routeInfo, setRouteInfo] = useState(null); // { distance, duration, distanceValue }
+  const [recenterKey, setRecenterKey] = useState(0);
 
-  // Start location tracking
-  useDeliveryTracking(deliveryBoy?.id, orderDetails ? [orderDetails] : []);
+  // Shares the rider's live location for this task (customer / admin tracking)
+  useDeliveryTracking(deliveryBoy?.id, order ? [order] : []);
 
-  const handleRouteCalculated = (routeData) => {
-    if (routeData && routeData.distanceValue) {
-      setRouteDistance(routeData.distanceValue);
-    }
-    if (currentLocation?.lat && currentLocation?.lng) {
-      updateLocation(currentLocation.lat, currentLocation.lng, routeData.duration, routeData.distanceValue);
-    }
-  };
-
-  const isTracking = !!currentLocation;
-  
-  // Calculate total distance in km from route calculation
-  const totalDistance = routeDistance ? routeDistance / 1000 : 0;
-  const baseFee = settings?.deliveryRates?.baseFee || 40;
-  const perKmRate = settings?.deliveryRates?.perKmRate || 10;
-  const earnings = Math.round(baseFee + (totalDistance * perKmRate));
-  const path = []; // Mock path length if needed, or track locations
-
-  // Get current location and update distance tracker
+  // Rider location: GPS watch (skipped when a manual test location is set)
   useEffect(() => {
-    const manualLocStr = localStorage.getItem('manual_location');
-    if (manualLocStr) {
-      try {
-        const manualLoc = JSON.parse(manualLocStr);
-        setCurrentLocation({ lat: manualLoc.latitude, lng: manualLoc.longitude });
-        return; // Skip watch if using manual location
-      } catch (e) { console.error(e); }
-    }
-
+    if (readManualLocation()) return undefined;
     if (!navigator.geolocation) {
-      toast.error('Geolocation not supported');
-      return;
+      toast.error('Location is not supported on this device');
+      return undefined;
     }
-
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude: lat, longitude: lng } = position.coords;
-        const newLocation = { lat, lng };
-        
-        setCurrentLocation(newLocation);
+        setCurrentLocation({ lat, lng });
       },
       (error) => {
         console.error('Location error:', error);
-        toast.error('Failed to get location');
+        toast.error(error?.code === 1 ? 'Allow location access to navigate' : 'Could not get your location');
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
     );
-
-    return () => {
-      navigator.geolocation.clearWatch(watchId);
-    };
-  }, [isTracking, orderDetails]);
-
-  // Fetch admin settings
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(`${API_URL}/cms/settings`);
-        const result = await response.json();
-        if (result.success) {
-          setSettings(result.data);
-          if (result.data.googleMapsApiKey) {
-            setApiKey(result.data.googleMapsApiKey);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load settings:', error);
-      }
-    };
-    fetchSettings();
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // Fetch order details
+  // Same order data as the order detail page
   useEffect(() => {
-    const fetchOrderDetails = async () => {
-      try {
-        const response = await fetch(
-          `${API_URL}/deliveries/orders/${orderId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${getToken()}`
-            }
-          }
-        );
+    if (!orderId) return undefined;
+    let alive = true;
+    fetchOrderById(orderId)
+      .then((o) => { if (alive) setOrder(o || null); })
+      .catch((e) => {
+        console.error('Failed to load order:', e);
+        if (alive) setLoadError(true);
+      });
+    return () => { alive = false; };
+  }, [orderId, fetchOrderById]);
 
-        if (!response.ok) throw new Error('Failed to fetch order');
+  const stops = getTaskStops(order);
+  const target = stops?.target;
+  const isPickup = stops?.phase === 'pickup';
+  const targetIsCustomer = target?.kind === 'customer';
+  const title = targetIsCustomer ? 'Navigate to Customer' : 'Navigate to Tailor';
 
-        const data = await response.json();
-        const orderData = data.data || data.order;
-        setOrderDetails(orderData);
-
-        // Determine phase and destination based on order data
-        const isFabricPickup = orderData?.taskType === 'fabric-pickup';
-        const s = String(orderData?.status || '').toLowerCase();
-        
-        let phase = 'pickup';
-        if (['picked-up', 'picked_up', 'fabric-picked-up', 'out-for-delivery', 'out_for_delivery', 'shipped'].includes(s)) {
-            phase = 'delivery';
-        }
-
-        // Set destination based on phase
-        if (phase === 'pickup') {
-            const lat = isFabricPickup ? orderData?.latitude : orderData?.vendorLatitude;
-            const lng = isFabricPickup ? orderData?.longitude : orderData?.vendorLongitude;
-            if (lat && lng) setDestination({ lat, lng });
-        } else {
-            const lat = isFabricPickup ? orderData?.vendorLatitude : orderData?.latitude;
-            const lng = isFabricPickup ? orderData?.vendorLongitude : orderData?.longitude;
-            if (lat && lng) setDestination({ lat, lng });
-        }
-      } catch (error) {
-        console.error('Failed to load order:', error);
-        toast.error('Failed to load order details');
-      }
-    };
-
-    if (orderId) {
-      fetchOrderDetails();
+  // The map keeps this in a ref, so it always sees the latest location
+  const handleRouteCalculated = (r) => {
+    if (r && r.distanceValue > 0) setRouteInfo(r);
+    if (r?.distanceValue > 0 && currentLocation?.lat && currentLocation?.lng) {
+      updateLocation(currentLocation.lat, currentLocation.lng, r.duration, r.distanceValue);
     }
-  }, [orderId]);
+  };
+
+  const startNavigation = () => {
+    const url = googleNavUrl(target);
+    if (!url) {
+      toast.error('Address not available for this stop');
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
+  };
+
+  const shortId = String(order?.orderId || order?.id || orderId || '').slice(-8).toUpperCase();
 
   return (
-    <PageTransition>
-      <div className="h-screen flex flex-col bg-white">
-        {/* Header */}
-        <div className="bg-white shadow-sm px-4 py-3 flex items-center justify-between">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <FiArrowLeft className="text-xl text-gray-700" />
-          </button>
-          <h1 className="text-lg font-bold text-gray-900">Live Tracking</h1>
-          <div className="w-10" />
+    <div className="fixed inset-0 z-40 flex flex-col bg-white font-sans">
+      {/* Header */}
+      <div className="relative z-20 flex items-center gap-3 rounded-b-[26px] bg-[#5A1A78] px-4 pb-5 pt-4 text-white">
+        <button type="button" onClick={() => navigate(-1)} aria-label="Back" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 hover:bg-white/25">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[17px] font-bold">{order ? title : 'Navigation'}</h1>
+          {!!shortId && <p className="truncate text-[11.5px] text-white/75">Order #{shortId} · {isPickup ? 'Pickup' : 'Drop'}</p>}
         </div>
+        <button type="button" onClick={startNavigation} aria-label="Open in Google Maps" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 hover:bg-white/25">
+          <Navigation size={18} />
+        </button>
+      </div>
 
-        {/* Map Container */}
-        <div className="flex-1 p-4">
-          <DeliveryBoyLiveMap 
+      {/* Map */}
+      <div className="relative -mt-[22px] flex-1">
+        {order ? (
+          <DeliveryBoyLiveMap
             currentLocation={currentLocation}
-            destination={destination}
-            path={path}
-            distanceTraveled={totalDistance}
-            earnings={earnings}
-            orderDetails={orderDetails ? {
-              orderId: orderDetails.orderId,
-              customerName: orderDetails.customer?.name || orderDetails.customer || 'Customer',
-              status: orderDetails.status
-            } : null}
+            destination={target?.coords}
+            destinationAddress={target?.coords ? undefined : target?.address}
             isLoaded={isLoaded}
+            height="100%"
+            rounded={false}
+            showOverlay={false}
+            recenterKey={recenterKey}
+            edgePadding={{ top: 110, bottom: 340, left: 60, right: 60 }}
             onRouteCalculated={handleRouteCalculated}
           />
-        </div>
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center bg-slate-50">
+            {loadError ? (
+              <p className="text-sm font-semibold text-slate-500">Could not load this order</p>
+            ) : (
+              <>
+                <Loader2 size={28} className="animate-spin text-[#843D9B]" />
+                <p className="mt-2 text-xs font-semibold text-slate-500">Loading route...</p>
+              </>
+            )}
+          </div>
+        )}
 
-        {/* Bottom Stats Bar */}
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="bg-white border-t border-gray-200 p-4 space-y-3"
-        >
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-indigo-600">
-                {totalDistance.toFixed(2)}
-              </div>
-              <div className="text-xs text-gray-500 font-medium">KM Traveled</div>
+        {order && (
+          <>
+            <div className="pointer-events-none absolute left-3.5 top-[34px] flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-md">
+              <span className={`h-2 w-2 rounded-full ${currentLocation ? 'animate-pulse bg-emerald-500' : 'bg-amber-400'}`} />
+              <span className="text-[11px] font-bold text-slate-700">{currentLocation ? 'Live location on' : 'Finding your location...'}</span>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-600">
-                ₹{earnings}
+            <button
+              type="button"
+              onClick={() => setRecenterKey((k) => k + 1)}
+              aria-label="Recenter"
+              className="absolute right-3.5 top-[30px] flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#5A1A78] shadow-md hover:bg-slate-50"
+            >
+              <LocateFixed size={20} />
+            </button>
+          </>
+        )}
+
+        {/* Bottom sheet */}
+        {order && target && (
+          <div className="absolute inset-x-0 bottom-0 z-10">
+            <div className="mx-auto max-w-xl rounded-t-[28px] bg-white px-4 pb-6 pt-3 shadow-[0_-12px_36px_-12px_rgba(42,15,56,0.3)]">
+              <span className="mx-auto mb-3 block h-1 w-10 rounded-full bg-slate-200" />
+
+              <div className="flex items-center gap-2.5">
+                <div className="flex flex-1 items-center gap-2 rounded-2xl bg-[#F6EEFA] px-3 py-2.5">
+                  <Route size={18} className="text-[#6A2385]" />
+                  <div>
+                    <p className="text-[15px] font-bold leading-tight text-[#1A1523]">{routeInfo?.distance || '--'}</p>
+                    <p className="text-[10.5px] text-slate-500">Distance</p>
+                  </div>
+                </div>
+                <div className="flex flex-1 items-center gap-2 rounded-2xl bg-[#F6EEFA] px-3 py-2.5">
+                  <Clock size={18} className="text-[#6A2385]" />
+                  <div>
+                    <p className="text-[15px] font-bold leading-tight text-[#1A1523]">{routeInfo?.duration || '--'}</p>
+                    <p className="text-[10.5px] text-slate-500">Est. time</p>
+                  </div>
+                </div>
               </div>
-              <div className="text-xs text-gray-500 font-medium">Trip Earnings</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">
-                {path.length}
+
+              <div className="mt-3.5 flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F3E9F8] text-[#6A2385]">
+                  {targetIsCustomer ? <User size={20} /> : <Store size={20} />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold tracking-wider text-[#6A2385]">{isPickup ? 'PICKUP FROM' : 'DELIVER TO'}</p>
+                  <p className="truncate text-[15px] font-bold text-[#1A1523]">{target.name}</p>
+                </div>
+                {target.phone ? (
+                  <a href={`tel:${target.phone}`} aria-label="Call" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white hover:bg-emerald-600">
+                    <Phone size={18} />
+                  </a>
+                ) : (
+                  <button type="button" onClick={() => toast.error('Phone number not available')} aria-label="Call" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-500">
+                    <Phone size={18} />
+                  </button>
+                )}
               </div>
-              <div className="text-xs text-gray-500 font-medium">Checkpoints</div>
+              <div className="mt-2 flex items-start gap-2 pl-1">
+                <MapPin size={14} className="mt-0.5 shrink-0 text-slate-400" />
+                <p className="line-clamp-2 text-[12.5px] text-slate-600">{target.address || 'Address not provided'}</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={startNavigation}
+                className="mt-4 flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[#6A2385] text-[15px] font-bold text-white shadow-md transition-all hover:bg-[#5A1A78] active:scale-[0.98]"
+              >
+                <Navigation size={18} /> Start Navigation
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/delivery/orders/${orderId}`)}
+                className="mx-auto mt-2.5 flex items-center justify-center gap-1 py-1 text-[12.5px] font-semibold text-[#6A2385]"
+              >
+                View order details <ChevronRight size={14} />
+              </button>
             </div>
           </div>
-
-          {/* Status Indicator */}
-          {isTracking && (
-            <div className="flex items-center justify-center gap-2 text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-gray-600 font-medium">
-                Live tracking active
-              </span>
-            </div>
-          )}
-        </motion.div>
+        )}
       </div>
-    </PageTransition>
+    </div>
   );
 };
 

@@ -50,7 +50,7 @@ const Pulse = () => {
   return <Animated.View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981', opacity: v }} />;
 };
 
-const DeliveryBoyLiveMap = ({ currentLocation, riderLocation, fallbackOrigin, destination, destinationAddress, previewRoute, isLoaded = true, height = 400, trackingType = 'delivery', onRouteCalculated }) => {
+const DeliveryBoyLiveMap = ({ currentLocation, riderLocation, fallbackOrigin, destination, destinationAddress, previewRoute, isLoaded = true, height = 400, trackingType = 'delivery', onRouteCalculated, showOverlay = true, rounded = true, recenterKey = 0, edgePadding }) => {
   const [route, setRoute] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
@@ -90,10 +90,13 @@ const DeliveryBoyLiveMap = ({ currentLocation, riderLocation, fallbackOrigin, de
   useEffect(() => {
     const pts = route?.coords?.length ? route.coords : preview?.coords?.length ? preview.coords : [activeOrigin, markerDest].filter(Boolean).map(ll);
     if (!mapRef.current || pts.length < 2) return;
-    mapRef.current.fitToCoordinates(pts, { edgePadding: { top: 70, bottom: 70, left: 70, right: 70 }, animated: true });
-  }, [route, preview, activeOrigin?.lat, activeOrigin?.lng, markerDest?.lat, markerDest?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
+    mapRef.current.fitToCoordinates(pts, { edgePadding: edgePadding || { top: 70, bottom: 70, left: 70, right: 70 }, animated: true });
+  }, [route, preview, activeOrigin?.lat, activeOrigin?.lng, markerDest?.lat, markerDest?.lng, recenterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const h = typeof height === 'string' ? parseInt(height, 10) || 400 : height;
+  // "100%" must stay a percentage (fill the parent); parseInt would turn it into 100px
+  const h = typeof height === 'string'
+    ? (height.trim().endsWith('%') ? height.trim() : parseInt(height, 10) || 400)
+    : height;
   if (!isLoaded) {
     return (
       <Box style={{ height: h }} className="bg-slate-100 rounded-3xl flex flex-col items-center justify-center p-6 text-center space-y-2">
@@ -105,8 +108,8 @@ const DeliveryBoyLiveMap = ({ currentLocation, riderLocation, fallbackOrigin, de
   const center = activeOrigin || activeDest || defaultCenter;
 
   return (
-    <Box style={{ height: h }} className="rounded-3xl overflow-hidden border border-slate-200/80 shadow-md relative bg-slate-50">
-      <MapView ref={mapRef} provider={PROVIDER_GOOGLE} style={{ flex: 1 }} customMapStyle={MAP_STYLE} toolbarEnabled={false} zoomControlEnabled
+    <Box style={{ height: h }} className={rounded ? "rounded-3xl overflow-hidden border border-slate-200/80 shadow-md relative bg-slate-50" : "overflow-hidden relative bg-slate-50"}>
+      <MapView ref={mapRef} provider={PROVIDER_GOOGLE} style={{ flex: 1 }} customMapStyle={MAP_STYLE} toolbarEnabled={false} zoomControlEnabled={showOverlay}
         initialRegion={{ ...ll(center), latitudeDelta: 0.04, longitudeDelta: 0.04 }}>
         {preview?.coords && <Polyline coordinates={preview.coords} strokeColor="rgba(148,163,184,0.5)" strokeWidth={4} />}
         {route?.coords && <Polyline coordinates={route.coords} strokeColor="rgba(59,7,100,0.22)" strokeWidth={9} zIndex={1} />}
@@ -122,7 +125,7 @@ const DeliveryBoyLiveMap = ({ currentLocation, riderLocation, fallbackOrigin, de
           </Marker>
         )}
       </MapView>
-      <View pointerEvents="none" style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 10 }}>
+      {showOverlay && <View pointerEvents="none" style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 10 }}>
         <Box className="flex items-center justify-between">
           <Box className="bg-white/95 px-3.5 py-2 rounded-2xl shadow-lg border border-purple-100 flex items-center gap-2.5 flex-shrink">
             <Box className="w-7 h-7 rounded-xl bg-purple-50 flex items-center justify-center">
@@ -145,7 +148,7 @@ const DeliveryBoyLiveMap = ({ currentLocation, riderLocation, fallbackOrigin, de
             </Box>
           )}
         </Box>
-      </View>
+      </View>}
     </Box>
   );
 };

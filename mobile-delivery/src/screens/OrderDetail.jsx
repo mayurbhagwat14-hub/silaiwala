@@ -1,6 +1,7 @@
 import { pickImage } from '../lib/files';
 import { reverseGeocode } from '../utils/reverseGeocode';
 import { getDirections } from '../lib/directions';
+import { googleNavUrl } from '../lib/taskStops';
 import { Dialog, Sheet } from '../components/ui/Sheet';
 import Screen from '../components/common/Screen';
 import React from 'react';
@@ -144,6 +145,12 @@ const DeliveryOrderDetail = () => {
     lng: Number(dropoffLng)
   } : null;
   const mapNavDestinationAddress = currentPhase === 'pickup' ? pickupAddress : dropoffAddress;
+  // Google Maps turn-by-turn (two-wheeler): exact coordinates when known, else the address text
+  const openGoogleNav = (lat, lng, address) => {
+    const url = googleNavUrl({ coords: lat && lng ? { lat: Number(lat), lng: Number(lng) } : null, address });
+    if (url) Linking.openURL(url).catch(() => toast.error('Could not open Google Maps'));
+    else toast.error('Address not available');
+  };
   const mapFallbackOrigin = layoutLocationCoords?.lat && layoutLocationCoords?.lng ? layoutLocationCoords : null;
   const mapPreviewRoute = pickupLat && pickupLng || pickupAddress ? {
     origin: pickupLat && pickupLng ? {
@@ -564,9 +571,18 @@ const DeliveryOrderDetail = () => {
                  <DeliveryBoyLiveMap currentLocation={currentLocation} fallbackOrigin={mapFallbackOrigin} destination={mapNavDestination} destinationAddress={mapNavDestinationAddress} previewRoute={mapPreviewRoute} isLoaded={isLoaded} height="100%" onRouteCalculated={handleMapRouteCalculated} />
                  
                  {/* FLOATING PROMPT LIKE SCREENSHOT */}
-                 <Box className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white px-5 py-2.5 rounded-full shadow-lg border border-slate-100 whitespace-nowrap text-[11px] font-bold text-slate-600 shadow-slate-200/50 z-20">
-                    {isAvailableTask ? 'Review the task details below.' : "Start when you're ready to head to the pickup."}
-                 </Box>
+                 {isAvailableTask ? (
+                   <Box className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white px-5 py-2.5 rounded-full shadow-lg border border-slate-100 whitespace-nowrap text-[11px] font-bold text-slate-600 shadow-slate-200/50 z-20">
+                      Review the task details below.
+                   </Box>
+                 ) : (
+                   <Box className="absolute -bottom-5 left-0 right-0 z-20 flex items-center">
+                     <Btn onPress={() => navigate(`/delivery/orders/${id}/tracking`)} className="h-11 px-6 rounded-full bg-[#6A2385] flex items-center justify-center gap-2 shadow-lg">
+                       <I icon={FiNavigation} size={16} color="#fff" />
+                       <Txt className="text-[13px] font-bold text-white">{currentPhase === 'pickup' ? 'Navigate to Pickup' : 'Navigate to Drop'}</Txt>
+                     </Btn>
+                   </Box>
+                 )}
                  
                  {/* Distance/ETA Overlay - moved top right for cleaner look */}
                  <Box className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-slate-100 flex gap-3">
@@ -619,7 +635,7 @@ const DeliveryOrderDetail = () => {
                 </Box>
 
                 <Box className="flex gap-2">
-                   <Btn onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupAddress)}`)} className={`w-14 h-11 rounded-2xl flex items-center justify-center shadow-sm active:scale-95 transition-all ${currentPhase !== 'pickup' ? 'bg-slate-50 text-slate-400' : 'bg-blue-50 text-blue-600'}`}>
+                   <Btn onPress={() => openGoogleNav(pickupLat, pickupLng, pickupAddress)} className={`w-14 h-11 rounded-2xl flex items-center justify-center shadow-sm active:scale-95 transition-all ${currentPhase !== 'pickup' ? 'bg-slate-50 text-slate-400' : 'bg-blue-50 text-blue-600'}`}>
                       <I icon={FiNavigation} size={18} />
                    </Btn>
                    <Btn onPress={() => Linking.openURL(`tel:${pickupPhone}`)} className={`flex-1 h-11 font-bold rounded-2xl flex items-center justify-center gap-2 text-[13px] shadow-sm active:scale-95 transition-all ${currentPhase !== 'pickup' ? 'bg-slate-100 text-slate-400' : 'bg-emerald-500 text-white shadow-emerald-200'}`}>
@@ -660,7 +676,7 @@ const DeliveryOrderDetail = () => {
                 </Box>
 
                 <Box className="flex gap-2">
-                   <Btn onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dropoffAddress)}`)} className="w-14 h-11 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm active:scale-95 transition-all">
+                   <Btn onPress={() => openGoogleNav(dropoffLat, dropoffLng, dropoffAddress)} className="w-14 h-11 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm active:scale-95 transition-all">
                       <I icon={FiNavigation} size={18} />
                    </Btn>
                    <Btn onPress={() => Linking.openURL(`tel:${dropoffPhone}`)} className="flex-1 h-11 bg-emerald-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 text-[13px] shadow-sm shadow-emerald-200 active:scale-95 transition-all">

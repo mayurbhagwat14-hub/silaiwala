@@ -1824,6 +1824,35 @@ const ServiceDetail = () => {
                         <span className="text-[18px] font-bold text-[#5A1A78]">₹{grandTotal.toLocaleString('en-IN')}</span>
                     </div>
                 </section>
+
+                {/* 6. Multiple outfits in one order (same tailor) */}
+                {editBasketIndex == null && (
+                    <section className="rounded-[22px] border-2 border-dashed border-[#D9C2E6] bg-[#FDFBFE] p-4">
+                        <div className="flex items-start gap-3">
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8A3FA6] to-[#5A1A78] text-white">
+                                <ShoppingBag size={20} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                                <h3 className="text-[14.5px] font-bold leading-tight text-[#1A1523]">
+                                    {serviceItems.length > 0 ? `${serviceItems.length + 1} outfits in this order` : 'Want more than one outfit?'}
+                                </h3>
+                                <p className="mt-0.5 text-[11.5px] leading-snug text-gray-500">
+                                    Add another service from {preSelectedTailor?.shopName || 'this tailor'} to the same order — one pickup, one delivery, one payment.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleSaveAndAddAnother}
+                            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-[13px] font-bold text-[#6A2385] ring-1 ring-[#D9C2E6] transition-all hover:bg-[#F8F1FB] active:scale-[0.98]"
+                        >
+                            + Save this & Add Another Service
+                        </button>
+                        {!isMeasurementValid && (
+                            <p className="mt-2 text-center text-[11px] text-gray-400">Add measurements for this outfit first</p>
+                        )}
+                    </section>
+                )}
             </div>
 
             {/* 7. LIVE BILL - Sticky Transparent Footer */}

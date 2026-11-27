@@ -53,6 +53,10 @@ const DeliveryBoyLiveMap = ({
   height = '400px',
   trackingType = 'delivery', // 'delivery' | 'measurement'
   onRouteCalculated,
+  showOverlay = true, // floating 'Live Delivery Route' bar
+  rounded = true, // card look; false = edge-to-edge (full-screen navigation)
+  recenterKey = 0, // bump to fit the route again
+  edgePadding = null, // { top, bottom, left, right } — room for overlays on top of the map
 }) => {
   const [directions, setDirections] = useState(null);
   const [previewDirections, setPreviewDirections] = useState(null);
@@ -166,7 +170,7 @@ const DeliveryBoyLiveMap = ({
     if (!mapRef.current || !window.google) return;
 
     if (directions?.routes?.[0]?.bounds) {
-      mapRef.current.fitBounds(directions.routes[0].bounds, {
+      mapRef.current.fitBounds(directions.routes[0].bounds, edgePadding || {
         top: 60,
         bottom: 60,
         left: 60,
@@ -189,14 +193,14 @@ const DeliveryBoyLiveMap = ({
       const bounds = new window.google.maps.LatLngBounds();
       bounds.extend({ lat: activeOrigin.lat, lng: activeOrigin.lng });
       bounds.extend({ lat: markerDest.lat, lng: markerDest.lng });
-      mapRef.current.fitBounds(bounds, {
+      mapRef.current.fitBounds(bounds, edgePadding || {
         top: 70,
         bottom: 70,
         left: 70,
         right: 70,
       });
     }
-  }, [directions, previewDirections, activeOrigin?.lat, activeOrigin?.lng, markerDest?.lat, markerDest?.lng]);
+  }, [directions, previewDirections, activeOrigin?.lat, activeOrigin?.lng, markerDest?.lat, markerDest?.lng, recenterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!isLoaded) {
     return (
@@ -210,7 +214,7 @@ const DeliveryBoyLiveMap = ({
   const center = activeOrigin || activeDest || defaultCenter;
 
   return (
-    <div style={{ height }} className="rounded-3xl overflow-hidden border border-slate-200/80 shadow-md relative bg-slate-50">
+    <div style={{ height }} className={rounded ? 'rounded-3xl overflow-hidden border border-slate-200/80 shadow-md relative bg-slate-50' : 'overflow-hidden relative bg-slate-50'}>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
@@ -218,7 +222,7 @@ const DeliveryBoyLiveMap = ({
         onLoad={(map) => { mapRef.current = map; }}
         options={{
           disableDefaultUI: true,
-          zoomControl: true,
+          zoomControl: showOverlay,
           gestureHandling: 'greedy',
           styles: [
             { featureType: 'poi', stylers: [{ visibility: 'off' }] },
@@ -266,7 +270,7 @@ const DeliveryBoyLiveMap = ({
             directions={directions}
             options={{
               suppressMarkers: true,
-              preserveViewport: false,
+              preserveViewport: !!edgePadding, // our fitBounds applies the padding
               polylineOptions: {
                 strokeColor: '#843D9B',
                 strokeWeight: 5.5,
@@ -309,7 +313,7 @@ const DeliveryBoyLiveMap = ({
       </GoogleMap>
 
       {/* Floating Zomato-Style Live Route Status Bar */}
-      <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+      {showOverlay && <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
         <div className="bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-lg border border-purple-100 flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-xl bg-purple-50 text-[#843D9B] flex items-center justify-center font-bold">
             {trackingType === 'measurement' ? <Ruler size={15} /> : <Bike size={15} />}
@@ -337,7 +341,7 @@ const DeliveryBoyLiveMap = ({
             <span>{routeInfo.duration}</span>
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 };
