@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import StoreHeader from '../components/store/StoreHeader';
@@ -18,9 +19,15 @@ import { resolveBannerImageUrl } from '../../../utils/bannerImage';
 
 
 const StorePage = () => {
+    // Home page tiles open the store on a tab / category: /user/store?type=fabric&category=<id>&categoryName=<name>
+    const { search } = useLocation();
+    const urlParams = new URLSearchParams(search);
+    const urlType = urlParams.get('type') === 'fabric' ? 'fabric' : 'store_item';
+    const urlCategory = urlParams.get('category');
+    const urlCategoryName = urlParams.get('categoryName');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [filters, setFilters] = useState({});
-    const [activeCategory, setActiveCategory] = useState({ name: "All", id: null });
+    const [activeCategory, setActiveCategory] = useState(() => (urlCategory ? { name: urlCategoryName || "All", id: urlCategory } : { name: "All", id: null }));
     const [searchQuery, setSearchQuery] = useState("");
     const { storeBanners, fetchStoreBanners } = useBannerStore();
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
@@ -47,7 +54,7 @@ const StorePage = () => {
 
     const getImageUrl = (img) => resolveBannerImageUrl(img, SOCKET_URL);
 
-    const [activeTab, setActiveTab] = useState('store_item');
+    const [activeTab, setActiveTab] = useState(urlType);
 
     return (
         <div className="min-h-screen bg-white pb-24 md:pb-8 font-sans text-[#843D9B]">

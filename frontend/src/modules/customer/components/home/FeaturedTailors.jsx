@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, MapPin, Star, Store } from 'lucide-react';
+import { Heart, MapPin, Star, Store, Crown } from 'lucide-react';
 import useTailorStore from '../../../../store/tailorStore';
 import useLocationStore from '../../../../store/locationStore';
 import { useRequireAuth } from '../../../../hooks/useRequireAuth';
@@ -38,7 +38,7 @@ const TailorCard = ({ tailor, favourite, onToggleFavourite, onBook }) => {
     const photo = tailor.user?.profileImage ? getImageUrl(tailor.user.profileImage) : '';
 
     return (
-        <div className="relative flex w-[150px] shrink-0 snap-start flex-col items-center rounded-[18px] bg-white px-3 pb-3 pt-3.5 shadow-[0_10px_26px_-18px_rgba(42,15,56,0.55)] ring-1 ring-[#F1ECF4]">
+        <div className="relative flex w-[128px] shrink-0 snap-start flex-col items-center rounded-[18px] bg-white px-2.5 pb-2.5 pt-3 shadow-[0_10px_26px_-18px_rgba(42,15,56,0.55)] ring-1 ring-[#F1ECF4]">
             <button
                 type="button"
                 onClick={() => onToggleFavourite(tailor._id)}
@@ -48,10 +48,10 @@ const TailorCard = ({ tailor, favourite, onToggleFavourite, onBook }) => {
             >
                 <Heart size={20} className={favourite ? 'fill-[#7B2D93]' : ''} />
             </button>
-            <span className="h-[78px] w-[78px] overflow-hidden rounded-full ring-2 ring-[#F3E9F8]">
+            <span className="h-[62px] w-[62px] overflow-hidden rounded-full ring-2 ring-[#F3E9F8]">
                 <Avatar src={photo} name={name} />
             </span>
-            <h3 className="mt-2.5 w-full truncate text-center text-[14.5px] font-semibold text-[#1A1523]">{name}</h3>
+            <h3 className="mt-2 w-full truncate text-center text-[13.5px] font-semibold text-[#1A1523]">{name}</h3>
             <p className="mt-1 flex items-center gap-1 text-[13px]">
                 {reviews > 0 && rating > 0 ? (
                     <>
@@ -70,7 +70,7 @@ const TailorCard = ({ tailor, favourite, onToggleFavourite, onBook }) => {
             <button
                 type="button"
                 onClick={() => onBook(tailor._id)}
-                className="mt-2.5 w-full rounded-full bg-gradient-to-r from-[#7B2D93] to-[#5A1A78] py-2 text-[13px] font-semibold text-white transition-transform active:scale-95"
+                className="mt-2 w-full rounded-full bg-gradient-to-r from-[#7B2D93] to-[#5A1A78] py-1.5 text-[12.5px] font-semibold text-white transition-transform active:scale-95"
             >
                 Book Now
             </button>
@@ -79,7 +79,7 @@ const TailorCard = ({ tailor, favourite, onToggleFavourite, onBook }) => {
 };
 
 const CardSkeleton = () => (
-    <div className="flex h-[232px] w-[150px] shrink-0 flex-col items-center rounded-[18px] bg-white p-3.5 ring-1 ring-[#F1ECF4]">
+    <div className="flex h-[200px] w-[128px] shrink-0 flex-col items-center rounded-[18px] bg-white p-3.5 ring-1 ring-[#F1ECF4]">
         <span className="h-[78px] w-[78px] animate-pulse rounded-full bg-[#F3EEF6]" />
         <span className="mt-3 h-3.5 w-24 animate-pulse rounded-full bg-[#F3EEF6]" />
         <span className="mt-2 h-3 w-16 animate-pulse rounded-full bg-[#F3EEF6]" />
@@ -134,7 +134,7 @@ const FeaturedTailors = () => {
 
     return (
         <section className="mt-6">
-            <SectionHeader title="Featured Tailors Near You" to="/user/tailors" />
+            <SectionHeader title="Featured Tailors Near You" to="/user/tailors" icon={Crown} />
             {loading ? (
                 <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 pb-2 md:px-6">
                     {[0, 1, 2].map((i) => <CardSkeleton key={i} />)}
