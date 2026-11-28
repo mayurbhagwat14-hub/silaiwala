@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Bell, AlertCircle, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Bell, AlertCircle, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
 
@@ -22,49 +22,74 @@ const Notifications = () => {
     const getIcon = (type) => {
         switch (type) {
             case 'ORDER_CREATED':
-                return { icon: <ShoppingBag size={18} />, bg: 'bg-emerald-500/10', color: 'text-emerald-400' };
+                return { icon: <ShoppingBag size={18} />, bg: 'bg-emerald-50', color: 'text-emerald-600' };
             case 'ORDER_STATUS_UPDATED':
-                return { icon: <Bell size={18} />, bg: 'bg-[#843D9B]/10', color: 'text-[#843D9B]' };
+                return { icon: <Bell size={18} />, bg: 'bg-[#F5EDFA]', color: 'text-[#843D9B]' };
             case 'SYSTEM_NOTICE':
-                return { icon: <AlertCircle size={18} />, bg: 'bg-amber-500/10', color: 'text-amber-400' };
+                return { icon: <AlertCircle size={18} />, bg: 'bg-amber-50', color: 'text-amber-600' };
             default:
-                return { icon: <Bell size={18} />, bg: 'bg-white/5', color: 'text-white/25' };
+                return { icon: <Bell size={18} />, bg: 'bg-gray-100', color: 'text-gray-500' };
+        }
+    };
+
+    const openNotification = (notif) => {
+        const isNew = !notif.isRead;
+        if (isNew) markAsRead(notif._id);
+
+        if (notif.data?.targetUrl) {
+            let url = notif.data.targetUrl;
+            if (url.includes('/orders')) {
+                navigate('/partner/orders', { state: { highlightOrderId: notif.data.orderId } });
+            } else if (url.includes('finance') || url.includes('wallet') || url.includes('withdraw')) {
+                navigate('/partner/wallet');
+            } else {
+                navigate(url);
+            }
+        } else if (notif.type === 'ORDER_CREATED' || notif.type === 'ORDER_STATUS_UPDATED') {
+            navigate('/partner/orders', { state: { highlightOrderId: notif.data?.orderId } });
+        } else if (notif.type.includes('WITHDRAWAL')) {
+            navigate('/partner/wallet');
         }
     };
 
     return (
-        <div className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white">
+        <div className="min-h-full bg-white md:bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white">
 
             {/* ── MOBILE HEADER ── */}
-            <div className="md:hidden bg-white px-5 pt-5 pb-4 flex items-center justify-between border-b border-gray-100 sticky top-0 z-50">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate(-1)} className="p-1.5 -ml-2 text-gray-400 hover:text-[#843D9B] transition-colors">
+            <div className="md:hidden bg-white px-2 h-14 flex items-center justify-between border-b border-gray-100 sticky top-0 z-50">
+                <div className="flex items-center gap-1">
+                    <button onClick={() => navigate(-1)} aria-label="Back" className="p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors">
                         <ArrowLeft size={20} />
                     </button>
-                    <h1 className="text-[17px] font-black text-[#843D9B] tracking-tight uppercase">Alerts</h1>
+                    <h1 className="text-base font-bold text-gray-900 tracking-tight">Alerts</h1>
+                    {unreadCount > 0 && (
+                        <span className="ml-1 text-[11px] font-semibold text-white bg-[#843D9B] min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                    )}
                 </div>
                 {unreadCount > 0 && (
                     <button
                         onClick={markAllRead}
-                        className="text-[9px] font-black text-[#843D9B] uppercase tracking-widest bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl active:scale-95 transition-all"
+                        className="mr-2 text-xs font-semibold text-[#843D9B] bg-[#F5EDFA] px-3 py-1.5 rounded-full hover:bg-[#EBDDF3] active:scale-95 transition-all"
                     >
                         Mark All Read
                     </button>
                 )}
             </div>
 
-            <div className="flex-1 p-2 md:p-0 max-w-4xl mx-auto w-full">
-                
+            <div className="flex-1 md:p-0 max-w-4xl mx-auto w-full">
+
                 {/* ── DESKTOP TITLE ── */}
                 <div className="hidden md:flex py-8 items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">System Notifications</h2>
-                        <p className="text-xs text-gray-400 font-black uppercase tracking-[0.2em] mt-1">Stay updated with your latest shop activities</p>
+                        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">System Notifications</h2>
+                        <p className="text-sm text-gray-500 mt-1">Stay updated with your latest shop activities</p>
                     </div>
                     {unreadCount > 0 && (
                         <button
                             onClick={markAllRead}
-                            className="bg-white text-[#843D9B] border border-gray-100 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95"
+                            className="bg-[#F5EDFA] text-[#843D9B] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#EBDDF3] transition-all active:scale-95"
                         >
                             Clear All Unread
                         </button>
@@ -72,79 +97,68 @@ const Notifications = () => {
                 </div>
 
                 {/* ── NOTIFICATION LIST ── */}
-                <div className="space-y-3 pb-20">
+                <div className="pb-20">
                     {loading && notifications.length === 0 ? (
-                        [1, 2, 3, 4].map(i => (
-                            <div key={i} className="h-24 w-full bg-white rounded-[2rem] animate-pulse border border-gray-100 shadow-sm" />
-                        ))
-                    ) : notifications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-32 text-center bg-white rounded-[3rem] border border-gray-100 shadow-sm">
-                            <div className="h-24 w-24 bg-gray-50 border border-gray-100 rounded-[2rem] flex items-center justify-center mb-6 group hover:rotate-12 transition-transform duration-500">
-                                <Bell size={40} className="text-gray-200" />
-                            </div>
-                            <h3 className="text-lg font-black text-gray-900 uppercase tracking-widest">Inbox Zero</h3>
-                            <p className="text-xs text-gray-400 font-bold mt-2 uppercase tracking-tight">No new alerts at the moment.</p>
-                        </div>
-                    ) : (
-                        notifications.map((notif) => {
-                            const { icon, bg, color } = getIcon(notif.type);
-                            const isNew = !notif.isRead;
-                            return (
-                                <div
-                                    key={notif._id}
-                                    onClick={() => {
-                                        if (isNew) markAsRead(notif._id);
-                                        
-                                        if (notif.data?.targetUrl) {
-                                            let url = notif.data.targetUrl;
-                                            if (url.includes('/orders')) {
-                                                navigate('/partner/orders', { state: { highlightOrderId: notif.data.orderId } });
-                                            } else if (url.includes('finance') || url.includes('wallet') || url.includes('withdraw')) {
-                                                navigate('/partner/wallet');
-                                            } else {
-                                                navigate(url);
-                                            }
-                                        } else if (notif.type === 'ORDER_CREATED' || notif.type === 'ORDER_STATUS_UPDATED') {
-                                            navigate('/partner/orders', { state: { highlightOrderId: notif.data?.orderId } });
-                                        } else if (notif.type.includes('WITHDRAWAL')) {
-                                            navigate('/partner/wallet');
-                                        }
-                                    }}
-                                    className={`group p-5 md:p-6 rounded-[2rem] border transition-all flex gap-5 cursor-pointer relative ${
-                                        isNew
-                                            ? 'bg-white border-[#843D9B]/10 shadow-[0_10px_30px_rgba(45,47,110,0.05)]'
-                                            : 'bg-white/60 border-gray-100 opacity-60 grayscale-[0.5]'
-                                    }`}
-                                >
-                                    {isNew && (
-                                        <div className="absolute top-6 right-6 h-2 w-2 bg-[#843D9B] rounded-full ring-4 ring-indigo-50" />
-                                    )}
-                                    
-                                    <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-500 ${bg} ${color.replace('text-', 'text- opacity-80')}`}>
-                                        {icon}
-                                    </div>
-
-                                    <div className="flex-1 pr-8">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className={`text-sm font-black tracking-tight ${isNew ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                {notif.title}
-                                            </h3>
-                                            <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">
-                                                • {getRelativeTime(notif.createdAt)}
-                                            </span>
-                                        </div>
-                                        <p className={`text-xs leading-relaxed ${isNew ? 'text-gray-600' : 'text-gray-400'} line-clamp-2`}>
-                                            {notif.message}
-                                        </p>
-                                        <div className="mt-3 flex items-center gap-3">
-                                            <span className={`text-[8px] font-black uppercase tracking-[0.1em] px-2 py-0.5 rounded-md ${bg} ${color}`}>
-                                                {notif.type?.replace(/_/g, ' ')}
-                                            </span>
-                                        </div>
+                        <div className="mx-3 md:mx-0 divide-y divide-gray-100 md:bg-white md:rounded-2xl md:border md:border-gray-100">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="flex gap-3 px-1 md:px-4 py-3">
+                                    <div className="h-11 w-11 rounded-xl bg-gray-100 animate-pulse shrink-0" />
+                                    <div className="flex-1 space-y-2 py-1">
+                                        <div className="h-3 w-2/3 rounded bg-gray-100 animate-pulse" />
+                                        <div className="h-3 w-full rounded bg-gray-100 animate-pulse" />
                                     </div>
                                 </div>
-                            );
-                        })
+                            ))}
+                        </div>
+                    ) : notifications.length === 0 ? (
+                        <div className="mx-3 md:mx-0 mt-3 md:mt-0 flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-gray-100">
+                            <div className="h-16 w-16 bg-[#F5EDFA] rounded-2xl flex items-center justify-center mb-4">
+                                <Bell size={28} className="text-[#843D9B]" />
+                            </div>
+                            <h3 className="text-base font-bold text-gray-900">Inbox Zero</h3>
+                            <p className="text-xs text-gray-500 mt-1">No new alerts at the moment.</p>
+                        </div>
+                    ) : (
+                        <div className="mx-3 md:mx-0 divide-y divide-gray-100 md:bg-white md:rounded-2xl md:border md:border-gray-100 md:overflow-hidden">
+                            {notifications.map((notif) => {
+                                const { icon, bg, color } = getIcon(notif.type);
+                                const isNew = !notif.isRead;
+                                return (
+                                    <div
+                                        key={notif._id}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => openNotification(notif)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openNotification(notif); } }}
+                                        className="flex gap-3 px-1 md:px-4 py-3 cursor-pointer hover:bg-gray-50/70 active:bg-gray-50 transition-colors focus:outline-none focus-visible:bg-gray-50"
+                                    >
+                                        <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${bg} ${color} ${isNew ? '' : 'opacity-70'}`}>
+                                            {icon}
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <h3 className={`text-sm leading-snug line-clamp-2 ${isNew ? 'font-semibold text-gray-900' : 'font-medium text-gray-600'}`}>
+                                                    {notif.title}
+                                                </h3>
+                                                <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+                                                    <span className="text-[11px] text-gray-400">{getRelativeTime(notif.createdAt)}</span>
+                                                    {isNew && <span className="h-2 w-2 bg-[#843D9B] rounded-full" aria-label="Unread" />}
+                                                </div>
+                                            </div>
+                                            <p className={`text-xs leading-relaxed mt-0.5 line-clamp-2 ${isNew ? 'text-gray-600' : 'text-gray-400'}`}>
+                                                {notif.message}
+                                            </p>
+                                            {notif.type && (
+                                                <span className={`inline-block mt-1.5 text-[9px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${bg} ${color}`}>
+                                                    {notif.type.replace(/_/g, ' ')}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     )}
                 </div>
             </div>

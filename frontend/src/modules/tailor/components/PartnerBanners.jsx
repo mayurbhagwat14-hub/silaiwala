@@ -36,26 +36,29 @@ const PartnerBanners = () => {
             {banners.map((banner) => (
                 <div
                     key={banner._id}
-                    className={`${banner.color || DEFAULT_GRADIENT} snap-center shrink-0 w-full rounded-2xl overflow-hidden relative flex items-stretch min-h-[120px] md:min-h-[150px] shadow-sm`}
+                    className={`${banner.color || DEFAULT_GRADIENT} snap-center shrink-0 w-full rounded-2xl overflow-hidden relative flex items-stretch min-h-[130px] md:min-h-[160px] shadow-sm`}
                 >
-                    <div className="relative z-10 flex-1 min-w-0 p-4 md:p-6 flex flex-col justify-center">
+                    {/* Full-bleed background image */}
+                    <img
+                        src={resolveBannerImageUrl(banner.image)}
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    {/* Left-side shade keeps the text readable on any photo */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+
+                    <div className="relative z-10 flex-1 min-w-0 max-w-[75%] p-4 md:p-6 flex flex-col justify-center">
                         {banner.badge && (
                             <span className="self-start text-[9px] font-semibold uppercase tracking-wider text-white bg-white/20 px-2 py-0.5 rounded-full mb-2">
                                 {banner.badge}
                             </span>
                         )}
-                        <h3 className="text-lg md:text-2xl font-bold text-white leading-tight">{banner.title}</h3>
+                        <h3 className="text-lg md:text-2xl font-bold text-white leading-tight drop-shadow-sm">{banner.title}</h3>
                         {banner.subtitle && (
                             <p className="text-xs md:text-sm text-white/85 mt-1 leading-snug line-clamp-2">{banner.subtitle}</p>
                         )}
-                    </div>
-                    <div className="w-[40%] shrink-0 relative">
-                        <img
-                            src={resolveBannerImageUrl(banner.image)}
-                            alt={banner.title}
-                            loading="lazy"
-                            className="absolute inset-0 w-full h-full object-cover"
-                        />
                     </div>
                 </div>
             ))}

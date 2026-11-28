@@ -289,7 +289,7 @@ const TailorLayout = () => {
             {/* ── MAIN CONTENT AREA ── */}
             <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative overscroll-none">
                 {/* ── MOBILE TOP HEADER ── */}
-                <header className="md:hidden w-full bg-gradient-to-r from-[#6B2F7E] via-[#843D9B] to-[#9B5BB0] px-4 h-14 flex items-center justify-between shrink-0 z-40 top-0 left-0">
+                <header className={`${location.pathname === '/partner/settings' ? 'hidden' : 'md:hidden'} w-full bg-gradient-to-r from-[#6B2F7E] via-[#843D9B] to-[#9B5BB0] px-4 h-14 flex items-center justify-between shrink-0 z-40 top-0 left-0`}>
                     <Link to="/partner" className="flex items-center gap-2.5">
                         <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center overflow-hidden shadow-sm shrink-0">
                             <img src={logos.tailor} alt={appName} className="w-full h-full object-contain p-0.5" />

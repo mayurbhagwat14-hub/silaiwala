@@ -667,7 +667,7 @@ const ProfileSettings = ({ page = null }) => {
         <div className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-20">
             
             {/* ── MOBILE HEADER ── */}
-            <div className="md:hidden relative bg-gradient-to-br from-[#6B2F7E] via-[#843D9B] to-[#9B5BB0] pt-4 pb-24 px-4 text-white shrink-0 rounded-b-[1.75rem]">
+            <div className="md:hidden relative bg-gradient-to-br from-[#6B2F7E] via-[#843D9B] to-[#9B5BB0] pt-[max(1rem,env(safe-area-inset-top))] pb-20 px-4 text-white shrink-0 overflow-hidden">
                 <div className="relative z-10 flex items-center justify-between">
                     <button onClick={() => isEditing ? setIsEditing(false) : navigate(-1)} className="p-1.5 -ml-1.5 text-white hover:bg-white/10 rounded-xl transition-colors">
                         {isEditing ? <X size={20} /> : <ArrowLeft size={20} />}
@@ -676,6 +676,8 @@ const ProfileSettings = ({ page = null }) => {
                         {isEditing ? 'Edit Profile' : 'Profile Settings'}
                     </h1>
                 </div>
+                {/* curved bottom edge, the avatar sits on it */}
+                <div aria-hidden="true" className="absolute -bottom-px -left-[15%] -right-[15%] h-12 bg-[#F5F5F5] rounded-t-[100%]" />
             </div>
 
             <div className="flex-1 px-3 md:p-0">
@@ -692,10 +694,10 @@ const ProfileSettings = ({ page = null }) => {
                     <div className="flex-1 space-y-4 md:space-y-6">
                         
                         {/* Profile Overview Card */}
-                        <div className="bg-white rounded-2xl px-4 pb-4 pt-0 md:p-8 border border-gray-100 shadow-sm relative group -mt-8 md:mt-0">
+                        <div className="bg-transparent md:bg-white rounded-2xl px-1 pb-1 pt-0 md:p-8 border-0 md:border md:border-gray-100 shadow-none md:shadow-sm relative z-10 group -mt-16 md:mt-0">
                             
                             <div className="relative z-10 flex flex-col md:flex-row items-center gap-3 md:gap-6">
-                                <div className="h-24 w-24 -mt-12 md:mt-0 bg-[#843D9B] rounded-full ring-4 ring-white flex items-center justify-center text-white shadow-lg shadow-[#843D9B]/25 relative">
+                                <div className="h-24 w-24 bg-[#843D9B] rounded-full ring-4 ring-white flex items-center justify-center text-white shadow-lg shadow-[#843D9B]/25 relative">
                                     {(profile?.user?.profileImage && profile?.user?.profileImage !== 'default_profile.png') ? (
                                         <img src={profile.user.profileImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
                                     ) : (
@@ -723,16 +725,16 @@ const ProfileSettings = ({ page = null }) => {
                             </div>
 
                             {isEditing ? renderEditForm() : (
-                                <div className="mt-4 md:mt-8 bg-gray-50 rounded-xl border border-gray-100 divide-y divide-gray-100 md:grid md:grid-cols-2 md:divide-y-0 md:divide-x">
+                                <div className="mt-4 md:mt-8 bg-white md:bg-gray-50 rounded-xl border border-gray-100 divide-y divide-gray-100 md:grid md:grid-cols-2 md:divide-y-0 md:divide-x">
                                     <div className="flex items-center gap-3 px-3.5 py-3 min-w-0">
-                                        <span className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#843D9B] shrink-0"><Phone size={15} /></span>
+                                        <span className="w-8 h-8 rounded-lg bg-[#F5EDFA] md:bg-white flex items-center justify-center text-[#843D9B] shrink-0"><Phone size={15} /></span>
                                         <div className="min-w-0">
                                             <p className="text-[11px] text-gray-500 font-medium">Mobile Number</p>
                                             <p className="text-sm font-semibold text-gray-900 truncate">{formData.phoneNumber || 'Not provided'}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 px-3.5 py-3 min-w-0">
-                                        <span className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#843D9B] shrink-0"><Mail size={15} /></span>
+                                        <span className="w-8 h-8 rounded-lg bg-[#F5EDFA] md:bg-white flex items-center justify-center text-[#843D9B] shrink-0"><Mail size={15} /></span>
                                         <div className="min-w-0">
                                             <p className="text-[11px] text-gray-500 font-medium">Email Access</p>
                                             <p className="text-sm font-semibold text-gray-900 truncate">{formData.email || 'Not provided'}</p>
