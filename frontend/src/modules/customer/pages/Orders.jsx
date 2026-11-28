@@ -59,7 +59,7 @@ const OrdersPage = () => {
     // Keep the selected tab chip fully visible in the scrollable row
     useEffect(() => {
         const el = tabsRef.current?.querySelector(`[data-tab="${activeTab}"]`);
-        el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        el?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
     }, [activeTab]);
 
     useEffect(() => {
@@ -231,7 +231,8 @@ const OrdersPage = () => {
                         </div>
                     </div>
 
-                    <div ref={tabsRef} className="no-scrollbar -mx-4 mt-2 flex snap-x gap-2 overflow-x-auto px-4 py-1.5 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
+                    <div className="relative -mx-4 mt-2 md:-mx-6 lg:-mx-8">
+                    <div ref={tabsRef} className="no-scrollbar flex gap-2 overflow-x-auto scroll-px-4 px-4 py-1.5 md:px-6 lg:px-8">
                         {TABS.map(({ id, label, icon: Icon }) => {
                             const active = activeTab === id;
                             return (
@@ -240,7 +241,7 @@ const OrdersPage = () => {
                                     data-tab={id}
                                     type="button"
                                     onClick={() => setActiveTab(id)}
-                                    className={`flex h-9 shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[12px] font-semibold transition-colors ${
+                                    className={`flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[12px] font-semibold transition-colors ${
                                         active
                                             ? 'border-transparent bg-gradient-to-r from-[#7B2D93] to-[#5A1A78] text-white'
                                             : 'border-[#E4D6EC] bg-white text-[#2A1F33] hover:border-[#B98FCF]'
@@ -251,6 +252,9 @@ const OrdersPage = () => {
                                 </button>
                             );
                         })}
+                        <span className="w-2 shrink-0" aria-hidden="true" />
+                    </div>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent" aria-hidden="true" />
                     </div>
                 </div>
 

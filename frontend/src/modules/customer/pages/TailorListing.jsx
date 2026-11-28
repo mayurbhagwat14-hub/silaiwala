@@ -306,7 +306,8 @@ const TailorListing = () => {
                         )}
                     </div>
 
-                    <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 md:-mx-6 md:px-6">
+                    <div className="relative -mx-4 mt-2 md:-mx-6">
+                    <div className="no-scrollbar flex gap-2 overflow-x-auto scroll-px-4 px-4 py-1.5 md:px-6">
                         {SORT_CHIPS.map((chip) => {
                             const active = filters.sortBy === chip.value;
                             const Icon = chip.icon;
@@ -314,11 +315,14 @@ const TailorListing = () => {
                                 <button
                                     key={chip.value}
                                     type="button"
-                                    onClick={() => setFilters({ ...filters, sortBy: chip.value })}
-                                    className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-[12.5px] font-semibold transition-colors ${
+                                    onClick={(e) => {
+                                        setFilters({ ...filters, sortBy: chip.value });
+                                        e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                                    }}
+                                    className={`flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[12px] font-semibold transition-colors ${
                                         active
-                                            ? 'bg-gradient-to-r from-[#7B2D93] to-[#5A1A78] text-white shadow-[0_6px_14px_-8px_rgba(90,26,120,0.8)]'
-                                            : 'bg-white text-[#2A1F33] ring-1 ring-[#E4D6EC] hover:ring-[#B98FCF]'
+                                            ? 'border-transparent bg-gradient-to-r from-[#7B2D93] to-[#5A1A78] text-white'
+                                            : 'border-[#E4D6EC] bg-white text-[#2A1F33] hover:border-[#B98FCF]'
                                     }`}
                                 >
                                     {Icon && <Icon size={14} className={active ? 'text-white' : 'text-[#6A2385]'} />}
@@ -326,6 +330,10 @@ const TailorListing = () => {
                                 </button>
                             );
                         })}
+                        <span className="w-2 shrink-0" aria-hidden="true" />
+                    </div>
+                    {/* fade hints that the row scrolls sideways */}
+                    <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent" aria-hidden="true" />
                     </div>
                 </div>
             </div>
