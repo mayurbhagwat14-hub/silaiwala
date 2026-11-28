@@ -4,9 +4,11 @@ import { Ruler, ChevronRight, Calendar, Truck, CheckCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
 import api from '../../../../utils/api';
 import toast from 'react-hot-toast';
+import RequestDetailsSheet from './RequestDetailsSheet';
 
 const AlterationCard = ({ alteration, onPaymentSuccess }) => {
     const navigate = useNavigate();
+    const [showDetails, setShowDetails] = React.useState(false);
 
     const [deliveryRates, setDeliveryRates] = React.useState({ baseFee: 49, perKmRate: 10 });
     const [platformFeePercentage, setPlatformFeePercentage] = React.useState(5);
@@ -106,14 +108,19 @@ const AlterationCard = ({ alteration, onPaymentSuccess }) => {
     const hasTracker = isPaid && alteration.linkedOrderId;
 
     const navigateToTrack = () => {
-        if (hasTracker) navigate(`/user/orders/${alteration.linkedOrderId._id}/track`);
+        const linkedId = alteration.linkedOrderId?._id || alteration.linkedOrderId;
+        if (hasTracker && linkedId) navigate(`/user/orders/${linkedId}/track`);
+        else setShowDetails(true);
     };
 
     return (
         <div className="bg-white rounded-[1.25rem] p-3 border border-gray-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-md transition-all group block relative">
             <div 
-                className={`flex gap-3 h-full ${hasTracker ? 'cursor-pointer' : ''}`}
-                onClick={hasTracker ? navigateToTrack : undefined}
+                className="flex gap-3 h-full cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onClick={navigateToTrack}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateToTrack(); } }}
             >
                 {/* Left: Large Image */}
                 <div className="w-[85px] shrink-0">
@@ -149,7 +156,7 @@ const AlterationCard = ({ alteration, onPaymentSuccess }) => {
                         <h3 className="text-[13px] sm:text-sm font-black text-gray-900 uppercase tracking-tight line-clamp-1 pr-2">
                             GARMENT ALTERATION
                         </h3>
-                        {hasTracker && <ChevronRight size={14} className="text-gray-300 shrink-0 group-hover:text-[#843D9B] transition-colors" />}
+                        <ChevronRight size={14} className="text-gray-300 shrink-0 group-hover:text-[#843D9B] transition-colors" />
                     </div>
 
                     {/* Row 3: Date and Detail */}
@@ -212,6 +219,14 @@ const AlterationCard = ({ alteration, onPaymentSuccess }) => {
                     </button>
                 </div>
             )}
+            <RequestDetailsSheet
+                open={showDetails}
+                onClose={() => setShowDetails(false)}
+                title="Garment Alteration"
+                requestId={alteration.alterationId}
+                request={alteration}
+                paymentStatus={alteration.paymentStatus}
+            />
         </div>
     );
 };

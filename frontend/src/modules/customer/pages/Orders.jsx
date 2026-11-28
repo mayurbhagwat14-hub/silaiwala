@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Package, Search, Filter, Bell, Truck, CheckCircle2, Scissors, PenTool, ShoppingBag, Shirt, Layers, Hourglass, Shuffle, Headphones } from 'lucide-react';
+import { Package, Search, Filter, Truck, CheckCircle2, Scissors, PenTool, ShoppingBag, Shirt, Layers, Hourglass, Shuffle, Headphones } from 'lucide-react';
 import useOrderStore from '../../../store/orderStore';
 import OrderCard from '../components/orders/OrderCard';
 import AlterationCard from '../components/orders/AlterationCard';
@@ -12,7 +12,6 @@ import useAuthStore from '../../../store/authStore';
 import { getToken } from '../../../utils/auth';
 import api from '../../../utils/api';
 import VoiceSearchButton from '../../../components/ui/VoiceSearchButton';
-import { useNotifications } from '../context/NotificationContext';
 
 const SANS = "'Plus Jakarta Sans', sans-serif";
 const DONE_STATUSES = ['delivered', 'completed', 'product-delivered', 'order-completed'];
@@ -49,14 +48,19 @@ const OrdersPage = () => {
     const [filterStatus, setFilterStatus] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const searchRef = useRef(null);
-    const { unreadCount = 0 } = useNotifications() || {};
+    const tabsRef = useRef(null);
 
     useEffect(() => {
         if (location.state?.activeTab) {
             setActiveTab(tabFromState(location.state.activeTab));
         }
     }, [location.state]);
+
+    // Keep the selected tab chip fully visible in the scrollable row
+    useEffect(() => {
+        const el = tabsRef.current?.querySelector(`[data-tab="${activeTab}"]`);
+        el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }, [activeTab]);
 
     useEffect(() => {
         fetchOrders();
@@ -174,48 +178,21 @@ const OrdersPage = () => {
             {/* Purple header with summary card */}
             <div className="relative bg-white px-4 pb-1 pt-5 md:px-6 lg:px-8">
                 <div className="mx-auto max-w-5xl">
-                    <div className="flex items-start justify-between gap-3">
+                    <div>
                         <div className="min-w-0">
                             <h1 className="text-[22px] font-bold leading-tight tracking-tight text-[#1A1523]" style={{ fontFamily: SANS }}>My Orders</h1>
                             <p className="mt-0.5 text-[12px] leading-snug text-gray-500">Track and manage your stitching, alteration and custom requests</p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => searchRef.current?.focus()}
-                                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F6EEFA] text-[#6A2385] transition-colors hover:bg-[#EDDDF5]"
-                                aria-label="Search orders"
-                            >
-                                <Search size={18} />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => navigate('/user/notifications')}
-                                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#F6EEFA] text-[#6A2385] transition-colors hover:bg-[#EDDDF5]"
-                                aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
-                            >
-                                <Bell size={18} />
-                                {unreadCount > 0 && <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#FF4D5E]" />}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => navigate('/user/cart')}
-                                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F6EEFA] text-[#6A2385] transition-colors hover:bg-[#EDDDF5]"
-                                aria-label="Cart"
-                            >
-                                <ShoppingBag size={18} />
-                            </button>
                         </div>
                     </div>
 
                     <div className="mt-4 grid grid-cols-4 rounded-2xl bg-white px-1 py-3 shadow-[0_8px_22px_-16px_rgba(42,15,56,0.45)] ring-1 ring-[#EFE8F4]">
                         {STAT_ITEMS.map(({ label, value, icon: Icon, cls }, i) => (
-                            <div key={label} className={`flex items-center justify-center gap-1.5 px-1 ${i > 0 ? 'border-l border-[#EFE8F4]' : ''}`}>
-                                <Icon size={20} className={`shrink-0 ${cls}`} strokeWidth={1.8} />
-                                <div className="min-w-0">
-                                    <p className="text-[15px] font-bold leading-none text-[#1A1523]">{value}</p>
-                                    <p className="mt-1 truncate text-[9.5px] text-gray-500">{label}</p>
+                            <div key={label} className={`flex min-w-0 flex-col items-center justify-center px-1 text-center ${i > 0 ? 'border-l border-[#EFE8F4]' : ''}`}>
+                                <div className="flex items-center gap-1.5">
+                                    <Icon size={17} className={`shrink-0 ${cls}`} strokeWidth={1.9} />
+                                    <p className="text-[16px] font-bold leading-none text-[#1A1523]">{value}</p>
                                 </div>
+                                <p className="mt-1.5 w-full whitespace-nowrap text-[10px] leading-none text-gray-500">{label}</p>
                             </div>
                         ))}
                     </div>
@@ -229,7 +206,6 @@ const OrdersPage = () => {
                         <div className="flex h-12 min-w-0 flex-1 items-center rounded-full bg-white px-1 ring-1 ring-[#E4D6EC] focus-within:ring-[#B98FCF]">
                             <Search size={17} className="ml-3 shrink-0 text-gray-400" />
                             <input
-                                ref={searchRef}
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -255,21 +231,23 @@ const OrdersPage = () => {
                         </div>
                     </div>
 
-                    <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
+                    <div ref={tabsRef} className="no-scrollbar -mx-4 mt-2 flex snap-x gap-2 overflow-x-auto px-4 py-1.5 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
                         {TABS.map(({ id, label, icon: Icon }) => {
                             const active = activeTab === id;
                             return (
                                 <button
                                     key={id}
+                                    data-tab={id}
                                     type="button"
                                     onClick={() => setActiveTab(id)}
-                                    className={`flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[12px] font-semibold transition-all ${
+                                    className={`flex h-9 shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[12px] font-semibold transition-colors ${
                                         active
-                                            ? 'bg-gradient-to-r from-[#7B2D93] to-[#5A1A78] text-white shadow-[0_6px_14px_-8px_rgba(90,26,120,0.8)]'
-                                            : 'bg-white text-[#2A1F33] ring-1 ring-[#E4D6EC] hover:ring-[#B98FCF]'
+                                            ? 'border-transparent bg-gradient-to-r from-[#7B2D93] to-[#5A1A78] text-white'
+                                            : 'border-[#E4D6EC] bg-white text-[#2A1F33] hover:border-[#B98FCF]'
                                     }`}
                                 >
-                                    <Icon size={14} className={active ? 'text-white' : 'text-[#6A2385]'} /> {label}
+                                    <Icon size={14} className={active ? 'text-white' : 'text-[#6A2385]'} />
+                                    {label}
                                 </button>
                             );
                         })}
