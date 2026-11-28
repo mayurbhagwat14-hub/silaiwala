@@ -132,6 +132,19 @@ const AdminCMS = () => {
         }
     };
 
+    // Flip a banner between Active and Inactive straight from its card (optimistic, rolled back on failure)
+    const handleToggleBannerStatus = async (banner) => {
+        const nextStatus = banner.status === 'Active' ? 'Inactive' : 'Active';
+        setBannersData((prev) => prev.map((b) => (b._id === banner._id ? { ...b, status: nextStatus } : b)));
+        try {
+            await api.put(`/admin/cms/banners/${banner._id}`, { status: nextStatus });
+            toast.success(`Banner ${nextStatus === 'Active' ? 'activated' : 'deactivated'}`);
+        } catch (error) {
+            setBannersData((prev) => prev.map((b) => (b._id === banner._id ? { ...b, status: banner.status } : b)));
+            toast.error(error.response?.data?.message || 'Failed to update banner status');
+        }
+    };
+
     const handleDeleteContent = async (id) => {
         if (!window.confirm('Are you sure you want to delete this content?')) return;
         try {
@@ -592,9 +605,22 @@ const AdminCMS = () => {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="p-4">
-                                    <h3 className="text-sm font-black text-gray-900">{banner.title}</h3>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Placement: {banner.targetLocation}</p>
+                                <div className="p-4 flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <h3 className="text-sm font-black text-gray-900 truncate">{banner.title}</h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Placement: {banner.targetLocation}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={banner.status === 'Active'}
+                                        aria-label={banner.status === 'Active' ? 'Deactivate banner' : 'Activate banner'}
+                                        title={banner.status === 'Active' ? 'Click to deactivate' : 'Click to activate'}
+                                        onClick={() => handleToggleBannerStatus(banner)}
+                                        className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 ${banner.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                                    >
+                                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${banner.status === 'Active' ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    </button>
                                 </div>
                             </motion.div>
                         ))}
@@ -1078,6 +1104,7 @@ const AdminCMS = () => {
                                                 <option value="Store Tab - Header Banner">Store Page - Top Banner (/user/store)</option>
                                                 <option value="Home Page - Top Carousel">Home Page - Top Carousel</option>
                                                 <option value="Promotional Popup">Promotional Popup</option>
+                                                <option value="Partner App - Dashboard Banner">Partner App - Dashboard Banner</option>
                                             </select>
                                         </div>
                                         <div>

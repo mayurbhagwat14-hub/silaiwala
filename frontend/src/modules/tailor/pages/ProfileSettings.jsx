@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Edit2, History, Bell, MapPin, Shield, LogOut, ChevronRight, FileText, Save, X, Phone, Mail, Wallet, Star, Ticket, Navigation, Trash2, AlertTriangle } from 'lucide-react';
 import MenuOption from '../../customer/components/profile/MenuOption';
@@ -11,35 +11,58 @@ import useUnifiedLocation from '../../../shared/hooks/useUnifiedLocation';
 import PlacesAutocompleteField from '../../../shared/components/PlacesAutocompleteField';
 import { useJsApiLoader, GoogleMap, Marker } from '@react-google-maps/api';
 import useBrandingStore from '../../../store/brandingStore';
+import { getPageCache, setPageCache } from '../utils/pageCache';
+
+const profileToForm = (data) => ({
+    shopName: data.shopName || '',
+    name: data.user?.name || '',
+    email: data.user?.email || '',
+    phoneNumber: data.user?.phoneNumber || '',
+    bio: data.bio || '',
+    address: data.location?.address || '',
+    latitude: data.location?.coordinates?.[1] || null,
+    longitude: data.location?.coordinates?.[0] || null,
+    profileImage: data.user?.profileImage || ''
+});
 
 const GOOGLE_MAPS_LIBRARIES = ['places', 'geometry', 'drawing'];
 
 const ProfileSettings = () => {
     const navigate = useNavigate();
-    const { logout } = useTailorAuth();
+    const { logout, user } = useTailorAuth();
+    const userId = user?._id || user?.id;
+    const cached = getPageCache(userId, 'profile');
     const appName = useBrandingStore(state => state.appName);
     const [isEditing, setIsEditing] = useState(false);
     const [isEditingPickup, setIsEditingPickup] = useState(false);
     const [activeModal, setActiveModal] = useState(null); // 'pickup', 'terms', 'privacy'
     const [isSaving, setIsSaving] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [profile, setProfile] = useState(null);
-    const [isSubEnabled, setIsSubEnabled] = useState(true);
+    const [isLoading, setIsLoading] = useState(!cached);
+    const [profile, setProfile] = useState(cached?.profile || null);
+    const [isSubEnabled, setIsSubEnabled] = useState(cached?.isSubEnabled ?? true);
+    const isEditingRef = useRef(false);
+    isEditingRef.current = isEditing;
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [reviewsData, setReviewsData] = useState(null); // { rating, totalReviews, reviews }
+    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+
+    const openReviews = async () => {
+        setActiveModal('reviews');
+        setIsLoadingReviews(true);
+        try {
+            const res = await api.get('/tailors/my-reviews');
+            if (res.data.success) setReviewsData(res.data.data);
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            toast.error('Could not load your reviews');
+        } finally {
+            setIsLoadingReviews(false);
+        }
+    };
     const [isDeleting, setIsDeleting] = useState(false);
-    const [formData, setFormData] = useState({
-        shopName: '',
-        name: '',
-        email: '',
-        phoneNumber: '',
-        bio: '',
-        address: '',
-        latitude: null,
-        longitude: null,
-        profileImage: ''
-    });
+    const [formData, setFormData] = useState(() => profileToForm(cached?.profile || {}));
 
     const { detectLocation, isLocating } = useUnifiedLocation({ fetchAddress: true });
 
@@ -64,27 +87,22 @@ const ProfileSettings = () => {
         const fetchProfile = async () => {
             try {
                 const res = await api.get('/tailors/me');
+                let data = null;
                 if (res.data.success) {
-                    const data = res.data.data;
+                    data = res.data.data;
                     setProfile(data);
-                    setFormData({
-                        shopName: data.shopName || '',
-                        name: data.user?.name || '',
-                        email: data.user?.email || '',
-                        phoneNumber: data.user?.phoneNumber || '',
-                        bio: data.bio || '',
-                        address: data.location?.address || '',
-                        latitude: data.location?.coordinates?.[1] || null,
-                        longitude: data.location?.coordinates?.[0] || null,
-                        profileImage: data.user?.profileImage || ''
-                    });
+                    // never overwrite what the tailor is typing
+                    if (!isEditingRef.current) setFormData(profileToForm(data));
                 }
+                let subEnabled = true;
                 try {
                     const cfgRes = await api.get('/subscriptions/config');
                     if (cfgRes.data?.success && cfgRes.data.data?.tailorSubscriptionEnabled === false) {
-                        setIsSubEnabled(false);
+                        subEnabled = false;
                     }
                 } catch (e) {}
+                setIsSubEnabled(subEnabled);
+                if (data) setPageCache(userId, 'profile', { profile: data, isSubEnabled: subEnabled });
             } catch (error) {
                 console.error('Error fetching profile:', error);
             } finally {
@@ -92,7 +110,7 @@ const ProfileSettings = () => {
             }
         };
         fetchProfile();
-    }, []);
+    }, [userId]);
 
     const handleAutoLocation = async () => {
         try {
@@ -184,6 +202,7 @@ const ProfileSettings = () => {
             const res = await api.patch('/tailors/profile', payload);
             if (res.data.success) {
                 setProfile(res.data.data);
+                setPageCache(userId, 'profile', undefined); // refetch fresh on next visit
                 setFormData({ ...formData, phoneNumber: cleanPhone, profileImage: uploadedImageUrl });
                 setIsEditing(false);
                 toast.success("Profile details saved successfully!");
@@ -234,6 +253,86 @@ const ProfileSettings = () => {
 
     const renderModalContent = () => {
         switch (activeModal) {
+            case 'reviews': {
+                if (isLoadingReviews) {
+                    return (
+                        <div className="py-12 flex justify-center">
+                            <div className="h-8 w-8 border-[3px] border-[#843D9B]/20 border-t-[#843D9B] rounded-full animate-spin" />
+                        </div>
+                    );
+                }
+                const rating = reviewsData?.rating || 0;
+                const total = reviewsData?.totalReviews || 0;
+                const reviews = reviewsData?.reviews || [];
+                return (
+                    <div className="space-y-5">
+                        {/* Summary */}
+                        <div className="flex items-center justify-between bg-gradient-to-r from-gray-900 to-[#843D9B] p-4 rounded-2xl text-white">
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-white/10 border border-white/10">
+                                    <Star size={22} className="text-amber-400 fill-amber-400" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-semibold text-white/60 uppercase tracking-widest">Your Rating</p>
+                                    <p className="leading-none mt-1">
+                                        <span className="text-2xl font-bold">{rating.toFixed(1)}</span>
+                                        <span className="text-xs font-semibold text-amber-400 ml-1">/ 5.0</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xl font-bold leading-none">{total}</p>
+                                <p className="text-[10px] font-semibold text-white/60 uppercase tracking-widest mt-1">Total Reviews</p>
+                            </div>
+                        </div>
+
+                        {/* List */}
+                        {reviews.length === 0 ? (
+                            <div className="text-center py-8">
+                                <Star size={32} className="mx-auto text-gray-200" />
+                                <p className="text-sm font-semibold text-gray-700 mt-3">No reviews yet</p>
+                                <p className="text-xs text-gray-400 mt-1">Reviews from your customers will appear here.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {reviews.map((review) => {
+                                    const name = review.user?.name || review.name || 'Customer';
+                                    const photo = review.user?.profileImage;
+                                    return (
+                                        <div key={review._id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/60">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    {photo && photo !== 'default_profile.png' ? (
+                                                        <img src={photo} alt={name} className="h-9 w-9 rounded-full object-cover shrink-0" />
+                                                    ) : (
+                                                        <div className="h-9 w-9 rounded-full bg-[#843D9B]/10 text-[#843D9B] flex items-center justify-center text-sm font-bold shrink-0">
+                                                            {name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+                                                        <p className="text-[11px] text-gray-400">
+                                                            {new Date(review.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-0.5 shrink-0">
+                                                    {[1, 2, 3, 4, 5].map((i) => (
+                                                        <Star key={i} size={13} className={i <= review.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {review.comment && (
+                                                <p className="text-sm text-gray-600 mt-3 leading-relaxed">{review.comment}</p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                );
+            }
             case 'pickup':
                 return (
                     <div className="space-y-4">
@@ -625,6 +724,13 @@ const ProfileSettings = () => {
                                 />
                             )}
                             <MenuOption
+                                icon={Star}
+                                color="bg-[#843D9B]"
+                                label="Your Reviews"
+                                subLabel="Rating & customer feedback"
+                                onClick={openReviews}
+                            />
+                            <MenuOption
                                 icon={MapPin}
                                 color="bg-[#843D9B]"
                                 label="Pick Up Info"
@@ -714,7 +820,7 @@ const ProfileSettings = () => {
                     <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-500 max-h-[85vh]">
                         <div className="px-8 pt-8 pb-4 flex items-center justify-between border-b border-gray-50">
                             <h3 className="text-xl font-black text-gray-900 tracking-tight">
-                                {activeModal === 'pickup' ? 'Pick Up Information' : activeModal === 'terms' ? 'Terms & Conditions' : 'Privacy & Security'}
+                                {activeModal === 'reviews' ? 'Your Reviews' : activeModal === 'pickup' ? 'Pick Up Information' : activeModal === 'terms' ? 'Terms & Conditions' : 'Privacy & Security'}
                             </h3>
                             <button
                                 onClick={() => setActiveModal(null)}
@@ -731,7 +837,7 @@ const ProfileSettings = () => {
                                 onClick={() => setActiveModal(null)} 
                                 className="w-full bg-[#843D9B] text-white rounded-2xl py-4 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-[#843D9B]/20 active:scale-95 transition-all"
                             >
-                                Close Information
+                                {activeModal === 'reviews' ? 'Close' : 'Close Information'}
                             </button>
                         </div>
                     </div>

@@ -1325,7 +1325,7 @@ exports.createBanner = async (req, res) => {
       return res.status(400).json({ success: false, message: validationError });
     }
     const banner = await Banner.create(payload);
-    await invalidateCache("cache:public:banners");
+    await invalidateCache("cache:public:banners*"); // also clears per-location keys
     res.status(201).json({ success: true, data: banner });
   } catch (error) {
     console.error("Error in createBanner:", error);
@@ -1356,7 +1356,7 @@ exports.updateBanner = async (req, res) => {
       return res.status(400).json({ success: false, message: validationError });
     }
     const banner = await Banner.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
-    await invalidateCache("cache:public:banners");
+    await invalidateCache("cache:public:banners*"); // also clears per-location keys
     res.status(200).json({ success: true, data: banner });
   } catch (error) {
     console.error("Error in updateBanner:", error);
@@ -1370,7 +1370,7 @@ exports.deleteBanner = async (req, res) => {
     if (!banner) {
       return res.status(404).json({ success: false, message: "Banner not found" });
     }
-    await invalidateCache("cache:public:banners");
+    await invalidateCache("cache:public:banners*"); // also clears per-location keys
     res.status(200).json({ success: true, message: "Banner deleted" });
   } catch (error) {
     console.error("Error in getAllUsers:", error);

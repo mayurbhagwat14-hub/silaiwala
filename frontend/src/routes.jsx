@@ -7,10 +7,7 @@ import { NotificationProvider as TailorNotificationProvider } from './modules/ta
 const TailorContextWrapper = () => (
     <TailorAuthProvider>
         <TailorNotificationProvider>
-            {/* partner-theme: Figtree headings + system body font (styles/index.css) */}
-            <div className="partner-theme contents">
-                <Outlet />
-            </div>
+            <Outlet />
         </TailorNotificationProvider>
     </TailorAuthProvider>
 );

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
+import { clearPageCache } from '../utils/pageCache';
 import { getToken, setToken as saveToken, removeToken } from '../../../utils/auth';
 
 const AuthContext = createContext({
@@ -22,6 +23,7 @@ export const TAILOR_STATUS = {
 };
 
 const clearTailorSessionStorage = () => {
+    clearPageCache();
     localStorage.removeItem('tailor_token');
     localStorage.removeItem('tailor_user');
     localStorage.removeItem('tailor_status');

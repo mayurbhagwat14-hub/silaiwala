@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     ShoppingBag, Clock, CheckCircle, ChevronRight,
-    Bell, Plus, Ruler, TrendingUp, ArrowUpRight, Menu, ShieldAlert, Star
+    Bell, TrendingUp, Menu, ShieldAlert, Wallet
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTailorAuth } from '../context/AuthContext';
@@ -11,18 +11,24 @@ import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../../../config/constants';
 import { getToken } from '../../../utils/auth';
 import { toast } from 'react-hot-toast';
+import { getPageCache, setPageCache } from '../utils/pageCache';
+import PartnerBanners from '../components/PartnerBanners';
 
 const Overview = () => {
     const { user } = useTailorAuth();
     const { unreadCount } = useNotifications();
     const navigate = useNavigate();
-    const [dashboardData, setDashboardData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const userId = user?._id || user?.id;
+    const [dashboardData, setDashboardData] = useState(() => getPageCache(userId, 'dashboard') || null);
+    const [isLoading, setIsLoading] = useState(() => !getPageCache(userId, 'dashboard'));
 
     const fetchDashboardData = async () => {
         try {
             const response = await api.get('/tailors/dashboard');
-            if (response.data.success) setDashboardData(response.data.data);
+            if (response.data.success) {
+                setDashboardData(response.data.data);
+                setPageCache(userId, 'dashboard', response.data.data);
+            }
         } catch (error) {
             console.error('Error fetching dashboard:', error);
         } finally {
@@ -80,61 +86,22 @@ const Overview = () => {
                             Welcome back, {dashboardData?.tailorName?.split(' ')[0] || user?.name?.split(' ')[0] || 'Partner'}
                         </h2>
                     </div>
-                    <div className="hidden md:flex items-center gap-4 bg-gray-900 px-5 py-3 rounded-[1.25rem] shadow-xl shadow-[#843D9B]/10 border border-[#843D9B]/30 self-start md:self-auto">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10">
-                            <Star size={20} className="text-amber-400 fill-amber-400" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-0.5">Your Rating</span>
-                            <div className="flex items-baseline gap-1.5">
-                                <span className="text-xl font-black text-white leading-none">{(summary.rating || 0).toFixed(1)}</span>
-                                <span className="text-xs font-bold text-amber-400 leading-none">/ 5.0</span>
-                            </div>
-                        </div>
-                        <div className="h-10 w-px bg-white/10 mx-1"></div>
-                        <div className="flex flex-col items-end">
-                            <span className="text-lg font-black text-white leading-none">{summary.totalReviews || 0}</span>
-                            <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">Reviews</span>
-                        </div>
-                        <div className="h-10 w-px bg-white/10 mx-1"></div>
-                        <button 
-                            onClick={() => navigate('/partner/notifications')}
-                            className="p-2.5 bg-white/10 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition-all relative border border-white/5 flex items-center justify-center"
-                        >
-                            <Bell size={20} />
-                            {unreadCount > 0 && (
-                                <span className="absolute -top-2 -right-2 h-5 w-5 bg-rose-500 rounded-full border-[2px] border-gray-900 flex items-center justify-center text-[10px] font-black text-white shadow-lg">
-                                    {unreadCount > 99 ? '99+' : unreadCount}
-                                </span>
-                            )}
-                        </button>
-                    </div>
-                </div>
-
-                {/* ── MOBILE RATING BAR ── */}
-                <div className="md:hidden w-full flex items-center justify-between bg-gradient-to-r from-gray-900 to-[#843D9B] p-3 rounded-2xl shadow-lg shadow-[#843D9B]/10 border border-[#843D9B]/30 text-white mb-2">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10">
-                            <Star size={20} className="text-amber-400 fill-amber-400" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-white/60 uppercase tracking-widest">Your Rating</span>
-                            <div className="flex items-end gap-1 leading-none mt-0.5">
-                                <span className="text-xl font-black text-white">{(summary.rating || 0).toFixed(1)}</span>
-                                <span className="text-[10px] font-bold text-amber-400 pb-0.5">/ 5.0</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="h-8 w-px bg-white/10 mx-2"></div>
-                    <div className="flex flex-col items-end pr-1">
-                        <span className="text-sm font-black text-white leading-none">{summary.totalReviews || 0}</span>
-                        <span className="text-[8px] font-bold text-white/50 uppercase tracking-widest mt-1">Total Reviews</span>
-                    </div>
+                    <button
+                        onClick={() => navigate('/partner/notifications')}
+                        className="hidden md:flex p-2.5 bg-white rounded-xl text-gray-600 hover:text-[#843D9B] transition-all relative border border-gray-100 shadow-sm items-center justify-center self-start md:self-auto"
+                    >
+                        <Bell size={20} />
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-2 -right-2 h-5 w-5 bg-rose-500 rounded-full border-[2px] border-white flex items-center justify-center text-[10px] font-black text-white shadow-lg">
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
+                    </button>
                 </div>
 
                 {/* ── VERIFICATION STATUS BANNER ── */}
                 {(dashboardData?.registrationStatus === 'pending' || dashboardData?.registrationStatus === 'rejected') && (
-                    <div className={`rounded-xl md:rounded-2xl p-3 md:p-4 border flex items-start gap-3 md:gap-4 ${
+                    <div className={`rounded-2xl p-3 md:p-4 border flex items-start gap-3 md:gap-4 ${
                         dashboardData.registrationStatus === 'rejected' 
                             ? 'bg-red-500/10 border-red-500/20' 
                             : 'bg-amber-500/10 border-amber-500/20'
@@ -171,73 +138,74 @@ const Overview = () => {
                 )}
 
                 {/* ── KEY METRICS ── */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                     {/* Total Earnings */}
-                    <div 
-                        onClick={() => navigate('/partner/wallet')} 
-                        className="bg-gray-900 rounded-2xl md:rounded-[2rem] p-4 md:p-6 relative overflow-hidden group cursor-pointer hover:shadow-lg hover:shadow-gray-900/20 active:scale-95 transition-all duration-300 flex flex-col justify-between"
+                    <div
+                        onClick={() => navigate('/partner/wallet')}
+                        className="bg-[#FFF8E6] border border-[#F6E2B3] rounded-2xl p-3.5 md:p-5 min-h-[84px] md:min-h-[96px] cursor-pointer active:scale-95 hover:shadow-md transition-all duration-300 group flex items-center gap-3 md:gap-4 min-w-0"
                     >
-                        <div className="absolute -right-4 -bottom-4 w-16 h-16 md:w-24 md:h-24 bg-[#843D9B]/20 rounded-full blur-2xl md:blur-3xl group-hover:bg-[#843D9B]/40 transition-all"></div>
-                        <p className="text-[8px] md:text-[10px] font-black text-white/50 uppercase tracking-wider md:tracking-widest mb-1 md:mb-2 truncate">Total Earnings</p>
-                        <p className="text-lg md:text-3xl font-black text-white tracking-tight leading-none mb-2 md:mb-2 truncate">
-                            ₹{summary.totalEarnings.toLocaleString('en-IN') || '0'}
-                        </p>
-                        <div className="flex items-center gap-1 md:gap-1.5 mt-auto">
-                            <div className="flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform shrink-0">
-                                <ArrowUpRight size={10} className="md:w-3 md:h-3" strokeWidth={3} />
-                            </div>
-                            <span className="text-[8px] md:text-[11px] font-black text-emerald-500 truncate">View Details</span>
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center text-[#B7791F] shrink-0 relative">
+                            <Wallet size={20} />
+                        </div>
+                        <div className="min-w-0 relative">
+                            <p className="text-[11px] md:text-xs text-gray-600 font-medium leading-tight line-clamp-2 mb-1">Total Earnings</p>
+                            <p className="text-xl md:text-3xl font-bold text-gray-900 leading-tight truncate">
+                                ₹{(summary.totalEarnings || 0).toLocaleString('en-IN')}
+                            </p>
                         </div>
                     </div>
 
                     {/* New Orders */}
-                    <div 
+                    <div
                         onClick={() => navigate('/partner/orders', { state: { status: 'pending' } })}
-                        className="bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:border-indigo-100 active:scale-95 transition-all duration-300 group flex flex-col"
+                        className="bg-[#F5EDFA] border border-[#E5D3F0] rounded-2xl p-3.5 md:p-5 min-h-[84px] md:min-h-[96px] cursor-pointer active:scale-95 hover:shadow-md transition-all duration-300 group flex items-center gap-3 md:gap-4 min-w-0"
                     >
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 rounded-lg md:rounded-xl flex items-center justify-center mb-2 md:mb-4 text-[#843D9B] group-hover:scale-110 group-hover:bg-[#843D9B] group-hover:text-white transition-all shrink-0">
-                            <ShoppingBag size={16} className="md:w-5 md:h-5" />
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center text-[#843D9B] shrink-0 relative">
+                            <ShoppingBag size={20} />
                         </div>
-                        <div className="mt-auto">
-                            <p className="text-[8px] md:text-[10px] text-gray-400 font-black uppercase tracking-wider md:tracking-widest mb-1 truncate">New Orders</p>
-                            <p className="text-xl md:text-3xl font-black text-gray-900 leading-none truncate">
+                        <div className="min-w-0 relative">
+                            <p className="text-[11px] md:text-xs text-gray-600 font-medium leading-tight line-clamp-2 mb-1">New Orders</p>
+                            <p className="text-xl md:text-3xl font-bold text-gray-900 leading-tight truncate">
                                 {String(summary.pendingOrders || 0).padStart(2, '0')}
                             </p>
                         </div>
                     </div>
 
                     {/* In Progress */}
-                    <div 
+                    <div
                         onClick={() => navigate('/partner/orders', { state: { status: 'in-progress' } })}
-                        className="bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:border-blue-100 active:scale-95 transition-all duration-300 group flex flex-col"
+                        className="bg-[#FFF3EA] border border-[#FADCC4] rounded-2xl p-3.5 md:p-5 min-h-[84px] md:min-h-[96px] cursor-pointer active:scale-95 hover:shadow-md transition-all duration-300 group flex items-center gap-3 md:gap-4 min-w-0"
                     >
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-50 rounded-lg md:rounded-xl flex items-center justify-center mb-2 md:mb-4 text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all shrink-0">
-                            <Clock size={16} className="md:w-5 md:h-5" />
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center text-[#D9822B] shrink-0 relative">
+                            <Clock size={20} />
                         </div>
-                        <div className="mt-auto">
-                            <p className="text-[8px] md:text-[10px] text-gray-400 font-black uppercase tracking-wider md:tracking-widest mb-1 truncate">In Progress</p>
-                            <p className="text-xl md:text-3xl font-black text-gray-900 leading-none truncate">
+                        <div className="min-w-0 relative">
+                            <p className="text-[11px] md:text-xs text-gray-600 font-medium leading-tight line-clamp-2 mb-1">In Progress</p>
+                            <p className="text-xl md:text-3xl font-bold text-gray-900 leading-tight truncate">
                                 {String(Math.max(summary.totalOrders - summary.completedThisWeek, 0)).padStart(2, '0')}
                             </p>
                         </div>
                     </div>
 
                     {/* Completed */}
-                    <div 
+                    <div
                         onClick={() => navigate('/partner/orders', { state: { status: 'completed' } })}
-                        className="bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:border-emerald-100 active:scale-95 transition-all duration-300 group flex flex-col"
+                        className="bg-[#EDF9F1] border border-[#CDEEDA] rounded-2xl p-3.5 md:p-5 min-h-[84px] md:min-h-[96px] cursor-pointer active:scale-95 hover:shadow-md transition-all duration-300 group flex items-center gap-3 md:gap-4 min-w-0"
                     >
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 rounded-lg md:rounded-xl flex items-center justify-center mb-2 md:mb-4 text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shrink-0">
-                            <CheckCircle size={16} className="md:w-5 md:h-5" />
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center text-[#2F9E5B] shrink-0 relative">
+                            <CheckCircle size={20} />
                         </div>
-                        <div className="mt-auto">
-                            <p className="text-[8px] md:text-[10px] text-gray-400 font-black uppercase tracking-wider md:tracking-widest mb-1 truncate">Completed</p>
-                            <p className="text-xl md:text-3xl font-black text-gray-900 leading-none truncate">
+                        <div className="min-w-0 relative">
+                            <p className="text-[11px] md:text-xs text-gray-600 font-medium leading-tight line-clamp-2 mb-1">Completed</p>
+                            <p className="text-xl md:text-3xl font-bold text-gray-900 leading-tight truncate">
                                 {summary.completedThisWeek || 0}
                             </p>
                         </div>
                     </div>
                 </div>
+
+                {/* ── ADMIN-MANAGED BANNERS (CMS placement: Partner App - Dashboard Banner) ── */}
+                <PartnerBanners />
 
                 {/* ── BOTTOM SECTION: TWO COLUMNS ON DESKTOP ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
@@ -259,13 +227,13 @@ const Overview = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {isLoading ? (
                                     [1, 2].map(i => (
-                                        <div key={i} className="bg-white rounded-3xl h-20 animate-pulse border border-gray-100" />
+                                        <div key={i} className="bg-white rounded-2xl h-20 animate-pulse border border-gray-100" />
                                     ))
                                 ) : (() => {
                                     const activePickups = dashboardData?.upcomingPickups || [];
                                     if (activePickups.length === 0) {
                                         return (
-                                            <div className="col-span-full p-8 text-center text-gray-400 text-sm font-bold bg-white rounded-3xl border border-gray-100 border-dashed">
+                                            <div className="col-span-full p-8 text-center text-gray-400 text-sm font-bold bg-white rounded-2xl border border-gray-100 border-dashed">
                                                 No upcoming pickups scheduled.
                                             </div>
                                         );
@@ -274,7 +242,7 @@ const Overview = () => {
                                         <button
                                             key={order._id}
                                             onClick={() => navigate('/partner/orders', { state: { highlightOrderTitle: order.orderId } })}
-                                            className="bg-white rounded-[2rem] p-4 border border-gray-100 shadow-sm flex items-center gap-4 hover:border-[#843D9B]/20 transition-all text-left group"
+                                            className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-4 hover:border-[#843D9B]/20 transition-all text-left group"
                                         >
                                             <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white font-black text-xs shrink-0 group-hover:scale-110 transition-transform">
                                                 {order.customer?.name?.charAt(0) || 'C'}
@@ -302,31 +270,6 @@ const Overview = () => {
 
                     {/* RIGHT COLUMN (1/3) */}
                     <div className="space-y-6">
-                        {/* Quick Actions */}
-                        <div className="bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-6 border border-gray-100 shadow-sm">
-                            <h3 className="text-sm md:text-lg font-black text-gray-900 mb-3 md:mb-5 tracking-tight">Quick Actions</h3>
-                            <div className="grid grid-cols-1 gap-2 md:gap-3">
-                                <button
-                                    onClick={() => navigate('/partner/orders')}
-                                    className="flex items-center gap-3 bg-[#843D9B] text-white px-4 py-2.5 md:p-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest shadow-lg shadow-[#843D9B]/20 hover:scale-[1.02] active:scale-95 transition-all"
-                                >
-                                    <div className="w-7 h-7 md:w-8 md:h-8 bg-white/10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0">
-                                        <Plus size={16} className="md:w-[18px] md:h-[18px]" strokeWidth={3} />
-                                    </div>
-                                    New Order
-                                </button>
-                                <button
-                                    onClick={() => navigate('/partner/measurements')}
-                                    className="flex items-center gap-3 bg-gray-50 border border-gray-100 text-gray-900 px-4 py-2.5 md:p-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-gray-100 hover:scale-[1.02] active:scale-95 transition-all"
-                                >
-                                    <div className="w-7 h-7 md:w-8 md:h-8 bg-white rounded-lg md:rounded-xl flex items-center justify-center shadow-sm text-[#843D9B] shrink-0">
-                                        <Ruler size={16} className="md:w-[18px] md:h-[18px]" />
-                                    </div>
-                                    Measurement
-                                </button>
-                            </div>
-                        </div>
-
                         {/* Current Workflow */}
                         {recentActivity.find(o => ['accepted', 'cutting', 'stitching'].includes(o.status)) ? (() => {
                             const activeOrder = recentActivity.find(o => ['accepted', 'cutting', 'stitching'].includes(o.status));
@@ -335,7 +278,7 @@ const Overview = () => {
                             if (activeOrder.status === 'stitching') progress = 75;
 
                             return (
-                                <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
+                                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
                                     <div className="absolute right-3 bottom-0 opacity-10 pointer-events-none group-hover:scale-110 transition-transform">
                                         <svg width="60" height="80" viewBox="0 0 70 100" fill="none">
                                             <ellipse cx="35" cy="18" rx="12" ry="12" fill="#843D9B" />
@@ -374,7 +317,7 @@ const Overview = () => {
                                 </div>
                             );
                         })() : (
-                            <div className="bg-white rounded-[2rem] p-6 border border-gray-100 border-dashed shadow-sm flex flex-col items-center justify-center text-center h-48">
+                            <div className="bg-white rounded-2xl p-6 border border-gray-100 border-dashed shadow-sm flex flex-col items-center justify-center text-center h-48">
                                 <Clock size={24} className="text-gray-300 mb-3" />
                                 <p className="text-[12px] font-black text-gray-400 uppercase tracking-widest">No Active<br/>Workflows</p>
                             </div>

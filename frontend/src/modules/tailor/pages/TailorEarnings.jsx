@@ -11,6 +11,7 @@ import api from '../services/api';
 import { useTailorAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import useBrandingStore from '../../../store/brandingStore';
+import { getPageCache, setPageCache } from '../utils/pageCache';
 
 // ── Figma-matched Earnings Page ──────────────────────────────────────────────
 const TailorEarnings = () => {
@@ -19,11 +20,13 @@ const TailorEarnings = () => {
     const { unreadCount } = useNotifications();
     const { appName, logos } = useBrandingStore();
 
+    const userId = user?._id || user?.id;
+    const cached = getPageCache(userId, 'earnings:Daily');
     const [activeTab, setActiveTab] = useState('Daily');
-    const [isLoading, setIsLoading] = useState(true);
-    const [stats, setStats]         = useState({ balance: 0, totalWithdrawn: 0, codWalletBalance: 0, cashBlocked: false });
-    const [transactions, setTxns]   = useState([]);
-    const [earningsData, setEarningsData] = useState(null);
+    const [isLoading, setIsLoading] = useState(!cached);
+    const [stats, setStats]         = useState(cached?.stats || { balance: 0, totalWithdrawn: 0, codWalletBalance: 0, cashBlocked: false });
+    const [transactions, setTxns]   = useState(cached?.transactions || []);
+    const [earningsData, setEarningsData] = useState(cached?.earningsData || null);
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
     const [withdrawAmount, setWithdrawAmount] = useState('');
     const [upiId, setUpiId] = useState('');
@@ -34,7 +37,7 @@ const TailorEarnings = () => {
     const [showDepositModal, setShowDepositModal] = useState(false);
     const [depositAmount, setDepositAmount] = useState('');
     const [depositRemarks, setDepositRemarks] = useState('');
-    const [depositHistory, setDepositHistory] = useState([]);
+    const [depositHistory, setDepositHistory] = useState(cached?.depositHistory || []);
 
     const handleWithdrawRequest = async (e) => {
         e.preventDefault();
@@ -174,6 +177,12 @@ const TailorEarnings = () => {
                 if (historyRes.data.success) {
                     setDepositHistory(historyRes.data.data);
                 }
+                setPageCache(userId, `earnings:${activeTab}`, {
+                    stats: balRes.data.data,
+                    transactions: balRes.data.data.recentTransactions || [],
+                    earningsData: earnRes.data.data,
+                    depositHistory: historyRes.data.success ? historyRes.data.data : [],
+                });
                 setIsLoading(false);
             } catch (error) {
                 if (error?.name === 'CanceledError') return;
@@ -182,7 +191,7 @@ const TailorEarnings = () => {
             }
         };
         fetchData();
-    }, [activeTab]);
+    }, [activeTab, userId]);
 
     const periodTotal = earningsData?.summary?.periodTotal || 0;
     // Real split from wallet credits (backend summary.breakdown); no invented percentages

@@ -14,6 +14,7 @@ export const BANNER_LOCATIONS = {
   HOME: 'Home Page - Top Carousel',
   STORE: 'Store Tab - Header Banner',
   POPUP: 'Promotional Popup',
+  PARTNER_DASHBOARD: 'Partner App - Dashboard Banner',
 };
 
 export function isUploadedBannerImage(url) {

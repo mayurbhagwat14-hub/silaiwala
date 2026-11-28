@@ -1,21 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-    LayoutDashboard,
     ClipboardList,
-    ShoppingBag,
     Truck,
     FileCheck,
     CreditCard,
-    UserCircle,
     Wallet,
     Ruler,
     Wand2,
     AlertTriangle,
     Bell,
-    RefreshCw
+    RefreshCw,
+    House,
+    Shirt,
+    User
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import useBrandingStore from '../store/brandingStore';
 import { useTailorAuth } from '../modules/tailor/context/AuthContext';
 import { useNotifications } from '../modules/tailor/context/NotificationContext';
@@ -24,7 +23,27 @@ import api from '../modules/tailor/services/api';
 import { getToken } from '../utils/auth';
 import useSocketStore from '../store/socketStore';
 
+// Warm the code of the partner tabs once the shell is up, so switching tabs never waits on a download.
+// Same paths as the React.lazy imports in routes.jsx, so they resolve to the same chunks.
+const prefetchPartnerPages = () => {
+    import('../modules/tailor/pages/Overview');
+    import('../modules/tailor/pages/Orders');
+    import('../modules/tailor/pages/Products');
+    import('../modules/tailor/pages/TailorEarnings');
+    import('../modules/tailor/pages/ProfileSettings');
+    import('../modules/tailor/pages/Notifications');
+    import('../modules/tailor/pages/TailorShopOrders');
+    import('../modules/tailor/pages/TailorAlterations');
+    import('../modules/tailor/pages/TailorCustomDesigns');
+    import('../modules/tailor/pages/ReportedIssues');
+};
+
 const TailorLayout = () => {
+    useEffect(() => {
+        const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1500));
+        idle(prefetchPartnerPages);
+    }, []);
+
     const location = useLocation();
     const navigate = useNavigate();
     const { user, status } = useTailorAuth();
@@ -183,14 +202,14 @@ const TailorLayout = () => {
     }, [user?._id, user?.id]);
 
     const menuItems = [
-        { icon: <LayoutDashboard size={20} />, label: 'Home', path: '/partner' },
+        { icon: <House size={20} />, label: 'Home', path: '/partner' },
         { icon: <ClipboardList size={20} />, label: 'Orders', path: '/partner/orders', badge: pendingOrdersCount },
         { icon: <Ruler size={20} />, label: 'Alterations', mobileLabel: 'Alt.', path: '/partner/alterations' },
         { icon: <Wand2 size={20} />, label: 'Custom Designs', mobileLabel: 'Custom', path: '/partner/custom-designs' },
         { icon: <AlertTriangle size={20} />, label: 'Issues', path: '/partner/issues' },
+        { icon: <Shirt size={20} />, label: 'Services', path: '/partner/products' },
         { icon: <Wallet size={20} />, label: 'Wallet', path: '/partner/wallet' },
-        { icon: <ShoppingBag size={20} />, label: 'Services', path: '/partner/products' },
-        { icon: <UserCircle size={20} />, label: 'Profile', path: '/partner/settings' },
+        { icon: <User size={20} />, label: 'Profile', path: '/partner/settings' },
     ];
 
     return (
@@ -267,46 +286,31 @@ const TailorLayout = () => {
             {/* ── MAIN CONTENT AREA ── */}
             <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative overscroll-none">
                 {/* ── MOBILE TOP HEADER ── */}
-                <header className="md:hidden w-full bg-white border-b border-gray-100 px-4 h-14 flex items-center justify-between shrink-0 z-40 shadow-sm top-0 left-0">
+                <header className="md:hidden w-full bg-gradient-to-r from-[#6B2F7E] via-[#843D9B] to-[#9B5BB0] px-4 h-14 flex items-center justify-between shrink-0 z-40 top-0 left-0">
                     <Link to="/partner" className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-gray-100 shadow-sm shrink-0">
+                        <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center overflow-hidden shadow-sm shrink-0">
                             <img src={logos.tailor} alt={appName} className="w-full h-full object-contain p-0.5" />
                         </div>
                         <div>
-                            <h1 className="text-base font-black text-gray-900 leading-none tracking-tight">
+                            <h1 className="text-base font-bold text-white leading-none tracking-tight">
                                 {appName}
                             </h1>
-                            <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Partner Portal</p>
+                            <p className="text-[11px] text-white/80 font-medium mt-1 leading-none">Tailor Partner</p>
                         </div>
                     </Link>
 
                     <div className="flex items-center gap-2.5">
-                        {status && (
-                            <div className="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
-                                <span className={`h-1.5 w-1.5 rounded-full ${status === 'APPROVED' ? 'bg-[#843D9B]' : 'bg-orange-400'} animate-pulse`}></span>
-                                <span className="text-[8px] font-black uppercase text-gray-500 tracking-widest">{status}</span>
-                            </div>
-                        )}
-                        <Link 
-                            to="/partner/notifications" 
-                            className="p-2 text-gray-600 hover:text-[#843D9B] hover:bg-gray-50 rounded-xl transition-all relative border border-gray-100 flex items-center justify-center"
+                        <Link
+                            to="/partner/notifications"
+                            className="p-2 text-white hover:bg-white/10 rounded-xl transition-all relative flex items-center justify-center"
                         >
-                            <Bell size={18} />
+                            <Bell size={20} />
                             {unreadCount > 0 && (
-                                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 bg-rose-500 rounded-full border-2 border-white flex items-center justify-center text-[7px] font-black text-white shadow-sm z-10">
+                                <span className="absolute top-0.5 right-0.5 h-4 min-w-[16px] px-1 bg-rose-500 rounded-full border-2 border-[#843D9B] flex items-center justify-center text-[8px] font-semibold text-white z-10">
                                     {unreadCount > 99 ? '99+' : unreadCount}
                                 </span>
                             )}
                         </Link>
-                        {user?.profile?.profileImage || user?.profileImage ? (
-                            <Link to="/partner/settings" className="w-8 h-8 rounded-xl overflow-hidden shadow-md shrink-0 bg-white block border border-gray-200">
-                                <img src={user?.profile?.profileImage || user?.profileImage} alt="Profile" className="w-full h-full object-cover" />
-                            </Link>
-                        ) : (
-                            <Link to="/partner/settings" className="w-8 h-8 rounded-xl bg-[#843D9B] text-white flex items-center justify-center font-black text-xs shadow-md shadow-[#843D9B]/20 border border-white shrink-0">
-                                {user?.name?.charAt(0)?.toUpperCase() || 'T'}
-                            </Link>
-                        )}
                     </div>
                 </header>
 
@@ -362,14 +366,21 @@ const TailorLayout = () => {
                         )}
                         
                         <div className={`flex-1 pb-24 md:pb-12 ${['/partner/orders', '/partner/shop-orders', '/partner/alterations', '/partner/custom-designs', '/partner/issues'].includes(location.pathname) ? 'p-4' : ''}`}>
-                            <Outlet />
+                            {/* Page-level boundary: a loading page never blanks the header / bottom nav */}
+                            <React.Suspense fallback={
+                                <div className="flex-1 flex items-center justify-center py-24">
+                                    <div className="w-8 h-8 border-[3px] border-[#843D9B]/20 border-t-[#843D9B] rounded-full animate-spin" />
+                                </div>
+                            }>
+                                <Outlet />
+                            </React.Suspense>
                         </div>
                     </div>
                 </main>
 
                 {/* ── BOTTOM NAVIGATION (MOBILE ONLY) ── */}
                 {!isKeyboardOpen && (
-                    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-between gap-2 overflow-x-auto scrollbar-hide z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.05)] animate-fadeIn">
+                    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-stretch justify-around z-50 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] animate-fadeIn">
                         {menuItems.filter(item => !['/partner/alterations', '/partner/custom-designs', '/partner/issues'].includes(item.path)).map((item) => {
                             const isOrderSection = ['/partner/orders', '/partner/shop-orders', '/partner/alterations', '/partner/custom-designs', '/partner/issues'].includes(location.pathname);
                             const isActive = location.pathname === item.path || (item.path === '/partner/orders' && isOrderSection);
@@ -377,32 +388,22 @@ const TailorLayout = () => {
                                 <Link
                                     key={item.path}
                                     to={item.path}
-                                    className="flex flex-col items-center gap-1 relative min-w-[56px] py-1"
+                                    className={`flex-1 flex flex-col items-center gap-1 py-1 transition-colors active:scale-95 ${
+                                        isActive ? 'text-[#843D9B]' : 'text-gray-500'
+                                    }`}
                                 >
-                                    {isActive && (
-                                        <motion.span 
-                                            layoutId="bottomNavActive"
-                                            className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#843D9B] rounded-full" 
-                                        />
-                                    )}
-                                    <div className={`p-2.5 rounded-2xl transition-all duration-300 flex items-center justify-center relative ${
-                                        isActive
-                                            ? 'bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/30 scale-110'
-                                            : 'text-gray-400 active:scale-90'
-                                    }`}>
+                                    <div className="relative flex items-center justify-center">
                                         {item.badge > 0 && (
-                                            <span className="absolute -top-1 -right-1.5 h-[14px] min-w-[14px] px-1 bg-rose-500 rounded-full border-[1.5px] border-white flex items-center justify-center text-[7px] font-black text-white shadow-sm z-10">
+                                            <span className="absolute -top-1.5 -right-2 h-[14px] min-w-[14px] px-1 bg-rose-500 rounded-full border-[1.5px] border-white flex items-center justify-center text-[8px] font-semibold text-white z-10">
                                                 {item.badge > 99 ? '99+' : item.badge}
                                             </span>
                                         )}
                                         {React.cloneElement(item.icon, {
-                                            size: 20,
-                                            strokeWidth: isActive ? 2.5 : 2
+                                            size: 22,
+                                            strokeWidth: isActive ? 2 : 1.75
                                         })}
                                     </div>
-                                    <span className={`text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                                        isActive ? 'text-[#843D9B]' : 'text-gray-400'
-                                    }`}>
+                                    <span className="text-[11px] font-semibold leading-none whitespace-nowrap">
                                         {item.mobileLabel || item.label}
                                     </span>
                                 </Link>

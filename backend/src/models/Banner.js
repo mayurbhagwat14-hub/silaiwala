@@ -21,7 +21,7 @@ const bannerSchema = new mongoose.Schema(
     },
     targetLocation: {
       type: String,
-      enum: ["Home Page - Top Carousel", "Store Tab - Header Banner", "Promotional Popup"],
+      enum: ["Home Page - Top Carousel", "Store Tab - Header Banner", "Promotional Popup", "Partner App - Dashboard Banner"],
       default: "Home Page - Top Carousel",
     },
     status: {

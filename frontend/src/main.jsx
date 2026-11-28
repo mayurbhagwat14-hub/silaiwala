@@ -44,7 +44,9 @@ if ('serviceWorker' in navigator) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
+      {/* v7_startTransition: keep the current page on screen while the next lazy page loads,
+          instead of flashing the app-wide Suspense spinner on every navigation */}
+      <BrowserRouter future={{ v7_startTransition: true }}>
         <OfflineDetector>
           <App />
         </OfflineDetector>

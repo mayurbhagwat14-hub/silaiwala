@@ -152,6 +152,34 @@ exports.getTailorDetails = asyncHandler(async (req, res, next) => {
  * @route   GET /api/v1/tailors/me
  * @access  Private (Tailor)
  */
+/**
+ * @desc    Reviews customers left for the logged-in tailor, with average rating
+ * @route   GET /api/v1/tailors/my-reviews
+ * @access  Private (tailor)
+ */
+exports.getMyReviews = asyncHandler(async (req, res, next) => {
+  const tailor = await Tailor.findOne({ user: req.user.id }).select("_id user").lean();
+  // Tailor reviews are stored against either the tailor's User id or the Tailor doc id
+  const targetIds = [req.user.id, tailor?._id]
+    .filter(Boolean)
+    .map((id) => new mongoose.Types.ObjectId(String(id)));
+
+  const reviews = await Review.find({ targetType: "Tailor", targetId: { $in: targetIds } })
+    .populate("user", "name profileImage")
+    .sort("-createdAt")
+    .lean();
+
+  const totalReviews = reviews.length;
+  const rating = totalReviews
+    ? Number((reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / totalReviews).toFixed(1))
+    : 0;
+
+  res.status(200).json({
+    success: true,
+    data: { rating, totalReviews, reviews },
+  });
+});
+
 exports.getMyProfile = asyncHandler(async (req, res, next) => {
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   res.setHeader("Pragma", "no-cache");

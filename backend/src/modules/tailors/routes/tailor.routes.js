@@ -2,7 +2,8 @@ const express = require("express");
 const { 
   getTailors, 
   getTailorDetails, 
-  getMyProfile, 
+  getMyProfile,
+  getMyReviews,
   updateProfile, 
   getDashboardData, 
   getEarningsData,
@@ -54,6 +55,7 @@ router.get("/work-samples/feed", publicLimiter, getAllWorkSamples);
 // We need these BEFORE /:id to avoid shadowing, and we add protect manually
 // so we can keep /:id public at the end.
 router.get("/me", protect, authorize("tailor"), getMyProfile);
+router.get("/my-reviews", protect, authorize("tailor"), getMyReviews);
 router.get("/dashboard", protect, authorize("tailor"), getDashboardData);
 router.get("/earnings", protect, authorize("tailor"), getEarningsData);
 router.get("/orders", protect, authorize("tailor"), getOrders);

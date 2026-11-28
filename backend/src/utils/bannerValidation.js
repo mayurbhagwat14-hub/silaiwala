@@ -47,6 +47,7 @@ function validateBannerPayload(payload) {
     "Home Page - Top Carousel",
     "Store Tab - Header Banner",
     "Promotional Popup",
+    "Partner App - Dashboard Banner",
   ];
   if (!allowedLocations.includes(payload.targetLocation)) {
     return "Invalid banner placement location";
