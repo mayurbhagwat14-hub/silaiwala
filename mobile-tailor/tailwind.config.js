@@ -23,9 +23,9 @@ module.exports = {
       },
       spacing: { 18: '4.5rem', 22: '5.5rem' },
       fontFamily: {
-        sans: ['Poppins'],
-        serif: ['LibreCaslonText'],
-        body: ['Manrope'],
+        sans: ['Figtree'],
+        serif: ['PlayfairDisplay'],
+        body: ['Figtree'],
         jakarta: ['PlusJakartaSans'],
       },
     },

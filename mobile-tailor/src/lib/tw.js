@@ -212,7 +212,7 @@ export function parse(className) {
     if ((m = c.match(/^leading-(\d+(?:\.\d+)?)$/))) { extra.lineHeight = Number(m[1]) * 4; continue; }
     if (/^leading-/.test(c)) continue;
     if ((m = c.match(/^font-(sans|serif|body|jakarta|mono)$/))) { meta.family = m[1]; continue; }
-    if (/^font-\[/.test(c)) { meta.family = /Jakarta/i.test(c) ? 'jakarta' : /Manrope/i.test(c) ? 'body' : /Caslon|serif/i.test(c) ? 'serif' : 'sans'; continue; }
+    if (/^font-\[/.test(c)) { meta.family = /Jakarta/i.test(c) ? 'jakarta' : /Manrope/i.test(c) ? 'body' : /Caslon|Playfair|serif/i.test(c) ? 'serif' : 'sans'; continue; }
     if (c === 'not-italic') continue;
     if (c === 'normal-case') { extra.textTransform = 'none'; continue; }
 
@@ -381,32 +381,51 @@ export default function tw(strings, ...values) {
 }
 
 const WEIGHT_NAMES = { 100: '100Thin', 200: '200ExtraLight', 300: '300Light', 400: '400Regular', 500: '500Medium', 600: '600SemiBold', 700: '700Bold', 800: '800ExtraBold', 900: '900Black' };
+// Headings: Figtree. Body (sans/body/mono below 600): the platform system sans, styled via fontWeight.
+const HEADING = { name: 'Figtree', weights: [400, 500, 600, 700, 800], italic: true };
+const HEADING_MIN_WEIGHT = 600;
 const FAMILY_WEIGHTS = {
-  sans: { name: 'Poppins', weights: [400, 500, 600, 700, 800, 900] },
+  sans: null,
+  body: null,
+  mono: null,
   jakarta: { name: 'PlusJakartaSans', weights: [400, 500, 600, 700, 800] },
-  body: { name: 'Poppins', weights: [400, 500, 600, 700, 800, 900] },
-  mono: { name: 'Poppins', weights: [400, 500, 600, 700, 800, 900] },
-  serif: { name: 'LibreCaslonText', weights: [400, 700] },
+  serif: { name: 'PlayfairDisplay', weights: [400, 700], italic: true },
 };
+
+const nearest = (weights, w) => weights.reduce((best, cur) => (Math.abs(cur - w) < Math.abs(best - w) ? cur : best), weights[0]);
 
 /** Resolve inherited web text props to concrete RN text style (font file per weight, em -> px). */
 export function finalizeText(s) {
   const out = { ...s };
-  const fam = FAMILY_WEIGHTS[out._family || 'sans'];
   let w = Number(out.fontWeight || 400);
   if (Number.isNaN(w)) w = out.fontWeight === 'bold' ? 700 : 400;
-  const pick = fam.weights.reduce((best, cur) => (Math.abs(cur - w) < Math.abs(best - w) ? cur : best), fam.weights[0]);
-  if (!out.fontFamily || out._family) {
-    out.fontFamily = out.fontStyle === 'italic' && fam.name === 'Poppins'
-      ? `Poppins_${WEIGHT_NAMES[pick]}_Italic`
-      : `${fam.name}_${WEIGHT_NAMES[pick]}`;
-  }
-  delete out.fontWeight;
-  if (out.fontFamily && out.fontFamily.endsWith('Italic')) delete out.fontStyle;
+  const famKey = out._family || 'sans';
+  const isHeading = FAMILY_WEIGHTS[famKey] === null && w >= HEADING_MIN_WEIGHT;
+  const fam = isHeading ? HEADING : FAMILY_WEIGHTS[famKey];
   const size = out.fontSize || 16;
+  if (!out.fontFamily || out._family) {
+    if (fam) {
+      const pick = nearest(fam.weights, w);
+      out.fontFamily = out.fontStyle === 'italic' && fam.italic
+        ? `${fam.name}_${WEIGHT_NAMES[pick]}_Italic`
+        : `${fam.name}_${WEIGHT_NAMES[pick]}`;
+      delete out.fontWeight;
+    } else {
+      // system sans body text: let the platform pick the weight
+      delete out.fontFamily;
+      out.fontWeight = String(w <= 400 ? 400 : 500);
+    }
+  } else {
+    delete out.fontWeight;
+  }
+  if (out.fontFamily && out.fontFamily.endsWith('Italic')) delete out.fontStyle;
+  // Heading tracking (web .app-heading: -0.4px at 21px+, .app-heading--compact: -0.25px at 18px)
+  if (isHeading && out._trackEm == null && out.letterSpacing == null && size >= 18) {
+    out.letterSpacing = size >= 21 ? -0.4 : -0.25;
+  }
   if (out._trackEm != null) out.letterSpacing = out._trackEm * size;
   if (out._leading != null) out.lineHeight = out._leading * size;
-  // Android clips Poppins glyphs when line-height < ~1.2em
+  // Android clips glyphs when line-height < ~1.2em
   if (out.lineHeight != null && out.lineHeight < size * 1.2) out.lineHeight = Math.round(size * 1.2);
   delete out._trackEm;
   delete out._leading;
