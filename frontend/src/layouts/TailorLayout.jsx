@@ -38,6 +38,9 @@ const prefetchPartnerPages = () => {
     import('../modules/tailor/pages/ReportedIssues');
 };
 
+// Pages opened from Profile keep the Profile tab highlighted
+const PROFILE_SUBPAGES = ['/partner/reviews', '/partner/pickup-info', '/partner/privacy', '/partner/edit-profile'];
+
 const TailorLayout = () => {
     useEffect(() => {
         const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1500));
@@ -232,7 +235,7 @@ const TailorLayout = () => {
 
                 <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
                     {menuItems.map((item) => {
-                        const isActive = location.pathname === item.path;
+                        const isActive = location.pathname === item.path || (item.path === '/partner/settings' && PROFILE_SUBPAGES.includes(location.pathname));
                         return (
                             <Link
                                 key={item.path}
@@ -342,7 +345,7 @@ const TailorLayout = () => {
                     <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col relative min-h-0">
                         {/* ── SUB-NAVIGATION FOR ORDERS SECTION ── */}
                         {['/partner/orders', '/partner/shop-orders', '/partner/alterations', '/partner/custom-designs', '/partner/issues'].includes(location.pathname) && (
-                            <div className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 pt-3 pb-3 flex gap-3 overflow-x-auto scrollbar-hide shrink-0 sticky top-0 z-30 shadow-sm">
+                            <div className="bg-white/95 backdrop-blur-xl border-b border-gray-100 px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide shrink-0 sticky top-0 z-30">
                                 {[
                                     { path: '/partner/orders', label: 'Stitching' },
                                     { path: '/partner/shop-orders', label: 'Shop' },
@@ -353,10 +356,10 @@ const TailorLayout = () => {
                                     <Link 
                                         key={tab.path} 
                                         to={tab.path} 
-                                        className={`whitespace-nowrap text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl transition-all shadow-sm ${
-                                            location.pathname === tab.path 
-                                                ? 'bg-[#843D9B] text-white shadow-[#843D9B]/20' 
-                                                : 'bg-white border border-gray-100 text-gray-500 hover:bg-gray-50'
+                                        className={`whitespace-nowrap text-xs font-semibold px-4 py-2 rounded-full transition-all ${
+                                            location.pathname === tab.path
+                                                ? 'bg-[#843D9B] text-white shadow-sm shadow-[#843D9B]/20'
+                                                : 'bg-[#F5EDFA] text-[#843D9B] hover:bg-[#EBDDF3]'
                                         }`}
                                     >
                                         {tab.label}
@@ -365,7 +368,7 @@ const TailorLayout = () => {
                             </div>
                         )}
                         
-                        <div className={`flex-1 pb-24 md:pb-12 ${['/partner/orders', '/partner/shop-orders', '/partner/alterations', '/partner/custom-designs', '/partner/issues'].includes(location.pathname) ? 'p-4' : ''}`}>
+                        <div className={`flex-1 pb-24 md:pb-12 ${location.pathname === '/partner/orders' ? 'md:p-4' : ['/partner/shop-orders', '/partner/alterations', '/partner/custom-designs', '/partner/issues'].includes(location.pathname) ? 'p-4' : ''}`}>
                             {/* Page-level boundary: a loading page never blanks the header / bottom nav */}
                             <React.Suspense fallback={
                                 <div className="flex-1 flex items-center justify-center py-24">
@@ -383,7 +386,7 @@ const TailorLayout = () => {
                     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-stretch justify-around z-50 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] animate-fadeIn">
                         {menuItems.filter(item => !['/partner/alterations', '/partner/custom-designs', '/partner/issues'].includes(item.path)).map((item) => {
                             const isOrderSection = ['/partner/orders', '/partner/shop-orders', '/partner/alterations', '/partner/custom-designs', '/partner/issues'].includes(location.pathname);
-                            const isActive = location.pathname === item.path || (item.path === '/partner/orders' && isOrderSection);
+                            const isActive = location.pathname === item.path || (item.path === '/partner/orders' && isOrderSection) || (item.path === '/partner/settings' && PROFILE_SUBPAGES.includes(location.pathname));
                             return (
                                 <Link
                                     key={item.path}

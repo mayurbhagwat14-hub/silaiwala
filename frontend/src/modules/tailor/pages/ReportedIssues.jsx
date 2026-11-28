@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, AlertTriangle, ChevronRight, Loader2 } from 'lucide-react';
 import api from '../../../modules/tailor/services/api'; // Tailor has a specific api file
+import { getPageCache, setPageCache } from '../utils/pageCache';
 import { toast } from 'react-hot-toast';
 
 const ReportedIssues = () => {
     const navigate = useNavigate();
-    const [issues, setIssues] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [issues, setIssues] = useState(() => getPageCache('me', 'issues') || []);
+    const [isLoading, setIsLoading] = useState(() => !getPageCache('me', 'issues'));
 
     useEffect(() => {
         fetchIssues();
@@ -17,6 +18,7 @@ const ReportedIssues = () => {
         try {
             const res = await api.get('/issues/tailor/list');
             setIssues(res.data.data);
+            setPageCache('me', 'issues', res.data.data);
         } catch (err) {
             toast.error("Failed to load reported issues");
         } finally {

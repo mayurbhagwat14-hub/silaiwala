@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Ruler, CheckCircle, Search, X } from 'lucide-react';
 import api from '../../../utils/api';
+import { getPageCache, setPageCache } from '../utils/pageCache';
 import toast from 'react-hot-toast';
 import { useTailorAuth } from '../context/AuthContext';
 import { io } from 'socket.io-client';
@@ -8,8 +9,8 @@ import { SOCKET_URL } from '../../../config/constants';
 
 const TailorAlterations = () => {
     const { user } = useTailorAuth();
-    const [alterations, setAlterations] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [alterations, setAlterations] = useState(() => getPageCache('me', 'alterations') || []);
+    const [isLoading, setIsLoading] = useState(() => !getPageCache('me', 'alterations'));
     const [quoteModalOpen, setQuoteModalOpen] = useState(false);
     const [detailsModalOpen, setDetailsModalOpen] = useState(false);
     const [fullscreenImage, setFullscreenImage] = useState(null);
@@ -56,6 +57,7 @@ const TailorAlterations = () => {
             const res = await api.get('/alterations');
             if (res.data.success) {
                 setAlterations(res.data.data);
+                setPageCache('me', 'alterations', res.data.data);
             }
         } catch (error) {
             console.error('Failed to fetch alterations:', error);

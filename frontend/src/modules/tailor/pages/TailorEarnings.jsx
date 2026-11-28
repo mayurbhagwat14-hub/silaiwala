@@ -238,7 +238,7 @@ const TailorEarnings = () => {
     return (
         <div className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-24 md:pb-8">
 
-            <div className="flex-1 p-2 md:p-0">
+            <div className="flex-1 px-3 pt-3 md:p-0">
                 
                 {/* ── DESKTOP TITLE ── */}
                 <div className="hidden md:block py-6">
@@ -247,21 +247,21 @@ const TailorEarnings = () => {
                 </div>
 
                 {/* ── MAIN CONTENT GRID ── */}
-                <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex flex-col lg:flex-row gap-3 md:gap-6">
                     
                     {/* LEFT COLUMN: BALANCE & BREAKDOWN */}
-                    <div className="flex-1 space-y-6">
+                    <div className="flex-1 space-y-3 md:space-y-6">
                         
                         {/* ── TAB BAR ── */}
-                        <div className="bg-gray-200/50 rounded-2xl p-1 flex gap-1 w-fit">
+                        <div className="flex gap-2 md:w-fit">
                             {tabs.map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
-                                    className={`px-8 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    className={`flex-1 md:flex-none md:px-6 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                                         activeTab === tab
-                                            ? 'text-[#843D9B] bg-white shadow-md shadow-black/5'
-                                            : 'text-gray-500 hover:bg-gray-100'
+                                            ? 'bg-[#843D9B] text-white border-[#843D9B] shadow-sm shadow-[#843D9B]/20'
+                                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                                     }`}
                                 >
                                     {tab}
@@ -270,28 +270,28 @@ const TailorEarnings = () => {
                         </div>
 
                         {/* ── TOTAL EARNINGS CARD ── */}
-                        <div className="bg-[#1A1A1A] rounded-[2.5rem] p-8 relative overflow-hidden group shadow-2xl shadow-black/10">
-                            <div className="absolute right-[-20px] top-1/2 -translate-y-1/2 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
-                                <ArrowUpRight size={240} color="white" />
+                        <div className="bg-gradient-to-br from-[#6B2F7E] via-[#843D9B] to-[#9B5BB0] rounded-2xl p-5 md:p-8 relative overflow-hidden group shadow-lg shadow-[#843D9B]/20">
+                            <div className="absolute right-[-20px] top-1/2 -translate-y-1/2 opacity-[0.08] group-hover:scale-110 transition-transform duration-700">
+                                <ArrowUpRight size={200} color="white" />
                             </div>
                             <div className="relative z-10">
-                                <p className="text-[11px] text-gray-400 font-black uppercase tracking-[0.2em] mb-3">
+                                <p className="text-[11px] text-white/70 font-semibold uppercase tracking-wider mb-2">
                                     Total Wallet Balance
                                 </p>
-                                <div className="flex items-baseline gap-2 mb-6">
-                                    <span className="text-2xl font-black text-white/40">₹</span>
-                                    <h3 className="text-5xl font-black text-white tracking-tighter">
+                                <div className="flex items-baseline gap-1.5 mb-4 md:mb-6">
+                                    <span className="text-xl md:text-2xl font-bold text-white/60">₹</span>
+                                    <h3 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
                                     {(stats.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </h3>
                                 </div>
-                                <div className="flex items-center gap-6">
-                                    <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1.5 rounded-xl border border-green-500/20">
-                                        <ArrowUpRight size={14} className="text-green-500" strokeWidth={3} />
-                                        <span className="text-[11px] font-black text-green-500">+12.5%</span>
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-1.5 bg-white/15 px-2.5 py-1.5 rounded-full border border-white/20">
+                                        <ArrowUpRight size={13} className="text-emerald-200" strokeWidth={3} />
+                                        <span className="text-[11px] font-semibold text-emerald-100">+12.5%</span>
                                     </div>
                                     <button 
                                         onClick={() => setShowWithdrawModal(true)}
-                                        className="bg-[#FDE5D2] text-[#843D9B] px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-xl shadow-black/20"
+                                        className="bg-white text-[#843D9B] px-5 py-2.5 rounded-xl text-xs font-semibold hover:bg-[#F5EDFA] active:scale-95 transition-all shadow-md shadow-black/10"
                                     >
                                         Withdraw Funds
                                     </button>
@@ -300,39 +300,39 @@ const TailorEarnings = () => {
                         </div>
 
                         {/* ── BREAKDOWN GRID ── */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                             <button 
                                 onClick={() => navigate('/partner/orders')}
-                                className="w-full text-left bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm flex items-center gap-5 group hover:border-[#843D9B]/20 hover:shadow-md transition-all active:scale-[0.98]"
+                                className="w-full text-left bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3.5 group hover:border-[#843D9B]/20 hover:shadow-md transition-all active:scale-[0.98]"
                             >
-                                <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                    <ShoppingBag size={24} className="text-[#843D9B]" />
+                                <div className="w-11 h-11 bg-[#F5EDFA] rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                    <ShoppingBag size={20} className="text-[#843D9B]" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Order Earnings</p>
-                                    <p className="text-xl font-black text-gray-900 tracking-tight">
+                                    <p className="text-xs text-gray-500 font-medium mb-0.5">Order Earnings</p>
+                                    <p className="text-lg font-bold text-gray-900 tracking-tight leading-tight">
                                         ₹{orderEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <ChevronRight size={18} className="text-gray-300 group-hover:text-[#843D9B] group-hover:translate-x-1 transition-all" />
                             </button>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-[#843D9B]/20 transition-all">
-                                    <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform">
-                                        <Star size={18} className="text-indigo-600" fill="currentColor" />
+                            <div className="grid grid-cols-2 gap-3 md:gap-4">
+                                <div className="bg-[#FFF8E6] rounded-2xl p-4 border border-[#F6E2B3] group transition-all">
+                                    <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center mb-3 group-hover:rotate-12 transition-transform">
+                                        <Star size={17} className="text-[#B7791F]" fill="currentColor" />
                                     </div>
-                                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Incentives</p>
-                                    <p className="text-lg font-black text-gray-900 tracking-tight">
+                                    <p className="text-xs text-gray-600 font-medium mb-0.5">Incentives</p>
+                                    <p className="text-lg font-bold text-gray-900 tracking-tight leading-tight">
                                         ₹{incentives.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-[#843D9B]/20 transition-all">
-                                    <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform">
-                                        <Gift size={18} className="text-emerald-600" />
+                                <div className="bg-[#EDF9F1] rounded-2xl p-4 border border-[#CDEEDA] group transition-all">
+                                    <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center mb-3 group-hover:rotate-12 transition-transform">
+                                        <Gift size={17} className="text-[#2F9E5B]" />
                                     </div>
-                                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1">Bonus</p>
-                                    <p className="text-lg font-black text-gray-900 tracking-tight">
+                                    <p className="text-xs text-gray-600 font-medium mb-0.5">Bonus</p>
+                                    <p className="text-lg font-bold text-gray-900 tracking-tight leading-tight">
                                         ₹{bonus.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
@@ -344,23 +344,23 @@ const TailorEarnings = () => {
 
                     {/* RIGHT COLUMN: RECENT PAYOUTS */}
                     <div className="w-full lg:w-[400px] flex flex-col">
-                        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col pb-2">
-                            <div className="p-8 border-b border-gray-50 flex items-center justify-between">
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col pb-1">
+                            <div className="px-4 py-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-xl font-black text-gray-900 tracking-tight">Activity Log</h3>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Real-time transaction history</p>
+                                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">Activity Log</h3>
+                                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">Real-time transaction history</p>
                                 </div>
                                 {transactions.length > 15 && (
                                     <button 
                                         onClick={() => setShowAllTxns(!showAllTxns)}
-                                        className="text-[11px] font-black text-[#843D9B] hover:underline uppercase tracking-widest"
+                                        className="text-xs font-semibold text-[#843D9B] bg-[#F5EDFA] px-3 py-1 rounded-full hover:bg-[#EBDDF3]"
                                     >
                                         {showAllTxns ? 'Show Less' : 'View All'}
                                     </button>
                                 )}
                             </div>
 
-                            <div className="p-4 space-y-3">
+                            <div className="px-2 py-1 divide-y divide-gray-100">
                                 {transactions.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-12 text-center h-full">
                                         <ShoppingBag size={32} className="text-gray-200 mb-3" />
@@ -369,15 +369,15 @@ const TailorEarnings = () => {
                                 ) : (showAllTxns ? transactions : transactions.slice(0, 15)).map((item, i) => {
                                     const isCredit = item.type === 'credit' || (item.id && !item.id.startsWith('Peak')) || (item.badge === 'INCENTIVE');
                                     return (
-                                        <div key={i} className="group p-4 bg-white hover:bg-gray-50 rounded-3xl border border-transparent hover:border-gray-100 transition-all flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-[#1A1A1A] rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                        <div key={i} className="group px-2 py-3 hover:bg-gray-50 rounded-xl transition-all flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-[#F5EDFA] rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                                 {item.img === 'bonus' || (item.description && item.description.includes('bonus'))
-                                                    ? <Gift size={20} className="text-white" />
-                                                    : <ShoppingBag size={20} className="text-white" />
+                                                    ? <Gift size={18} className="text-[#843D9B]" />
+                                                    : <ShoppingBag size={18} className="text-[#843D9B]" />
                                                 }
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-black text-gray-900 leading-tight truncate">
+                                                <p className="text-sm font-semibold text-gray-900 leading-tight truncate">
                                                     {item._id ? (
                                                         item.category === 'withdrawal' && item.withdrawalRequest?.status === 'paid' 
                                                         ? 'Withdrawal Completed' 
@@ -385,7 +385,7 @@ const TailorEarnings = () => {
                                                     ) : (item.id.startsWith('AL') ? `Order #${item.id}` : item.id)}
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">
+                                                    <p className="text-[11px] text-gray-400 font-medium">
                                                         {item.createdAt ? formatTime(item.createdAt) : item.time}
                                                     </p>
                                                     {item.withdrawalRequest?.proofOfPayment && (
@@ -396,10 +396,10 @@ const TailorEarnings = () => {
                                                 </div>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                <p className={`text-base font-black ${isCredit ? 'text-gray-900' : 'text-rose-500'}`}>
+                                                <p className={`text-sm font-bold ${isCredit ? 'text-emerald-600' : 'text-rose-500'}`}>
                                                     {isCredit ? '+' : '-'}₹{(item.amount || 0).toLocaleString('en-IN')}
                                                 </p>
-                                                <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-lg tracking-widest ${item.badgeColor || getBadgeStyle(getBadgeLabel(item))}`}>
+                                                <span className={`text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full tracking-wide ${item.badgeColor || getBadgeStyle(getBadgeLabel(item))}`}>
                                                     {item.badge || getBadgeLabel(item)}
                                                 </span>
                                             </div>
@@ -420,7 +420,7 @@ const TailorEarnings = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-end justify-center p-4 bg-slate-900/60 backdrop-blur-sm md:items-center"
+                        className="fixed inset-0 z-[100] flex items-end justify-center p-0 md:p-4 bg-slate-900/60 backdrop-blur-sm md:items-center"
                         onClick={() => !isSubmitting && setShowWithdrawModal(false)}
                     >
                         <motion.div
@@ -429,22 +429,22 @@ const TailorEarnings = () => {
                             exit={{ y: "100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative"
+                            className="bg-white w-full max-w-md rounded-t-2xl md:rounded-2xl p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:p-8 shadow-2xl relative"
                         >
                             <button
                                 onClick={() => setShowWithdrawModal(false)}
                                 disabled={isSubmitting}
-                                className="absolute top-6 right-6 p-2 bg-slate-50 text-slate-400 rounded-full hover:bg-slate-100 transition-colors"
+                                className="absolute top-4 right-4 md:top-6 md:right-6 p-2 bg-slate-50 text-slate-400 rounded-full hover:bg-slate-100 transition-colors"
                             >
                                 <X size={20} />
                             </button>
 
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="w-14 h-14 bg-indigo-50 text-[#843D9B] rounded-2xl flex items-center justify-center shrink-0">
-                                    <Send size={24} />
+                            <div className="flex items-center gap-3 mb-6 md:mb-8 pr-12">
+                                <div className="w-12 h-12 bg-[#F5EDFA] text-[#843D9B] rounded-xl flex items-center justify-center shrink-0">
+                                    <Send size={22} />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Withdraw Funds</h3>
+                                    <h3 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">Withdraw Funds</h3>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Directly to UPI</p>
                                 </div>
                             </div>
@@ -457,7 +457,7 @@ const TailorEarnings = () => {
                                         value={withdrawAmount}
                                         onChange={(e) => setWithdrawAmount(e.target.value)}
                                         placeholder="0.00"
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-2xl font-black text-slate-900 focus:outline-none focus:border-[#843D9B] focus:bg-white transition-all"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-2xl font-black text-slate-900 focus:outline-none focus:border-[#843D9B] focus:bg-white transition-all"
                                         min="100"
                                         max={stats.balance}
                                         disabled={isSubmitting}
@@ -481,7 +481,7 @@ const TailorEarnings = () => {
                                         value={upiId}
                                         onChange={(e) => setUpiId(e.target.value)}
                                         placeholder="username@bank"
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#843D9B] focus:bg-white transition-all"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#843D9B] focus:bg-white transition-all"
                                         disabled={isSubmitting}
                                     />
                                 </div>
@@ -489,7 +489,7 @@ const TailorEarnings = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting || !withdrawAmount || !upiId}
-                                    className="w-full bg-[#843D9B] text-white py-5 rounded-[1.5rem] font-black tracking-[0.2em] uppercase text-xs hover:bg-primary-dark active:scale-95 transition-all shadow-xl shadow-indigo-900/10 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-3"
+                                    className="w-full bg-[#843D9B] text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-primary-dark active:scale-95 transition-all shadow-xl shadow-indigo-900/10 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-3"
                                 >
                                     {isSubmitting ? (
                                         <>

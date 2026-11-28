@@ -125,151 +125,145 @@ const Subscription = () => {
     const activePlan = tailorData?.activePlan;
     const planExpiryDate = tailorData?.planExpiryDate ? new Date(tailorData.planExpiryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not Subscribed';
 
+    // Light, brand-consistent look per plan theme (content and actions are the same for every theme)
+    const PLAN_STYLES = {
+        elite: {
+            card: 'border-amber-200',
+            ring: 'ring-2 ring-amber-400/60',
+            badge: 'bg-amber-100 text-amber-800',
+            badgeText: 'Best Value',
+            accent: 'text-amber-700',
+            box: 'bg-amber-50 border-amber-100',
+            boxLabel: 'text-amber-700',
+            button: 'bg-amber-500 text-white hover:bg-amber-600 shadow-md shadow-amber-500/20',
+            current: 'bg-amber-100 text-amber-700',
+            cta: 'Upgrade Now',
+            Icon: Star,
+            iconClass: 'text-amber-500',
+        },
+        premium: {
+            card: 'border-[#E5D3F0]',
+            ring: 'ring-2 ring-[#843D9B]/40',
+            badge: 'bg-[#843D9B] text-white',
+            badgeText: 'Popular',
+            accent: 'text-[#843D9B]',
+            box: 'bg-[#F5EDFA] border-[#E5D3F0]',
+            boxLabel: 'text-[#843D9B]',
+            button: 'bg-[#843D9B] text-white hover:bg-[#6B2F7E] shadow-md shadow-[#843D9B]/20',
+            current: 'bg-[#F5EDFA] text-[#843D9B]',
+            cta: 'Select Plan',
+            Icon: Zap,
+            iconClass: 'text-[#843D9B]',
+        },
+        basic: {
+            card: 'border-gray-100',
+            ring: 'ring-2 ring-gray-300',
+            badge: 'bg-gray-100 text-gray-700',
+            badgeText: null,
+            accent: 'text-gray-500',
+            box: 'bg-gray-50 border-gray-100',
+            boxLabel: 'text-gray-500',
+            button: 'bg-gray-900 text-white hover:bg-black',
+            current: 'bg-gray-100 text-gray-500',
+            cta: 'Select Plan',
+            Icon: null,
+            iconClass: '',
+        },
+    };
+
     return (
-        <div className="space-y-4 animate-in fade-in duration-500 bg-white min-h-screen p-4 pb-20">
+        <div className="space-y-3 md:space-y-4 animate-in fade-in duration-500 bg-[#F5F5F5] min-h-full px-3 pt-3 pb-24 md:p-0">
 
             {/* Current Plan Card */}
             {activePlan ? (
-                <div className="bg-[#843D9B] p-7 rounded-3xl text-white relative overflow-hidden shadow-xl shadow-[#843D9B]/20">
-                    <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                        <Zap size={100} />
+                <div className="bg-gradient-to-br from-[#6B2F7E] via-[#843D9B] to-[#9B5BB0] p-5 md:p-7 rounded-2xl text-white relative overflow-hidden shadow-lg shadow-[#843D9B]/20">
+                    <div className="absolute top-0 right-0 p-5 opacity-10 pointer-events-none">
+                        <Zap size={96} />
                     </div>
                     <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-8">
+                        <div className="flex justify-between items-start mb-5">
                             <div>
-                                <span className="bg-white/10 border border-white/20 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest">Active Plan</span>
-                                <h3 className="text-[28px] font-black mt-3 tracking-tighter">{activePlan.name}</h3>
+                                <span className="bg-white/15 border border-white/20 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider">Active Plan</span>
+                                <h3 className="text-2xl font-bold mt-2.5 tracking-tight">{activePlan.name}</h3>
                             </div>
-                            <ArrowUpCircle size={36} className="text-white/50" />
+                            <ArrowUpCircle size={32} className="text-white/60" />
                         </div>
-                        <div className="grid grid-cols-2 gap-4 pt-5 border-t border-white/10">
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/15">
                             <div>
-                                <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
-                                    <Calendar size={11} /> Expiry Date
+                                <p className="text-white/70 text-[11px] font-medium mb-0.5 flex items-center gap-1">
+                                    <Calendar size={12} /> Expiry Date
                                 </p>
-                                <p className="text-sm font-black">{planExpiryDate}</p>
+                                <p className="text-sm font-semibold">{planExpiryDate}</p>
                             </div>
                             <div>
-                                <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
-                                    <CreditCard size={11} /> Billing Cycle
+                                <p className="text-white/70 text-[11px] font-medium mb-0.5 flex items-center gap-1">
+                                    <CreditCard size={12} /> Billing Cycle
                                 </p>
-                                <p className="text-sm font-black">{activePlan.billingCycle}</p>
+                                <p className="text-sm font-semibold capitalize">{activePlan.billingCycle}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="bg-[#111111] border border-red-500/20 p-7 rounded-3xl text-white relative overflow-hidden">
-                     <div className="relative z-10 flex items-center gap-4">
-                        <div className="h-12 w-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 shrink-0">
-                            <AlertTriangle size={24} />
+                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl relative overflow-hidden">
+                    <div className="relative z-10 flex items-center gap-3">
+                        <div className="h-11 w-11 bg-white rounded-xl flex items-center justify-center text-red-500 shrink-0">
+                            <AlertTriangle size={22} />
                         </div>
                         <div>
-                            <h3 className="text-[18px] font-black text-red-400">No Active Plan</h3>
-                            <p className="text-[10px] text-gray-400 font-medium mt-1">Please select a plan below to activate your shop profile.</p>
+                            <h3 className="text-base font-bold text-red-600">No Active Plan</h3>
+                            <p className="text-xs text-red-500/80 mt-0.5">Please select a plan below to activate your shop profile.</p>
                         </div>
-                     </div>
+                    </div>
                 </div>
             )}
 
             {/* Pricing Plans */}
-            <div className="space-y-4 pt-2">
+            <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between px-1">
-                    <h4 className="text-[12px] font-black text-white/40 uppercase tracking-widest">Available Plans</h4>
+                    <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Available Plans</h4>
                 </div>
 
                 {plans.map((plan) => {
                     const isCurrentPlan = activePlan?._id === plan._id;
-
-                    if (plan.theme === 'elite') {
-                        return (
-                            <div key={plan._id} className={`bg-gradient-to-b from-amber-500/20 to-[#111111] border ${isCurrentPlan ? 'border-amber-500/50 shadow-lg shadow-amber-500/10' : 'border-amber-500/30'} p-5 rounded-3xl relative overflow-hidden group hover:border-amber-500/50 transition-colors`}>
-                                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                                    <Star size={64} fill="currentColor" className="text-amber-500" />
-                                </div>
-                                <div className="flex justify-between items-start mb-3 relative z-10">
-                                    <div>
-                                        {plan.isPopular && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md mb-2 inline-block">Best Value</span>}
-                                        <p className="text-[16px] font-black text-white">{plan.name}</p>
-                                        <p className="text-[10px] text-amber-400 font-bold mt-0.5 tracking-wide">{plan.commissionRange}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[16px] font-black text-white">{plan.price === 0 ? 'Free' : `₹${plan.price}`}</p>
-                                        <p className="text-[9px] text-amber-500/50 font-bold uppercase tracking-widest mt-1">{plan.billingCycle}</p>
-                                    </div>
-                                </div>
-                                <div className="bg-amber-500/5 rounded-2xl p-4 mt-4 relative z-10 border border-amber-500/10">
-                                    <p className="text-[11px] text-amber-50 leading-relaxed font-medium">
-                                        <span className="text-amber-500 font-bold uppercase tracking-wider text-[9px] block mb-1.5">Key Benefits</span>
-                                        {plan.features.join(', ')}
-                                    </p>
-                                </div>
-                                <button 
-                                    onClick={() => handleSubscribe(plan._id)}
-                                    disabled={isCurrentPlan}
-                                    className={`w-full mt-4 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${isCurrentPlan ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30 cursor-not-allowed' : 'bg-amber-500 text-amber-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400'}`}>
-                                    {isCurrentPlan ? 'Current Plan' : 'Upgrade Now'}
-                                </button>
-                            </div>
-                        );
-                    }
-
-                    if (plan.theme === 'premium') {
-                        return (
-                            <div key={plan._id} className={`bg-gradient-to-b from-[#843D9B]/40 to-[#111111] border ${isCurrentPlan ? 'border-[#843D9B]' : 'border-[#843D9B]/50'} p-5 rounded-3xl relative overflow-hidden group`}>
-                                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                                    <Zap size={64} />
-                                </div>
-                                <div className="flex justify-between items-start mb-3 relative z-10">
-                                    <div>
-                                        {plan.isPopular && <span className="bg-[#843D9B] text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md mb-2 inline-block">Popular</span>}
-                                        <p className="text-[16px] font-black text-white">{plan.name}</p>
-                                        <p className="text-[10px] text-indigo-300 font-bold mt-0.5 tracking-wide">{plan.commissionRange}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[16px] font-black text-white">{plan.price === 0 ? 'Free' : `₹${plan.price}`}</p>
-                                        <p className="text-[9px] text-indigo-200/50 font-bold uppercase tracking-widest mt-1">{plan.billingCycle}</p>
-                                    </div>
-                                </div>
-                                <div className="bg-[#1A1A1A]/50 rounded-2xl p-4 mt-4 relative z-10 border border-indigo-500/10">
-                                    <p className="text-[11px] text-gray-200 leading-relaxed font-medium">
-                                        <span className="text-indigo-400 font-bold uppercase tracking-wider text-[9px] block mb-1.5">Key Benefits</span>
-                                        {plan.features.join(', ')}
-                                    </p>
-                                </div>
-                                <button 
-                                    onClick={() => handleSubscribe(plan._id)}
-                                    disabled={isCurrentPlan}
-                                    className={`w-full mt-4 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${isCurrentPlan ? 'bg-[#843D9B]/50 text-indigo-200 cursor-not-allowed border border-[#843D9B]' : 'bg-[#843D9B] text-white shadow-lg shadow-[#843D9B]/25 hover:bg-[#383a85]'}`}>
-                                    {isCurrentPlan ? 'Current Plan' : 'Select Plan'}
-                                </button>
-                            </div>
-                        );
-                    }
+                    const st = PLAN_STYLES[plan.theme] || PLAN_STYLES.basic;
+                    const ThemeIcon = st.Icon;
 
                     return (
-                        <div key={plan._id} className={`bg-[#111111] border ${isCurrentPlan ? 'border-gray-500' : 'border-[#1E1E1E]'} p-5 rounded-3xl relative overflow-hidden group hover:border-gray-700 transition-colors`}>
-                            <div className="flex justify-between items-start mb-3">
-                                <div>
-                                    <p className="text-[16px] font-black text-white">{plan.name}</p>
-                                    <p className="text-[10px] text-gray-400 font-bold mt-0.5 tracking-wide">{plan.commissionRange}</p>
+                        <div
+                            key={plan._id}
+                            className={`bg-white border ${st.card} ${isCurrentPlan ? st.ring : ''} p-4 rounded-2xl relative overflow-hidden shadow-sm`}
+                        >
+                            {ThemeIcon && (
+                                <div className="absolute top-0 right-0 p-3 opacity-[0.07] pointer-events-none">
+                                    <ThemeIcon size={64} fill={plan.theme === 'elite' ? 'currentColor' : 'none'} className={st.iconClass} />
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-[16px] font-black text-white">{plan.price === 0 ? 'Free' : `₹${plan.price}`}</p>
-                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{plan.billingCycle}</p>
+                            )}
+                            <div className="flex justify-between items-start gap-3 relative z-10">
+                                <div className="min-w-0">
+                                    {plan.isPopular && st.badgeText && (
+                                        <span className={`${st.badge} text-[10px] font-semibold px-2 py-0.5 rounded-full mb-1.5 inline-block`}>{st.badgeText}</span>
+                                    )}
+                                    <p className="text-base font-bold text-gray-900">{plan.name}</p>
+                                    <p className={`text-[11px] font-semibold mt-0.5 ${st.accent}`}>{plan.commissionRange}</p>
+                                </div>
+                                <div className="text-right shrink-0">
+                                    <p className="text-lg font-bold text-gray-900 leading-tight">{plan.price === 0 ? 'Free' : `₹${plan.price}`}</p>
+                                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mt-0.5">{plan.billingCycle}</p>
                                 </div>
                             </div>
-                            <div className="bg-[#1A1A1A] rounded-2xl p-4 mt-4">
-                                <p className="text-[11px] text-gray-300 leading-relaxed font-medium">
-                                    <span className="text-gray-500 font-bold uppercase tracking-wider text-[9px] block mb-1.5">Key Benefits</span>
+                            <div className={`${st.box} border rounded-xl p-3 mt-3 relative z-10`}>
+                                <p className="text-xs text-gray-700 leading-relaxed">
+                                    <span className={`${st.boxLabel} font-semibold uppercase tracking-wide text-[10px] block mb-1`}>Key Benefits</span>
                                     {plan.features.join(', ')}
                                 </p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => handleSubscribe(plan._id)}
                                 disabled={isCurrentPlan}
-                                className={`w-full mt-4 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${isCurrentPlan ? 'bg-[#1A1A1A] text-gray-400 cursor-not-allowed' : 'bg-[#1A1A1A] hover:bg-gray-800 text-white'}`}>
-                                {isCurrentPlan ? 'Current Plan' : 'Select Plan'}
+                                className={`w-full mt-3 py-2.5 rounded-xl font-semibold text-sm transition-all relative z-10 ${isCurrentPlan ? `${st.current} cursor-not-allowed` : `${st.button} active:scale-[0.98]`}`}
+                            >
+                                {isCurrentPlan ? 'Current Plan' : st.cta}
                             </button>
                         </div>
                     );
@@ -277,14 +271,14 @@ const Subscription = () => {
             </div>
 
             {/* Warning */}
-            <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-3xl mt-6">
+            <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl">
                 <div className="flex gap-3">
-                    <div className="h-9 w-9 flex items-center justify-center bg-amber-500/10 rounded-xl text-amber-400 shrink-0">
+                    <div className="h-9 w-9 flex items-center justify-center bg-white rounded-xl text-amber-500 shrink-0">
                         <AlertTriangle size={18} />
                     </div>
                     <div>
-                        <p className="text-xs font-black text-amber-400 uppercase">Warning</p>
-                        <p className="text-[10px] text-white/30 font-bold mt-1 leading-relaxed">
+                        <p className="text-sm font-semibold text-amber-700">Warning</p>
+                        <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
                             If subscription expires, your shop will be hidden from customers and active orders may be reassigned.
                         </p>
                     </div>

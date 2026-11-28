@@ -311,6 +311,10 @@ const AppRoutes = () => {
                         <Route path="/partner/delivery" element={<DeliveryDetails />} />
                         <Route path="/partner/subscription" element={<SubscriptionSettings />} />
                         <Route path="/partner/settings" element={<ProfileSettings />} />
+                        <Route path="/partner/reviews" element={<ProfileSettings page="reviews" />} />
+                        <Route path="/partner/pickup-info" element={<ProfileSettings page="pickup" />} />
+                        <Route path="/partner/privacy" element={<ProfileSettings page="privacy" />} />
+                        <Route path="/partner/edit-profile" element={<ProfileSettings page="edit" />} />
                         <Route path="/partner/measurements" element={<MeasurementList />} />
                         <Route path="/partner/measurements/:id" element={<MeasurementDetail />} />
                         <Route path="/partner/alterations" element={<TailorAlterations />} />

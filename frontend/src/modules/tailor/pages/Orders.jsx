@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../../../config/constants';
 import { getToken } from '../../../utils/auth';
 import { useTailorAuth } from '../context/AuthContext';
+import { getPageCache, setPageCache } from '../utils/pageCache';
 import api from '../services/api';
 import { cn } from '../../../utils/cn';
 import LiveDeliveryTracker from '../../../shared/components/LiveDeliveryTracker';
@@ -127,10 +128,10 @@ const Orders = () => {
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [activeMenuId, setActiveMenuId] = useState(null);
-    const [orders, setOrders] = useState([]);
+    const [orders, setOrders] = useState(() => getPageCache('me', 'orders:all') || []);
     const [isLoading, setIsLoading] = useState(false);
     const [shiprocketValidation, setShiprocketValidation] = useState(null);
-    const [unreadChats, setUnreadChats] = useState({});
+    const [unreadChats, setUnreadChats] = useState(() => getPageCache('me', 'orders:unread') || {});
 
     // Production Notes State for Active Orders
     const [productionNotes, setProductionNotes] = useState({});
@@ -154,7 +155,10 @@ const Orders = () => {
     const fetchOrders = useCallback(async (tabOverride) => {
         const tab = tabOverride || activeTabRef.current;
         const sequence = ++fetchSequenceRef.current;
-        setIsLoading(true);
+        // Show this tab's last list instantly; only spin when it has never loaded
+        const cachedList = getPageCache('me', `orders:${tab}`);
+        if (cachedList) setOrders(cachedList);
+        setIsLoading(!cachedList);
         try {
             const [response, unreadRes] = await Promise.all([
                 api.get(`/tailors/orders?status=${tab}`),
@@ -163,6 +167,7 @@ const Orders = () => {
             
             if (unreadRes.data?.success) {
                 setUnreadChats(unreadRes.data.data || {});
+                setPageCache('me', 'orders:unread', unreadRes.data.data || {});
             }
 
             // A request for the previous tab may finish after Accept switched us
@@ -170,6 +175,7 @@ const Orders = () => {
             if (sequence === fetchSequenceRef.current && response.data.success) {
                 const list = response.data.data || [];
                 setOrders(list);
+                setPageCache('me', `orders:${tab}`, list);
                 // Keep open modal OTP/status in sync with server (select+ includes OTPs)
                 setSelectedOrder((prev) => {
                     let targetId = prev ? prev._id : sessionStorage.getItem('tailorSelectedOrderId');
@@ -1199,28 +1205,12 @@ const Orders = () => {
     };
 
     return (
-        <div className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-24 md:pb-0">
+        <div className="min-h-full bg-white md:bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-24 md:pb-0">
             
             {/* ── HEADER ── */}
-            <div className="md:hidden bg-white pt-3 pb-2 border-b border-gray-100 text-left px-4">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-[18px] font-black text-gray-900 tracking-tight">
-                        {activeTab === 'all' ? 'All Orders' : activeTab === 'new' ? 'New Orders' : activeTab === 'active' ? 'Active Orders' : activeTab === 'issues' ? 'Active Issues' : 'Order History'}
-                    </h2>
-                    <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                        {filteredOrders.length} {activeTab === 'new' ? 'Pending' : activeTab === 'issues' ? 'Issues' : 'Orders'}
-                    </span>
-                </div>
-                <p className="text-[10px] text-gray-400 font-medium mt-0.5">
-                    {activeTab === 'new' ? 'Review and accept incoming tailoring tasks' :
-                     activeTab === 'active' ? 'Manage and track live active orders' :
-                     activeTab === 'history' ? 'View completed and past orders' :
-                     activeTab === 'issues' ? 'Orders with active customer issues needing rework' :
-                     'Manage and track all tailoring tasks'}
-                </p>
-
+            <div className="md:hidden bg-white pt-3 pb-3 border-b border-gray-100 text-left px-4">
                 {/* Search & Filter Header */}
-                <div className="mt-5 space-y-3">
+                <div className="space-y-3">
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                         <input
@@ -1228,18 +1218,18 @@ const Orders = () => {
                             placeholder="Search Order ID or Customer..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:border-[#843D9B] text-[12px] text-gray-900 shadow-sm"
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:border-[#843D9B] focus:bg-white text-[13px] text-gray-900"
                         />
                     </div>
 
-                    <div className="flex bg-gray-200/50 rounded-2xl p-1 gap-1 overflow-x-auto">
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                         {['all', 'new', 'active', 'issues', 'history'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={cn(
-                                    "px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap",
-                                    activeTab === tab ? "bg-white text-[#843D9B] shadow-md shadow-black/5" : "text-gray-500 hover:bg-gray-100"
+                                    "px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border",
+                                    activeTab === tab ? "bg-[#843D9B] text-white border-[#843D9B] shadow-sm shadow-[#843D9B]/20" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                                 )}
                             >
                                 {tab === 'all' ? 'All' : tab === 'new' ? 'New' : tab === 'active' ? 'Active' : tab === 'issues' ? 'Issues' : 'History'}
@@ -1263,18 +1253,18 @@ const Orders = () => {
                             placeholder="Search Order ID or Customer..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:border-[#843D9B] text-[12px] text-gray-900 shadow-sm"
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:border-[#843D9B] focus:bg-white text-[13px] text-gray-900"
                         />
                     </div>
 
-                    <div className="flex bg-gray-200/50 rounded-2xl p-1 gap-1 overflow-x-auto">
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                         {['all', 'new', 'active', 'issues', 'history'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={cn(
-                                    "px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap",
-                                    activeTab === tab ? "bg-white text-[#843D9B] shadow-md shadow-black/5" : "text-gray-500 hover:bg-gray-100"
+                                    "px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border",
+                                    activeTab === tab ? "bg-[#843D9B] text-white border-[#843D9B] shadow-sm shadow-[#843D9B]/20" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                                 )}
                             >
                                 {tab === 'all' ? 'All' : tab === 'new' ? 'New' : tab === 'active' ? 'Active' : tab === 'issues' ? 'Issues' : 'History'}
@@ -1292,84 +1282,77 @@ const Orders = () => {
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Synchronizing orders...</p>
                     </div>
                 ) : filteredOrders.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2rem] border border-gray-100 shadow-sm">
+                    <div className="flex flex-col items-center justify-center py-20 mx-3 md:mx-0 bg-white rounded-2xl border border-gray-100 shadow-sm">
                         <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-300 mb-4">
                             <Layers size={32} />
                         </div>
                         <p className="text-gray-400 font-black uppercase tracking-widest text-xs">No orders found in this section</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 px-3 md:px-0">
+                    <div className="bg-white divide-y divide-gray-100 mx-3 md:mx-0 md:rounded-2xl md:border md:border-gray-100 md:overflow-hidden">
                         {filteredOrders.map((order) => {
                             const isNew = order.status === 'pending' || (!order.acceptedAt && order.status === 'pending');
                             return (
-                                <div key={order._id} className="bg-white rounded-2xl md:rounded-[2rem] p-4 md:p-5 border border-gray-100 shadow-sm hover:shadow-xl hover:border-[#843D9B]/10 transition-all flex flex-col group">
-                                    <div className="flex justify-between items-start mb-3 md:mb-4">
-                                        <div className="flex flex-col gap-0.5 md:gap-1">
-                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                                <span className="text-[9px] md:text-[10px] font-black uppercase bg-[#FDE5D2] text-[#843D9B] px-2 md:px-3 py-1 rounded-md md:rounded-lg border border-[#843D9B]/10 w-fit">
-                                                    #{order.orderId || 'ALT123456'}
-                                                </span>
-                                                <span className={cn(
-                                                    "text-[8px] md:text-[9px] font-black uppercase px-2 py-0.5 rounded-md border",
-                                                    ['delivered', 'product-delivered', 'order-completed'].includes(order.status) ? "bg-green-50 text-green-700 border-green-200" :
-                                                    order.status === 'cancelled' ? "bg-red-50 text-red-700 border-red-200" :
-                                                    "bg-purple-50 text-[#843D9B] border-purple-100"
-                                                )}>
-                                                    {order.status?.replace(/-/g, ' ')}
-                                                </span>
-                                            </div>
-                                            <p className="text-[9px] md:text-[10px] text-gray-400 font-black uppercase tracking-tighter">Received {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            {order.exchangeStatus && order.exchangeStatus !== 'none' && (
-                                                <div className="flex items-center justify-center px-2 bg-purple-100 text-primary text-[9px] font-black uppercase rounded-lg border border-purple-200 animate-pulse">
-                                                    Exchange
-                                                </div>
-                                            )}
-                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-900 rounded-xl md:rounded-2xl flex items-center justify-center text-white font-black text-xs group-hover:scale-110 transition-transform">
-                                                {order.customer?.name?.charAt(0) || 'C'}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <h4 className="text-sm md:text-base font-black text-gray-900 leading-tight mb-3 md:mb-4">
-                                        {order.customer?.name}
-                                    </h4>
-
-                                    <div className="flex-1 bg-gray-50 p-2.5 md:p-3 rounded-xl md:rounded-[1.5rem] border border-gray-100 mb-3 md:mb-5 flex items-center gap-2.5 md:gap-3">
-                                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-lg md:rounded-xl flex items-center justify-center shrink-0 overflow-hidden shadow-sm border border-gray-100 relative">
+                                <div
+                                    key={order._id}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => handleAction('View Detail', order)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleAction('View Detail', order); } }}
+                                    className="px-1 md:px-4 py-2.5 flex flex-col gap-2 cursor-pointer hover:bg-gray-50/70 active:bg-gray-50 transition-colors focus:outline-none focus-visible:bg-gray-50"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-14 h-14 md:w-[72px] md:h-[72px] bg-[#F5EDFA] rounded-xl flex items-center justify-center shrink-0 overflow-hidden relative">
                                             {getItemImage(order.items?.[0]) ? (
                                                 <img src={getItemImage(order.items[0])} className="w-full h-full object-cover" alt="" />
                                             ) : (
-                                                <Scissors size={16} className="md:w-[18px] md:h-[18px] text-primary" />
+                                                <Scissors size={20} className="text-[#843D9B]" />
                                             )}
                                             {(order.items?.length || 0) > 1 && (
-                                                <span className="absolute bottom-0 right-0 bg-primary text-white text-[8px] font-black px-1 rounded-tl">
+                                                <span className="absolute bottom-0 right-0 bg-[#843D9B] text-white text-[9px] font-semibold px-1.5 rounded-tl-lg">
                                                     {order.items.length}
                                                 </span>
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[11px] md:text-xs font-black text-gray-900 truncate">
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                <p className="text-[13px] font-bold text-[#843D9B] truncate">
+                                                    #{order.orderId || 'ALT123456'}
+                                                </p>
+                                                {order.exchangeStatus && order.exchangeStatus !== 'none' && (
+                                                    <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-[#843D9B] animate-pulse">
+                                                        Exchange
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-sm font-semibold text-gray-900 truncate mt-0.5">
                                                 {formatOrderItemsTitle(order.items, { fallback: 'Custom Design' })}
                                             </p>
-                                            <div className="flex items-center gap-1 mt-0.5 md:mt-1 text-gray-400">
-                                                <MapPin size={10} className="shrink-0" />
-                                                <p className="text-[9px] md:text-[10px] font-bold truncate">
-                                                    {order.deliveryAddress?.street || 'Local Pick-up'}
-                                                </p>
+                                            <p className="text-xs text-gray-500 truncate">{order.customer?.name}</p>
+                                            <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-400 min-w-0">
+                                                <Clock size={11} className="shrink-0" />
+                                                <span className="shrink-0">Received {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                <span className="shrink-0">·</span>
+                                                <MapPin size={11} className="shrink-0" />
+                                                <span className="truncate">{order.deliveryAddress?.street || 'Local Pick-up'}</span>
                                             </div>
+                                        </div>
+                                        <div className="flex flex-col items-end justify-between self-stretch shrink-0 gap-2">
+                                            <span className={cn(
+                                                "text-[10px] font-semibold capitalize px-2.5 py-0.5 rounded-full max-w-[110px] truncate",
+                                                ['delivered', 'product-delivered', 'order-completed'].includes(order.status) ? "bg-green-50 text-green-700" :
+                                                order.status === 'cancelled' ? "bg-red-50 text-red-600" :
+                                                order.status === 'pending' ? "bg-[#FFF3EA] text-[#D9822B]" :
+                                                "bg-[#F5EDFA] text-[#843D9B]"
+                                            )}>
+                                                {order.status?.replace(/-/g, ' ')}
+                                            </span>
+                                            <ChevronRight size={18} className="text-gray-400" />
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-2">
-                                        <button 
-                                            onClick={() => handleAction('View Detail', order)}
-                                            className="flex-1 py-2.5 md:py-3 bg-white border border-gray-200 rounded-xl text-[10px] font-black text-gray-700 uppercase tracking-widest hover:bg-gray-50 active:scale-95 transition-all shadow-sm"
-                                        >
-                                            Details
-                                        </button>
+                                    {/* Row actions — stopPropagation keeps these from also opening the detail panel */}
+                                    <div className="flex gap-2 pl-[68px] md:pl-[84px]" onClick={(e) => e.stopPropagation()}>
                                         {!isNew && order.status !== 'cancelled' && (
                                             <button
                                                 type="button"
@@ -1379,7 +1362,7 @@ const Orders = () => {
                                                     setUnreadChats(prev => ({ ...prev, [order._id]: 0 }));
                                                     navigate(`/partner/orders/${order._id}/chat`);
                                                 }}
-                                                className="relative w-11 shrink-0 py-2.5 md:py-3 bg-white border border-gray-200 rounded-xl flex items-center justify-center shadow-sm hover:bg-gray-50"
+                                                className="relative w-11 shrink-0 py-2 bg-white border border-gray-200 rounded-xl flex items-center justify-center shadow-sm hover:bg-gray-50"
                                             >
                                                 <MessageSquare size={16} className="text-[#843D9B]" />
                                                 {unreadChats[order._id] > 0 && (
@@ -1393,7 +1376,7 @@ const Orders = () => {
                                             <button 
                                                 onClick={() => handleStatusUpdate(order._id, 'accepted')}
                                                 disabled={updatingOrders[order._id]}
-                                                className="flex-[1.5] py-2.5 md:py-3 bg-[#843D9B] rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-lg shadow-[#843D9B]/20 hover:bg-[#4E2460] active:scale-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                                className="flex-1 py-2 bg-[#843D9B] rounded-xl text-xs font-semibold text-white shadow-md shadow-[#843D9B]/20 hover:bg-[#6B2F7E] active:scale-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
                                             >
                                                 {updatingOrders[order._id] ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : 'Accept Order'}
                                             </button>
@@ -1403,7 +1386,7 @@ const Orders = () => {
                                                     return (
                                                         <button 
                                                             onClick={(e) => { e.stopPropagation(); navigate(`/partner/issues/${order.reportedIssue._id}`); }}
-                                                            className="flex-[1.5] py-2.5 md:py-3 bg-red-600 rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-lg shadow-red-600/20 hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                                                            className="flex-1 py-2 bg-red-600 rounded-xl text-xs font-semibold text-white shadow-lg shadow-red-600/20 hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-1.5"
                                                         >
                                                             Manage Issue
                                                         </button>
@@ -1414,7 +1397,7 @@ const Orders = () => {
                                                     return (
                                                         <button 
                                                             onClick={() => handleAction('View Detail', order)}
-                                                            className="flex-[1.5] py-2.5 md:py-3 bg-green-50 border border-green-200 rounded-xl text-[10px] font-black text-green-700 uppercase tracking-widest flex items-center justify-center gap-1.5"
+                                                            className="flex-1 py-2 bg-green-50 border border-green-200 rounded-xl text-xs font-semibold text-green-700 flex items-center justify-center gap-1.5"
                                                         >
                                                             <CheckCircle2 size={14} className="text-green-600" /> Completed
                                                         </button>
@@ -1425,7 +1408,7 @@ const Orders = () => {
                                                     return (
                                                         <button 
                                                             onClick={() => handleAction('View Detail', order)}
-                                                            className="flex-[1.5] py-2.5 md:py-3 bg-red-50 border border-red-200 rounded-xl text-[10px] font-black text-red-600 uppercase tracking-widest flex items-center justify-center gap-1.5"
+                                                            className="flex-1 py-2 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-600 flex items-center justify-center gap-1.5"
                                                         >
                                                             <X size={14} className="text-red-600" /> Cancelled
                                                         </button>
@@ -1465,7 +1448,7 @@ const Orders = () => {
                                                 
                                                 if (order.advancePaymentStatus !== 'paid' && order.paymentStatus !== 'paid') {
                                                     return (
-                                                        <div className="flex-1 text-center py-3 bg-amber-50 border border-amber-100 rounded-xl text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-sm">
+                                                        <div className="flex-1 text-center py-2 px-2 bg-amber-50 border border-amber-100 rounded-xl text-xs font-semibold text-amber-700 flex items-center justify-center gap-1.5 shadow-sm">
                                                             <Clock size={12} className="text-amber-600 animate-pulse" /> Awaiting customer payment
                                                         </div>
                                                     );
@@ -1490,7 +1473,7 @@ const Orders = () => {
                                                         awaitingLabel = 'Awaiting fabric option from customer';
                                                     }
                                                     return (
-                                                        <div className="flex-1 text-center py-3 bg-amber-50 border border-amber-100 rounded-xl text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                                                        <div className="flex-1 text-center py-2 px-2 bg-amber-50 border border-amber-100 rounded-xl text-xs font-semibold text-amber-700 flex items-center justify-center gap-1.5">
                                                             <Clock size={12} /> {awaitingLabel}
                                                         </div>
                                                     );
@@ -1501,7 +1484,7 @@ const Orders = () => {
                                                 
                                                 if (order.status === 'out-for-delivery' && order.deliveryMethod === 'tailor') {
                                                     return (
-                                                        <div className="flex-1 text-center py-3 bg-gray-50 border border-gray-100 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                        <div className="flex-1 text-center py-2 px-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-semibold text-gray-400">
                                                             Use the OTP form in the live tracking area above to complete delivery
                                                         </div>
                                                     );
@@ -1511,7 +1494,7 @@ const Orders = () => {
                                                     return (
                                                         <button 
                                                             onClick={() => handleAction('View Detail', order)}
-                                                            className="flex-[1.5] py-2.5 md:py-3 bg-gray-100 text-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                                                            className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-semibold hover:bg-gray-200 active:scale-95 transition-all flex items-center justify-center gap-1.5"
                                                         >
                                                             View Detail
                                                         </button>
@@ -1534,7 +1517,7 @@ const Orders = () => {
                                                             }
                                                         }}
                                                         disabled={updatingOrders[order._id]}
-                                                        className="flex-[1.5] py-2.5 md:py-3 bg-gray-900 rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:bg-black active:scale-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                                        className="flex-1 py-2 bg-[#843D9B] rounded-xl text-xs font-semibold text-white shadow-md shadow-[#843D9B]/20 hover:bg-[#6B2F7E] active:scale-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
                                                     >
                                                         {updatingOrders[order._id] ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : nextStep.label}
                                                     </button>

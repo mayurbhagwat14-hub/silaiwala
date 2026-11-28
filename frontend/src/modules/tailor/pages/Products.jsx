@@ -27,17 +27,19 @@ import toast from 'react-hot-toast';
 import SafeImage from '../../../components/Common/SafeImage';
 import GarmentForm from '../components/GarmentForm';
 import { compressImage } from '../../../utils/imageCompression';
+import { getPageCache, setPageCache } from '../utils/pageCache';
 
 const Products = () => {
     const [activeTab, setActiveTab] = useState('samples'); // 'samples' | 'fabrics' | 'garments'
-    const [samples, setSamples] = useState([]);
-    const [fabrics, setFabrics] = useState([]);
-    const [garments, setGarments] = useState([]);
-    const [categories, setCategories] = useState([]); // All categories from backend
+    const cachedServices = getPageCache('me', 'services');
+    const [samples, setSamples] = useState(cachedServices?.samples || []);
+    const [fabrics, setFabrics] = useState(cachedServices?.fabrics || []);
+    const [garments, setGarments] = useState(cachedServices?.garments || []);
+    const [categories, setCategories] = useState(cachedServices?.categories || []); // All categories from backend
     const [subcategories, setSubcategories] = useState([]); // Subcategories for fabrics
     const [selectedParent, setSelectedParent] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(!cachedServices);
 
     // Modal state for Fabrics (and legacy products)
     const [showModal, setShowModal] = useState(false);
@@ -75,7 +77,7 @@ const Products = () => {
     });
 
     const fetchData = async () => {
-        setIsLoading(true);
+        setIsLoading(!getPageCache('me', 'services'));
         try {
             const [servicesRes, productsRes, catsRes] = await Promise.all([
                 api.get('/tailors/services'),
@@ -93,6 +95,12 @@ const Products = () => {
             if (catsRes.data.success) {
                 setCategories(catsRes.data.data || []);
             }
+            setPageCache('me', 'services', {
+                samples: sRaw,
+                fabrics: pRaw.filter(p => p.productType === 'fabric' || !p.productType),
+                garments: pRaw.filter(p => p.productType === 'store_item'),
+                categories: catsRes.data.success ? (catsRes.data.data || []) : (getPageCache('me', 'services')?.categories || []),
+            });
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error('Failed to load services and products.');
@@ -426,7 +434,7 @@ const Products = () => {
         <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6 px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 md:pb-12 font-['Plus_Jakarta_Sans',sans-serif] min-w-0 overflow-x-hidden">
             
             {/* Top Heading */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+            <div className="flex flex-row justify-between items-center gap-3 sm:gap-4">
                 <div className="min-w-0 flex-1">
                     <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-tight">
                         {activeTab === 'samples' ? 'Stitching Services' : activeTab === 'fabrics' ? 'Fabric Inventory' : 'Ready-made Garments'}
@@ -446,7 +454,7 @@ const Products = () => {
                             setIsEditing(false);
                             setShowModal(true);
                         }}
-                        className="w-full sm:w-auto shrink-0 justify-center flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-gradient-to-r from-[#843D9B] to-[#9E47BA] hover:from-[#732F87] hover:to-[#843D9B] text-white text-xs font-bold rounded-xl sm:rounded-2xl shadow-md shadow-[#843D9B]/15 hover:shadow-lg active:scale-95 transition-all duration-200 cursor-pointer"
+                        className="w-auto shrink-0 justify-center flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 whitespace-nowrap bg-gradient-to-r from-[#843D9B] to-[#9E47BA] hover:from-[#732F87] hover:to-[#843D9B] text-white text-xs font-bold rounded-xl sm:rounded-2xl shadow-md shadow-[#843D9B]/15 hover:shadow-lg active:scale-95 transition-all duration-200 cursor-pointer"
                     >
                         <Plus size={16} strokeWidth={2.5} />
                         <span>Add {activeTab === 'fabrics' ? 'Fabric' : 'Garment'}</span>
@@ -455,19 +463,19 @@ const Products = () => {
             </div>
 
             {/* Main Tabs - 3 Equal Columns, zero overflow on mobile */}
-            <div className="grid grid-cols-3 p-1 sm:p-1.5 bg-gray-100/90 border border-gray-200/60 rounded-2xl gap-1 shadow-xs">
+            <div className="grid grid-cols-3 gap-2">
                 <button
                     onClick={() => { setActiveTab('samples'); setSearchQuery(''); }}
                     className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer min-w-0 ${
                         activeTab === 'samples' 
                             ? 'bg-[#843D9B] text-white shadow-md shadow-[#843D9B]/25 font-black' 
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                 >
                     <Scissors size={14} className="shrink-0" /> 
                     <span className="truncate">Services</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black shrink-0 ${
-                        activeTab === 'samples' ? 'bg-white/20 text-white' : 'bg-white text-gray-700 shadow-2xs'
+                        activeTab === 'samples' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700'
                     }`}>
                         {offeredServicesCount}
                     </span>
@@ -478,13 +486,13 @@ const Products = () => {
                     className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer min-w-0 ${
                         activeTab === 'fabrics' 
                             ? 'bg-[#843D9B] text-white shadow-md shadow-[#843D9B]/25 font-black' 
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                 >
                     <ShoppingBag size={14} className="shrink-0" /> 
                     <span className="truncate">Fabrics</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black shrink-0 ${
-                        activeTab === 'fabrics' ? 'bg-white/20 text-white' : 'bg-white text-gray-700 shadow-2xs'
+                        activeTab === 'fabrics' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700'
                     }`}>
                         {fabrics.length}
                     </span>
@@ -495,13 +503,13 @@ const Products = () => {
                     className={`flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-1 sm:px-3 text-[11px] sm:text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer min-w-0 ${
                         activeTab === 'garments' 
                             ? 'bg-[#843D9B] text-white shadow-md shadow-[#843D9B]/25 font-black' 
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                 >
                     <Package size={14} className="shrink-0" /> 
                     <span className="truncate">Garments</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black shrink-0 ${
-                        activeTab === 'garments' ? 'bg-white/20 text-white' : 'bg-white text-gray-700 shadow-2xs'
+                        activeTab === 'garments' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700'
                     }`}>
                         {garments.length}
                     </span>
@@ -523,11 +531,11 @@ const Products = () => {
 
                 {/* Service Filter Tabs (All / Active / Pending / Available) */}
                 {activeTab === 'samples' && (
-                    <div className="flex bg-gray-100/90 p-1 rounded-xl gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0 max-w-full">
+                    <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0 max-w-full">
                         <button
                             onClick={() => setServiceFilter('all')}
                             className={`px-3 py-1.5 rounded-lg transition-all shrink-0 text-xs font-bold cursor-pointer whitespace-nowrap ${
-                                serviceFilter === 'all' ? 'bg-white text-[#843D9B] shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                                serviceFilter === 'all' ? 'bg-[#F5EDFA] border border-[#843D9B]/30 text-[#843D9B]' : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900'
                             }`}
                         >
                             All ({adminServiceCategories.length})
@@ -535,7 +543,7 @@ const Products = () => {
                         <button
                             onClick={() => setServiceFilter('active')}
                             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shrink-0 text-xs font-bold cursor-pointer whitespace-nowrap ${
-                                serviceFilter === 'active' ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                                serviceFilter === 'active' ? 'bg-[#F5EDFA] border border-[#843D9B]/30 text-emerald-700' : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900'
                             }`}
                         >
                             <span>Active in Shop</span>
@@ -546,7 +554,7 @@ const Products = () => {
                         <button
                             onClick={() => setServiceFilter('pending')}
                             className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shrink-0 text-xs font-bold cursor-pointer whitespace-nowrap ${
-                                serviceFilter === 'pending' ? 'bg-white text-amber-700 shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                                serviceFilter === 'pending' ? 'bg-[#F5EDFA] border border-[#843D9B]/30 text-amber-700' : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900'
                             }`}
                         >
                             <span>Pending</span>
@@ -559,7 +567,7 @@ const Products = () => {
                         <button
                             onClick={() => setServiceFilter('available')}
                             className={`px-3 py-1.5 rounded-lg transition-all shrink-0 text-xs font-bold cursor-pointer whitespace-nowrap ${
-                                serviceFilter === 'available' ? 'bg-white text-[#843D9B] shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                                serviceFilter === 'available' ? 'bg-[#F5EDFA] border border-[#843D9B]/30 text-[#843D9B]' : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900'
                             }`}
                         >
                             Available to Add ({Math.max(0, adminServiceCategories.length - offeredServicesCount)})
@@ -587,7 +595,7 @@ const Products = () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
                             {filteredAdminServices.map((cat) => {
                                 const myService = samples.find(s => (s.category?._id || s.category) === cat._id);
                                 const isOffered = Boolean(myService);
@@ -613,7 +621,7 @@ const Products = () => {
                                         }`}
                                     >
                                         {/* Top Image: Official Admin Photo */}
-                                        <div className="aspect-[16/10] bg-gray-100 relative overflow-hidden">
+                                        <div className="aspect-[2/1] sm:aspect-[16/10] bg-gray-100 relative overflow-hidden">
                                             <SafeImage
                                                 src={cat.image || myService?.image}
                                                 alt={cat.name}
@@ -621,7 +629,7 @@ const Products = () => {
                                             />
 
                                             {/* Status Badge */}
-                                            <div className="absolute top-3 left-3 z-10">
+                                            <div className="absolute top-2.5 left-2.5 z-10">
                                                 {isOffered ? (
                                                     isPending ? (
                                                         <span className="inline-flex items-center gap-1 bg-amber-500/95 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-md animate-pulse">
@@ -652,7 +660,7 @@ const Products = () => {
                                             </div>
 
                                             {/* Verified platform service icon */}
-                                            <div className="absolute top-3 right-3 z-10">
+                                            <div className="absolute top-2.5 right-2.5 z-10">
                                                 <span className="h-7 w-7 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-[#843D9B] shadow-sm" title="Official Sewzella Service">
                                                     <ShieldCheck size={16} />
                                                 </span>
@@ -660,7 +668,7 @@ const Products = () => {
                                         </div>
 
                                         {/* Card Body */}
-                                        <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                                        <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3">
                                             <div>
                                                 <div className="flex items-center justify-between gap-2 mb-1">
                                                     <span className="text-[9px] font-black text-[#843D9B] uppercase tracking-wider">
@@ -686,7 +694,7 @@ const Products = () => {
 
                                             {/* Pending / Rejection Banner */}
                                             {isPending && (
-                                                <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-2.5 text-[11px] text-amber-900 font-medium space-y-1">
+                                                <div className="bg-amber-50 border border-amber-200/90 rounded-xl p-2 text-[11px] text-amber-900 font-medium space-y-1">
                                                     <div className="flex items-center gap-1.5 font-bold text-amber-800">
                                                         <Clock size={13} className="text-amber-600 shrink-0" />
                                                         <span>Pending Admin Approval</span>
@@ -698,7 +706,7 @@ const Products = () => {
                                             )}
 
                                             {isRejected && (
-                                                <div className="bg-red-50 border border-red-200 rounded-2xl p-2.5 text-[11px] text-red-900 font-medium space-y-1">
+                                                <div className="bg-red-50 border border-red-200 rounded-xl p-2 text-[11px] text-red-900 font-medium space-y-1">
                                                     <div className="flex items-center gap-1.5 font-bold text-red-800">
                                                         <AlertCircle size={13} className="text-red-600 shrink-0" />
                                                         <span>Service Not Approved</span>
@@ -710,13 +718,13 @@ const Products = () => {
                                             )}
 
                                             {/* Pricing & Turnaround Section */}
-                                            <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                                            <div className="pt-2 sm:pt-3 border-t border-gray-100 space-y-2 sm:space-y-2.5">
                                                 {isOffered ? (
                                                     <div>
                                                         <div className="flex items-baseline justify-between">
                                                             <div>
                                                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">Your Price</span>
-                                                                <span className="text-xl font-black text-[#843D9B] tracking-tight">
+                                                                <span className="text-lg sm:text-xl font-black text-[#843D9B] tracking-tight leading-tight">
                                                                     ₹{myService.basePrice}
                                                                 </span>
                                                             </div>
@@ -758,24 +766,24 @@ const Products = () => {
 
                                                 {/* Action Buttons */}
                                                 {isOffered ? (
-                                                    <div className="flex items-center gap-2 pt-1">
+                                                    <div className="flex items-center gap-2">
                                                         {isPending ? (
                                                             /* Pending: Show In-Review disabled badge + Edit & Delete */
                                                             <>
-                                                                <div className="flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 bg-amber-100 text-amber-800 border border-amber-200">
+                                                                <div className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 bg-amber-100 text-amber-800 border border-amber-200">
                                                                     <Clock size={13} className="text-amber-700 animate-spin" />
                                                                     <span>Under Review</span>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => handleOpenServiceModal(cat, myService)}
-                                                                    className="p-2 rounded-xl bg-gray-50 hover:bg-[#843D9B] hover:text-white text-gray-600 transition-colors border border-gray-200 cursor-pointer shadow-xs"
+                                                                    className="p-1.5 rounded-xl bg-gray-50 hover:bg-[#843D9B] hover:text-white text-gray-600 transition-colors border border-gray-200 cursor-pointer shadow-xs"
                                                                     title="Edit price or styles"
                                                                 >
                                                                     <Edit3 size={14} />
                                                                 </button>
                                                                 <button
                                                                     onClick={(e) => handleDeleteService(myService._id, cat.name, e)}
-                                                                    className="p-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 transition-colors border border-rose-100 cursor-pointer shadow-xs"
+                                                                    className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 transition-colors border border-rose-100 cursor-pointer shadow-xs"
                                                                     title="Cancel approval request"
                                                                 >
                                                                     <Trash2 size={14} />
@@ -786,14 +794,14 @@ const Products = () => {
                                                             <>
                                                                 <button
                                                                     onClick={() => handleOpenServiceModal(cat, myService)}
-                                                                    className="flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white transition-all cursor-pointer shadow-sm shadow-red-600/20 active:scale-95"
+                                                                    className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white transition-all cursor-pointer shadow-sm shadow-red-600/20 active:scale-95"
                                                                 >
                                                                     <RotateCcw size={13} />
                                                                     <span>Edit & Re-submit</span>
                                                                 </button>
                                                                 <button
                                                                     onClick={(e) => handleDeleteService(myService._id, cat.name, e)}
-                                                                    className="p-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 transition-colors border border-rose-100 cursor-pointer shadow-xs"
+                                                                    className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 transition-colors border border-rose-100 cursor-pointer shadow-xs"
                                                                     title="Remove service"
                                                                 >
                                                                     <Trash2 size={14} />
@@ -804,7 +812,7 @@ const Products = () => {
                                                             <>
                                                                 <button
                                                                     onClick={(e) => handleToggleService(myService._id, cat.name, e)}
-                                                                    className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                                                    className={`flex-1 py-1.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                                                                         isActive 
                                                                             ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200' 
                                                                             : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
@@ -816,14 +824,14 @@ const Products = () => {
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleOpenServiceModal(cat, myService)}
-                                                                    className="p-2 rounded-xl bg-gray-50 hover:bg-[#843D9B] hover:text-white text-gray-600 transition-colors border border-gray-200 cursor-pointer shadow-xs"
+                                                                    className="p-1.5 rounded-xl bg-gray-50 hover:bg-[#843D9B] hover:text-white text-gray-600 transition-colors border border-gray-200 cursor-pointer shadow-xs"
                                                                     title="Edit your price and styles"
                                                                 >
                                                                     <Edit3 size={14} />
                                                                 </button>
                                                                 <button
                                                                     onClick={(e) => handleDeleteService(myService._id, cat.name, e)}
-                                                                    className="p-2 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 transition-colors border border-rose-100 cursor-pointer shadow-xs"
+                                                                    className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 transition-colors border border-rose-100 cursor-pointer shadow-xs"
                                                                     title="Remove service from your shop"
                                                                 >
                                                                     <Trash2 size={14} />
@@ -834,7 +842,7 @@ const Products = () => {
                                                 ) : (
                                                     <button
                                                         onClick={() => handleOpenServiceModal(cat)}
-                                                        className="w-full py-2.5 px-4 bg-gradient-to-r from-[#843D9B] to-[#9E47BA] hover:from-[#732F87] hover:to-[#843D9B] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md shadow-[#843D9B]/15 hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                                        className="w-full py-2 px-4 bg-gradient-to-r from-[#843D9B] to-[#9E47BA] hover:from-[#732F87] hover:to-[#843D9B] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md shadow-[#843D9B]/15 hover:shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                                                     >
                                                         <Plus size={15} strokeWidth={3} />
                                                         <span>Offer This Service</span>
@@ -885,13 +893,13 @@ const Products = () => {
                                         onClick={() => handleEditFabric(item)}
                                         className="group relative bg-white border border-gray-100/90 rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 shadow-2xs cursor-pointer"
                                     >
-                                        <div className="aspect-[4/5] bg-gray-50 relative overflow-hidden">
+                                        <div className="aspect-[4/3] sm:aspect-[4/5] bg-gray-50 relative overflow-hidden">
                                             <SafeImage
                                                 src={item.image || item.images?.[0]}
                                                 alt={item.name || item.title}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
-                                            <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1">
+                                            <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 flex flex-col gap-1">
                                                 {isOutOfStock ? (
                                                     <span className="bg-rose-500/90 text-white text-[8px] font-black px-1.5 sm:px-2 py-0.5 rounded-full shadow-md uppercase tracking-wider">
                                                         Out of Stock
@@ -904,7 +912,7 @@ const Products = () => {
                                             </div>
                                         </div>
 
-                                        <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+                                        <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between">
                                             <div>
                                                 <span className="text-[9px] text-[#843D9B] uppercase tracking-wider font-extrabold truncate block mb-0.5">
                                                     {item.category?.name || 'General'}
@@ -912,16 +920,16 @@ const Products = () => {
                                                 <h4 className="text-xs sm:text-sm font-extrabold text-gray-900 line-clamp-1 tracking-tight group-hover:text-[#843D9B] transition-colors">
                                                     {item.name || item.title}
                                                 </h4>
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1 flex items-center gap-1">
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5 sm:mt-1 flex items-center gap-1">
                                                     <Package size={11} className="text-[#843D9B] shrink-0" /> 
                                                     <span>{item.stock || 0} {activeTab === 'fabrics' ? 'M Available' : 'In Stock'}</span>
                                                 </p>
                                             </div>
 
-                                            <div className="mt-2.5 pt-2.5 sm:mt-3 sm:pt-3 border-t border-gray-100 flex items-center justify-between gap-1">
+                                            <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-gray-100 flex items-center justify-between gap-1">
                                                 <div className="min-w-0">
                                                     <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">Price</span>
-                                                    <span className="text-sm sm:text-base font-black text-[#843D9B] truncate block">
+                                                    <span className="text-sm sm:text-base font-black text-[#843D9B] truncate block leading-tight">
                                                         ₹{currentPrice.toLocaleString()}
                                                     </span>
                                                 </div>

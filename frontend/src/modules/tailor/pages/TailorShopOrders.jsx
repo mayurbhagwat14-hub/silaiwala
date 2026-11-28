@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { getPageCache, setPageCache } from '../utils/pageCache';
 import OfflineProductionPipeline from '../../admin/components/OfflineProductionPipeline';
 import MeasurementDataDisplay from '../../../components/Common/MeasurementDataDisplay';
 import {
@@ -29,15 +30,17 @@ const STATUS_TABS = [
 ];
 
 const TailorShopOrders = () => {
-    const [orders, setOrders] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [orders, setOrders] = useState(() => getPageCache('me', 'shop:active') || []);
+    const [isLoading, setIsLoading] = useState(() => !getPageCache('me', 'shop:active'));
     const [selected, setSelected] = useState(null);
     const [updatingId, setUpdatingId] = useState(null);
     const [statusFilter, setStatusFilter] = useState('active');
     const [searchQuery, setSearchQuery] = useState('');
 
     const fetchOrders = useCallback(async () => {
-        setIsLoading(true);
+        const cachedList = getPageCache('me', `shop:${statusFilter}`);
+        if (cachedList) setOrders(cachedList);
+        setIsLoading(!cachedList);
         try {
             const params = {};
             if (statusFilter) params.status = statusFilter;
@@ -45,6 +48,7 @@ const TailorShopOrders = () => {
             if (res.data?.success) {
                 const list = res.data.data || [];
                 setOrders(list);
+                setPageCache('me', `shop:${statusFilter}`, list);
                 setSelected((prev) => {
                     if (!prev) return prev;
                     return list.find((o) => o._id === prev._id) || prev;

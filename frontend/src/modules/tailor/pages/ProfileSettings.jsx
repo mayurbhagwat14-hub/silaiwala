@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Edit2, History, Bell, MapPin, Shield, LogOut, ChevronRight, FileText, Save, X, Phone, Mail, Wallet, Star, Ticket, Navigation, Trash2, AlertTriangle } from 'lucide-react';
-import MenuOption from '../../customer/components/profile/MenuOption';
 import { Input, Button } from '../components/UIElements';
 import { useTailorAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -27,13 +26,38 @@ const profileToForm = (data) => ({
 
 const GOOGLE_MAPS_LIBRARIES = ['places', 'geometry', 'drawing'];
 
-const ProfileSettings = () => {
+// One row of the grouped profile menu: icon, label, optional sub-label / extra, chevron
+const ProfileRow = ({ icon, label, subLabel, extra, to, onClick, danger }) => {
+    const Icon = icon;
+    const Comp = to ? Link : 'button';
+    return (
+        <Comp
+            to={to}
+            onClick={onClick}
+            type={to ? undefined : 'button'}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors ${danger ? 'hover:bg-rose-50/60' : 'hover:bg-gray-50'}`}
+        >
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${danger ? 'bg-rose-50 text-rose-600' : 'bg-[#F5EDFA] text-[#843D9B]'}`}>
+                <Icon size={18} />
+            </span>
+            <span className="flex-1 min-w-0">
+                <span className={`block text-sm font-semibold leading-tight truncate ${danger ? 'text-rose-600' : 'text-gray-900'}`}>{label}</span>
+                {subLabel && <span className="block text-[11px] text-gray-500 mt-0.5 truncate">{subLabel}</span>}
+            </span>
+            {extra}
+            <ChevronRight size={18} className={`shrink-0 ${danger ? 'text-rose-300' : 'text-gray-300'}`} />
+        </Comp>
+    );
+};
+
+const ProfileSettings = ({ page = null }) => {
     const navigate = useNavigate();
     const { logout, user } = useTailorAuth();
     const userId = user?._id || user?.id;
     const cached = getPageCache(userId, 'profile');
     const appName = useBrandingStore(state => state.appName);
     const [isEditing, setIsEditing] = useState(false);
+    const closeEdit = () => (page === 'edit' ? navigate('/partner/settings') : setIsEditing(false));
     const [isEditingPickup, setIsEditingPickup] = useState(false);
     const [activeModal, setActiveModal] = useState(null); // 'pickup', 'terms', 'privacy'
     const [isSaving, setIsSaving] = useState(false);
@@ -48,8 +72,7 @@ const ProfileSettings = () => {
     const [reviewsData, setReviewsData] = useState(null); // { rating, totalReviews, reviews }
     const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
-    const openReviews = async () => {
-        setActiveModal('reviews');
+    const loadReviews = async () => {
         setIsLoadingReviews(true);
         try {
             const res = await api.get('/tailors/my-reviews');
@@ -61,6 +84,11 @@ const ProfileSettings = () => {
             setIsLoadingReviews(false);
         }
     };
+
+    // /partner/reviews loads the reviews as soon as the page opens
+    useEffect(() => {
+        if (page === 'reviews') loadReviews();
+    }, [page]);
     const [isDeleting, setIsDeleting] = useState(false);
     const [formData, setFormData] = useState(() => profileToForm(cached?.profile || {}));
 
@@ -204,7 +232,7 @@ const ProfileSettings = () => {
                 setProfile(res.data.data);
                 setPageCache(userId, 'profile', undefined); // refetch fresh on next visit
                 setFormData({ ...formData, phoneNumber: cleanPhone, profileImage: uploadedImageUrl });
-                setIsEditing(false);
+                closeEdit();
                 toast.success("Profile details saved successfully!");
             }
         } catch (error) {
@@ -251,8 +279,8 @@ const ProfileSettings = () => {
         </div>;
     }
 
-    const renderModalContent = () => {
-        switch (activeModal) {
+    const renderModalContent = (which = activeModal) => {
+        switch (which) {
             case 'reviews': {
                 if (isLoadingReviews) {
                     return (
@@ -470,82 +498,12 @@ const ProfileSettings = () => {
         }
     };
 
-    return (
-        <div className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-20">
-            
-            {/* ── MOBILE HEADER ── */}
-            <div className={`md:hidden relative bg-[#843D9B] pt-4 ${isEditing ? 'pb-12' : 'pb-16'} px-5 text-white overflow-hidden shrink-0 shadow-xl transition-all duration-300`}>
-                <div className="absolute inset-0 z-0 opacity-20 mix-blend-overlay pointer-events-none">
-                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full fill-white">
-                        <path d="M0,100 C40,80 60,0 100,0 L100,100 Z" />
-                    </svg>
-                </div>
-                <div className="relative z-10 flex items-center justify-between">
-                    <button onClick={() => isEditing ? setIsEditing(false) : navigate(-1)} className="p-1.5 -ml-2 text-white hover:text-indigo-100 transition-colors">
-                        {isEditing ? <X size={20} /> : <ArrowLeft size={20} />}
-                    </button>
-                    <h1 className="text-base font-black tracking-tight absolute left-1/2 -translate-x-1/2 uppercase">
-                        {isEditing ? 'Edit Profile' : 'Profile Settings'}
-                    </h1>
-                </div>
-                <div className="absolute -bottom-1 left-0 w-full leading-none">
-                    <svg className="w-full h-8 text-[#F5F5F5] fill-current" viewBox="0 0 100 20" preserveAspectRatio="none">
-                        <path d="M0,20 C30,0 70,0 100,20 L100,20 L0,20 Z" />
-                    </svg>
-                </div>
-            </div>
-
-            <div className="flex-1 p-2 md:p-0">
-                
-                {/* ── DESKTOP TITLE ── */}
-                <div className="hidden md:block py-6">
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Account & Security</h2>
-                    <p className="text-xs text-gray-400 font-black uppercase tracking-[0.2em] mt-1">Manage your shop profile and platform preferences</p>
-                </div>
-
-                <div className="flex flex-col lg:flex-row gap-8">
-                    
-                    {/* LEFT: PROFILE SUMMARY & EDIT FORM */}
-                    <div className="flex-1 space-y-6">
-                        
-                        {/* Profile Overview Card */}
-                        <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                                <Shield size={120} className="text-[#843D9B]" />
-                            </div>
-                            
-                            <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-                                <div className="h-24 w-24 bg-[#1A1A1A] rounded-[2rem] flex items-center justify-center text-[#FDE5D2] shadow-2xl shadow-[#843D9B]/20 relative group-hover:scale-105 transition-transform duration-500">
-                                    {(profile?.user?.profileImage && profile?.user?.profileImage !== 'default_profile.png') ? (
-                                        <img src={profile.user.profileImage} alt="Profile" className="w-full h-full object-cover rounded-[2rem]" />
-                                    ) : (
-                                        <span className="text-3xl font-black">{profile?.shopName?.charAt(0) || formData.name?.charAt(0) || 'R'}</span>
-                                    )}
-                                    <button 
-                                        onClick={() => setIsEditing(true)}
-                                        className="absolute -bottom-2 -right-2 p-2 bg-white rounded-xl shadow-lg border border-gray-100 text-[#843D9B] hover:bg-[#843D9B] hover:text-white transition-all"
-                                    >
-                                        <Edit2 size={14} />
-                                    </button>
-                                </div>
-                                <div className="text-center md:text-left">
-                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-tight">{profile?.shopName || 'Luxury Stitches'}</h2>
-                                    <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-2">
-                                        <span className="bg-indigo-50 text-[#843D9B] px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-                                            Verified Partner
-                                        </span>
-                                        <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-                                            Premium Tier
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {isEditing ? (
-                                <form onSubmit={handleSave} className="mt-8 space-y-4 animate-in slide-in-from-top-4 duration-500">
+    // Profile edit form (shared by the inline card and /partner/edit-profile)
+    const renderEditForm = () => (
+                                <form onSubmit={handleSave} className={`${page === 'edit' ? '' : 'mt-6 md:mt-8'} space-y-4 animate-in fade-in duration-300`}>
                                     <div className="space-y-1 mb-6">
                                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 block mb-2">Profile Image</label>
-                                        <div className="w-24 h-24">
+                                        <div className="w-fit">
                                             <ImageUploader
                                                 value={formData.profileImage === 'default_profile.png' ? null : formData.profileImage}
                                                 onChange={(file) => setFormData({...formData, profileImage: file})}
@@ -665,7 +623,7 @@ const ProfileSettings = () => {
                                     <div className="flex gap-4 pt-4">
                                         <button 
                                             type="button"
-                                            onClick={() => setIsEditing(false)}
+                                            onClick={closeEdit}
                                             className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
                                         >
                                             Cancel
@@ -679,21 +637,106 @@ const ProfileSettings = () => {
                                         </button>
                                     </div>
                                 </form>
-                            ) : (
-                                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <Phone size={12} className="text-gray-400" />
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Mobile Number</p>
-                                        </div>
-                                        <p className="text-sm font-black text-gray-900">{formData.phoneNumber || 'Not provided'}</p>
+    );
+
+    // ── Full-page sections: /partner/reviews, /partner/pickup-info, /partner/privacy, /partner/edit-profile
+    if (page) {
+        const PAGE_TITLES = { reviews: 'Your Reviews', pickup: 'Pick Up Information', privacy: 'Privacy & Security', edit: 'Edit Profile' };
+        return (
+            <div className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-24 md:pb-8">
+                <div className="sticky top-0 z-20 bg-white border-b border-gray-100 px-2 md:px-0 h-14 flex items-center gap-1 shrink-0">
+                    <button
+                        onClick={() => navigate('/partner/settings')}
+                        aria-label="Back to profile"
+                        className="p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <h1 className="text-base md:text-xl font-bold text-gray-900 tracking-tight">{PAGE_TITLES[page]}</h1>
+                </div>
+                <div className="flex-1 p-3 md:p-0 md:pt-4">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6 max-w-2xl">
+                        {page === 'edit' ? renderEditForm() : renderModalContent(page)}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-full bg-[#F5F5F5] flex flex-col font-sans selection:bg-[#843D9B] selection:text-white pb-20">
+            
+            {/* ── MOBILE HEADER ── */}
+            <div className="md:hidden relative bg-gradient-to-br from-[#6B2F7E] via-[#843D9B] to-[#9B5BB0] pt-4 pb-24 px-4 text-white shrink-0 rounded-b-[1.75rem]">
+                <div className="relative z-10 flex items-center justify-between">
+                    <button onClick={() => isEditing ? setIsEditing(false) : navigate(-1)} className="p-1.5 -ml-1.5 text-white hover:bg-white/10 rounded-xl transition-colors">
+                        {isEditing ? <X size={20} /> : <ArrowLeft size={20} />}
+                    </button>
+                    <h1 className="text-base font-bold tracking-tight absolute left-1/2 -translate-x-1/2">
+                        {isEditing ? 'Edit Profile' : 'Profile Settings'}
+                    </h1>
+                </div>
+            </div>
+
+            <div className="flex-1 px-3 md:p-0">
+                
+                {/* ── DESKTOP TITLE ── */}
+                <div className="hidden md:block py-6">
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Account & Security</h2>
+                    <p className="text-xs text-gray-400 font-black uppercase tracking-[0.2em] mt-1">Manage your shop profile and platform preferences</p>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+                    
+                    {/* LEFT: PROFILE SUMMARY & EDIT FORM */}
+                    <div className="flex-1 space-y-4 md:space-y-6">
+                        
+                        {/* Profile Overview Card */}
+                        <div className="bg-white rounded-2xl px-4 pb-4 pt-0 md:p-8 border border-gray-100 shadow-sm relative group -mt-8 md:mt-0">
+                            
+                            <div className="relative z-10 flex flex-col md:flex-row items-center gap-3 md:gap-6">
+                                <div className="h-24 w-24 -mt-12 md:mt-0 bg-[#843D9B] rounded-full ring-4 ring-white flex items-center justify-center text-white shadow-lg shadow-[#843D9B]/25 relative">
+                                    {(profile?.user?.profileImage && profile?.user?.profileImage !== 'default_profile.png') ? (
+                                        <img src={profile.user.profileImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                                    ) : (
+                                        <span className="text-3xl font-black">{profile?.shopName?.charAt(0) || formData.name?.charAt(0) || 'R'}</span>
+                                    )}
+                                    <button 
+                                        onClick={() => navigate('/partner/edit-profile')}
+                                        aria-label="Edit profile"
+                                        className="absolute bottom-0 right-0 p-1.5 bg-white rounded-full shadow-md border border-gray-100 text-[#843D9B] hover:bg-[#843D9B] hover:text-white transition-all"
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                </div>
+                                <div className="text-center md:text-left">
+                                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight leading-tight">{profile?.shopName || 'Luxury Stitches'}</h2>
+                                    <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-2">
+                                        <span className="inline-flex items-center gap-1 bg-[#F5EDFA] text-[#843D9B] px-2.5 py-1 rounded-full text-[11px] font-semibold">
+                                            <Shield size={12} /> Verified Partner
+                                        </span>
+                                        <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-[11px] font-semibold">
+                                            Premium Tier
+                                        </span>
                                     </div>
-                                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <Mail size={12} className="text-gray-400" />
-                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Email Access</p>
+                                </div>
+                            </div>
+
+                            {isEditing ? renderEditForm() : (
+                                <div className="mt-4 md:mt-8 bg-gray-50 rounded-xl border border-gray-100 divide-y divide-gray-100 md:grid md:grid-cols-2 md:divide-y-0 md:divide-x">
+                                    <div className="flex items-center gap-3 px-3.5 py-3 min-w-0">
+                                        <span className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#843D9B] shrink-0"><Phone size={15} /></span>
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] text-gray-500 font-medium">Mobile Number</p>
+                                            <p className="text-sm font-semibold text-gray-900 truncate">{formData.phoneNumber || 'Not provided'}</p>
                                         </div>
-                                        <p className="text-sm font-black text-gray-900">{formData.email || 'Not provided'}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 px-3.5 py-3 min-w-0">
+                                        <span className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[#843D9B] shrink-0"><Mail size={15} /></span>
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] text-gray-500 font-medium">Email Access</p>
+                                            <p className="text-sm font-semibold text-gray-900 truncate">{formData.email || 'Not provided'}</p>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -701,113 +744,79 @@ const ProfileSettings = () => {
                     </div>
 
                     {/* RIGHT: NAVIGATION MENU */}
-                    <div className="w-full lg:w-[400px] space-y-6">
+                    <div className="w-full lg:w-[400px] space-y-4 md:space-y-6 pb-4">
                         
                         {/* Account Actions */}
-                        <div className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm space-y-1">
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-3 mb-3">Quick Navigation</h3>
-                            <MenuOption
-                                icon={Wallet}
-                                color="bg-[#843D9B]"
-                                label="Wallet & Payouts"
-                                subLabel="Check your balance"
-                                extra={<span className="bg-green-50 text-[10px] font-black px-2.5 py-1 rounded-full text-green-600 border border-green-100">₹ 0</span>}
-                                to="/partner/wallet"
-                            />
-                            {isSubEnabled && (
-                                <MenuOption
-                                    icon={Ticket}
-                                    color="bg-[#843D9B]"
-                                    label="Subscription Plan"
-                                    subLabel="Manage your plan"
-                                    to="/partner/subscription"
+                        <div>
+                            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider px-1 mb-2">Quick Navigation</h3>
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
+                                <ProfileRow
+                                    icon={Wallet}
+                                    label="Wallet & Payouts"
+                                    subLabel="Check your balance"
+                                    extra={<span className="bg-green-50 text-[10px] font-semibold px-2.5 py-1 rounded-full text-green-600 border border-green-100 shrink-0">₹ 0</span>}
+                                    to="/partner/wallet"
                                 />
-                            )}
-                            <MenuOption
-                                icon={Star}
-                                color="bg-[#843D9B]"
-                                label="Your Reviews"
-                                subLabel="Rating & customer feedback"
-                                onClick={openReviews}
-                            />
-                            <MenuOption
-                                icon={MapPin}
-                                color="bg-[#843D9B]"
-                                label="Pick Up Info"
-                                subLabel="Manage addresses"
-                                onClick={() => setActiveModal('pickup')}
-                            />
-                            <MenuOption
-                                icon={Shield}
-                                color="bg-[#843D9B]"
-                                label="Privacy & Terms"
-                                subLabel="Legal guidelines"
-                                onClick={() => setActiveModal('privacy')}
-                            />
+                                {isSubEnabled && (
+                                    <ProfileRow
+                                        icon={Ticket}
+                                        label="Subscription Plan"
+                                        subLabel="Manage your plan"
+                                        to="/partner/subscription"
+                                    />
+                                )}
+                                <ProfileRow
+                                    icon={Star}
+                                    label="Your Reviews"
+                                    subLabel="Rating & customer feedback"
+                                    to="/partner/reviews"
+                                />
+                                <ProfileRow
+                                    icon={MapPin}
+                                    label="Pick Up Info"
+                                    subLabel="Manage addresses"
+                                    to="/partner/pickup-info"
+                                />
+                                <ProfileRow
+                                    icon={Shield}
+                                    label="Privacy & Terms"
+                                    subLabel="Legal guidelines"
+                                    to="/partner/privacy"
+                                />
+                                {/* Test Push */}
+                                <ProfileRow
+                                    icon={Bell}
+                                    label="Test Push"
+                                    subLabel="Send a test notification"
+                                    onClick={async () => {
+                                        try {
+                                            const { testPushToThisDevice } = await import('../../../hooks/usePushNotifications');
+                                            await testPushToThisDevice();
+                                            toast.success('Test push sent to this device!');
+                                        } catch (err) {
+                                            toast.error('Failed to send test push: ' + (err.response?.data?.message || err.message));
+                                        }
+                                    }}
+                                />
+                            </div>
                         </div>
 
-                        {/* Test Push Section */}
-                        <div className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm">
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        const { testPushToThisDevice } = await import('../../../hooks/usePushNotifications');
-                                        await testPushToThisDevice();
-                                        toast.success('Test push sent to this device!');
-                                    } catch (err) {
-                                        toast.error('Failed to send test push: ' + (err.response?.data?.message || err.message));
-                                    }
-                                }}
-                                className="w-full p-4 bg-indigo-50 hover:bg-indigo-100 rounded-2xl border border-indigo-100 flex items-center justify-between group transition-all"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:rotate-6 transition-transform">
-                                        <Bell size={18} strokeWidth={3} />
-                                    </div>
-                                    <div className="text-left">
-                                        <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest leading-none">Test Push</h4>
-                                        <p className="text-[9px] font-bold text-indigo-400 mt-1">Send a test notification</p>
-                                    </div>
-                                </div>
-                                <ChevronRight size={18} className="text-indigo-300 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </div>
-
-                        {/* Logout Section */}
-                        <div className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm">
-                            <button
+                        {/* Logout & Delete Account */}
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
+                            <ProfileRow
+                                icon={LogOut}
+                                label="Logout Account"
+                                subLabel="End current session"
                                 onClick={() => setShowLogoutModal(true)}
-                                className="w-full p-4 bg-rose-50 hover:bg-rose-100 rounded-2xl border border-rose-100 flex items-center justify-between group transition-all"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 bg-[#1A1A1A] rounded-xl flex items-center justify-center text-rose-500 shadow-lg group-hover:rotate-6 transition-transform">
-                                        <LogOut size={18} strokeWidth={3} />
-                                    </div>
-                                    <div className="text-left">
-                                        <h4 className="text-xs font-black text-rose-600 uppercase tracking-widest leading-none">Logout Account</h4>
-                                        <p className="text-[9px] font-bold text-rose-400 mt-1">End current session</p>
-                                    </div>
-                                </div>
-                                <ChevronRight size={18} className="text-rose-300 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </div>
-                        {/* Delete Account Section */}
-                        <div className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm">
-                            <button
+                                danger
+                            />
+                            <ProfileRow
+                                icon={Trash2}
+                                label="Delete Account"
+                                subLabel="Permanently remove your account"
                                 onClick={() => setShowDeleteModal(true)}
-                                className="w-full p-4 bg-gray-50 hover:bg-red-50 rounded-2xl border border-gray-200 hover:border-rose-200 flex items-center justify-between group transition-all"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:rotate-6 transition-transform">
-                                        <Trash2 size={18} strokeWidth={3} />
-                                    </div>
-                                    <div className="text-left">
-                                        <h4 className="text-xs font-black text-red-600 uppercase tracking-widest leading-none">Delete Account</h4>
-                                        <p className="text-[9px] font-bold text-red-400 mt-1">Permanently remove your account</p>
-                                    </div>
-                                </div>
-                                <ChevronRight size={18} className="text-red-300 group-hover:translate-x-1 transition-transform" />
-                            </button>
+                                danger
+                            />
                         </div>
 
                     </div>

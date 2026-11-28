@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Ruler, CheckCircle, Search, X, Wand2 } from 'lucide-react';
 import api from '../../../utils/api';
+import { getPageCache, setPageCache } from '../utils/pageCache';
 import toast from 'react-hot-toast';
 import { useTailorAuth } from '../context/AuthContext';
 import { io } from 'socket.io-client';
@@ -8,8 +9,8 @@ import { SOCKET_URL } from '../../../config/constants';
 
 const TailorCustomDesigns = () => {
     const { user } = useTailorAuth();
-    const [designs, setDesigns] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [designs, setDesigns] = useState(() => getPageCache('me', 'custom-designs') || []);
+    const [isLoading, setIsLoading] = useState(() => !getPageCache('me', 'custom-designs'));
     const [quoteModalOpen, setQuoteModalOpen] = useState(false);
     const [detailsModalOpen, setDetailsModalOpen] = useState(false);
     const [fullscreenImage, setFullscreenImage] = useState(null);
@@ -56,6 +57,7 @@ const TailorCustomDesigns = () => {
             const res = await api.get('/custom-designs');
             if (res.data.success) {
                 setDesigns(res.data.data);
+                setPageCache('me', 'custom-designs', res.data.data);
             }
         } catch (error) {
             console.error('Failed to fetch custom designs:', error);

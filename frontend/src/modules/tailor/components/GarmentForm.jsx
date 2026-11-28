@@ -176,29 +176,29 @@ const GarmentForm = ({ initialData, categories, onClose, onSubmitSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0A0A0A]/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden max-h-[90vh] animate-in zoom-in-95 duration-500">
+        <div className="fixed inset-0 z-[100] flex items-stretch md:items-center justify-center p-0 md:p-4 bg-white md:bg-[#0A0A0A]/40 md:backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white w-full h-full md:h-auto max-w-4xl rounded-none md:rounded-[2.5rem] md:shadow-2xl flex flex-col overflow-hidden md:max-h-[90vh] animate-in fade-in md:zoom-in-95 duration-300 md:duration-500">
                 
                 {/* Modal Header */}
-                <div className="px-8 pt-8 pb-4 flex items-center justify-between border-b border-gray-100/60">
+                <div className="px-4 md:px-8 pt-[max(1rem,env(safe-area-inset-top))] md:pt-8 pb-3 md:pb-4 flex items-center justify-between gap-3 border-b border-gray-100/60 shrink-0">
                     <div>
-                        <h4 className="text-2xl font-black text-[#843D9B] tracking-tight leading-none">
+                        <h4 className="text-xl md:text-2xl font-black text-[#843D9B] tracking-tight leading-none">
                             {initialData ? 'Update Garment' : 'Add New Garment'}
                         </h4>
-                        <p className="text-[11px] font-bold text-gray-400 mt-2 uppercase tracking-widest">
+                        <p className="text-[10px] md:text-[11px] font-bold text-gray-400 mt-1.5 md:mt-2 uppercase tracking-widest">
                             Fill in comprehensive details for your ready-made garment
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="h-10 w-10 flex items-center justify-center rounded-2xl bg-gray-50 text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-all shadow-sm cursor-pointer"
+                        className="h-10 w-10 shrink-0 flex items-center justify-center rounded-2xl bg-gray-50 text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-all shadow-sm cursor-pointer"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
                 {/* Form Content */}
-                <form id="garment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 pt-6 space-y-8 custom-scrollbar">
+                <form id="garment-form" onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto px-4 py-5 md:p-8 md:pt-6 space-y-6 md:space-y-8 custom-scrollbar">
                     
                     {/* Basic Info */}
                     <section className="space-y-4">
@@ -476,11 +476,11 @@ const GarmentForm = ({ initialData, categories, onClose, onSubmitSuccess }) => {
                 </form>
 
                 {/* Footer */}
-                <div className="px-8 py-5 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+                <div className="px-4 md:px-8 pt-3 md:pt-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-5 border-t border-gray-100 bg-white md:bg-gray-50/50 flex justify-end gap-3 shrink-0">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-6 py-3 rounded-2xl text-xs font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-colors cursor-pointer"
+                        className="flex-1 md:flex-none px-6 py-3 rounded-2xl text-xs font-black text-gray-500 uppercase tracking-widest bg-gray-100 md:bg-transparent hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                         Cancel
                     </button>
@@ -488,7 +488,7 @@ const GarmentForm = ({ initialData, categories, onClose, onSubmitSuccess }) => {
                         type="submit"
                         form="garment-form"
                         disabled={isSubmitting}
-                        className="px-8 py-3 rounded-2xl text-xs font-black text-white bg-[#843D9B] hover:bg-[#1f2152] transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-[#843D9B]/10"
+                        className="flex-1 md:flex-none justify-center px-8 py-3 rounded-2xl text-xs font-black text-white bg-[#843D9B] hover:bg-[#1f2152] transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-[#843D9B]/10"
                     >
                         {isSubmitting && <div className="h-3 w-3 border-2 border-white border-t-transparent animate-spin rounded-full" />}
                         {initialData ? 'Save Changes' : 'Publish Garment'}
