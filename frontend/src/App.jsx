@@ -58,6 +58,8 @@ function App() {
           setSplashConfig(response.data.data.splashScreen);
         }
       } catch (err) {
+        // Superseded by a newer identical request (utils/api.js cancels duplicate GETs) — not a failure
+        if (err?.name === 'CanceledError' || err?.message?.toLowerCase().includes('cancel')) return;
         console.error('Failed to fetch splash screen settings:', err);
       }
     };

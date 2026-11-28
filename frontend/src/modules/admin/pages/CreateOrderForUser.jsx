@@ -101,6 +101,7 @@ const CreateOrderForUser = () => {
     // ═══ STEP 1: Fetch / Search Customers ═══
     const fetchCustomers = useCallback(async (q = '') => {
         setCustomersLoading(true);
+        let superseded = false;
         try {
             const params = { role: 'customer', limit: 100 };
             if (q && q.trim().length > 0) {
@@ -110,11 +111,17 @@ const CreateOrderForUser = () => {
             const users = res.data?.data?.users || res.data?.data || res.data?.users || [];
             setCustomers(Array.isArray(users) ? users : []);
         } catch (err) {
+            // A newer search replaced this request (utils/api.js cancels duplicate GETs):
+            // leave the list and spinner to the request that is still running.
+            if (err?.name === 'CanceledError' || err?.message?.toLowerCase().includes('cancel')) {
+                superseded = true;
+                return;
+            }
             console.error('Failed to load customers:', err);
             toast.error('Failed to load customers');
             setCustomers([]);
         } finally {
-            setCustomersLoading(false);
+            if (!superseded) setCustomersLoading(false);
         }
     }, []);
 

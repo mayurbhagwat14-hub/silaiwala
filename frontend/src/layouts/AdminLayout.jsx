@@ -25,7 +25,8 @@ import {
     Feather,
     UserPlus,
     PlusCircle,
-    ClipboardList
+    ClipboardList,
+    Search
 } from 'lucide-react';
 
 import useAuthStore from '../store/authStore';
@@ -38,9 +39,23 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 import { playNotificationSound } from '../utils/audio';
 import api from '../utils/api';
 
+// Sidebar sections (by menu item key). Items keep their order inside each section.
+const MENU_SECTIONS = [
+    { title: null, keys: ['dashboard'] },
+    { title: 'Order Management', keys: ['orders', 'admin-orders', 'create-order', 'bulk-orders'] },
+    { title: 'Offline Shop', keys: ['offline-orders', 'offline-reports', 'offline-customers'] },
+    { title: 'Partners', keys: ['tailors', 'measurement-executives', 'delivery', 'shiprocket'] },
+    { title: 'Customers', keys: ['crm', 'customers'] },
+    { title: 'Catalog', keys: ['services', 'store', 'customizations', 'style-addons', 'embroidery-addons'] },
+    { title: 'Finance', keys: ['finance', 'subscriptions', 'reports'] },
+    { title: 'Content & Support', keys: ['cms', 'issues', 'support'] },
+    { title: 'System', keys: ['settings'] },
+];
+
 const AdminLayout = () => {
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [menuSearch, setMenuSearch] = useState('');
     const [hasUnread, setHasUnread] = useState(false);
     const [badgeCounts, setBadgeCounts] = useState({});
     const [activeDots, setActiveDots] = useState(new Set());
@@ -245,6 +260,20 @@ const AdminLayout = () => {
         return allMenuItems.filter(item => allowedKeys.includes(item.key));
     }, [allowedKeys, allMenuItems]);
 
+    const menuSections = useMemo(() => {
+        const q = menuSearch.trim().toLowerCase();
+        const visible = q ? menuItems.filter(i => i.label.toLowerCase().includes(q)) : menuItems;
+        const placed = new Set();
+        const sections = MENU_SECTIONS.map(sec => {
+            const items = sec.keys.map(k => visible.find(i => i.key === k)).filter(Boolean);
+            items.forEach(i => placed.add(i.key));
+            return { title: sec.title, items };
+        });
+        const rest = visible.filter(i => !placed.has(i.key));
+        if (rest.length) sections.push({ title: 'More', items: rest });
+        return sections.filter(sec => sec.items.length > 0);
+    }, [menuItems, menuSearch]);
+
     const currentPath = location.pathname;
     // Helper to check if a menu item is active
     const isActive = (path) => {
@@ -285,90 +314,113 @@ const AdminLayout = () => {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-primary text-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-                <div className="p-6 border-b border-white/5 flex justify-between items-center">
-                    <h1 className="flex items-center gap-3">
-                        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-xl border border-white/10 overflow-hidden shrink-0 transform -rotate-3">
-                            <img src={logos.customer} alt={appName} className="w-full h-full object-contain" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-lg font-black tracking-tighter text-white leading-none">{appName}</span>
-                            <span className="tracking-[0.2em] opacity-50 uppercase text-[8px] font-black mt-1">Admin Panel</span>
-                        </div>
-                    </h1>
-                    <button className="lg:hidden text-gray-400 hover:text-white" onClick={() => setIsSidebarOpen(false)}>
-                        <X size={24} />
-                    </button>
+            <aside className={`fixed lg:relative inset-y-0 left-0 z-50 w-72 bg-[#0A0A0A] text-white flex flex-col shadow-2xl border-r border-white/5 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+                <div className="px-4 pt-5 pb-4 border-b border-white/5 space-y-4 shrink-0">
+                    <div className="flex justify-between items-center">
+                        <h1 className="flex items-center gap-3 min-w-0">
+                            <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center border border-white/10 overflow-hidden shrink-0">
+                                <img src={logos.customer} alt={appName} className="w-full h-full object-contain" />
+                            </div>
+                            <span className="text-lg font-bold tracking-tight text-white leading-none truncate">{appName}</span>
+                        </h1>
+                        <button className="lg:hidden text-gray-400 hover:text-white" onClick={() => setIsSidebarOpen(false)}>
+                            <X size={22} />
+                        </button>
+                    </div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50">Admin Panel</p>
+                    <div className="relative">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+                        <input
+                            type="text"
+                            value={menuSearch}
+                            onChange={(e) => setMenuSearch(e.target.value)}
+                            placeholder="Search Menu..."
+                            aria-label="Search menu"
+                            className="w-full pl-9 pr-3 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/25 focus:bg-white/[0.06] transition-colors"
+                        />
+                    </div>
                 </div>
 
-                <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto no-scrollbar">
-                    {menuItems.map((item) => {
-                        const count = badgeCounts[item.key] || 0;
-                        const hasDot = activeDots.has(item.key) || count > 0;
-                        const active = isActive(item.path);
+                <nav className="flex-1 px-3 py-3 overflow-y-auto no-scrollbar">
+                    {menuSections.length === 0 && (
+                        <p className="px-3 py-6 text-sm text-white/40 text-center">No menu matches “{menuSearch}”</p>
+                    )}
+                    {menuSections.map((section, sIdx) => (
+                        <div key={section.title || 'top'} className={sIdx > 0 ? 'mt-5' : ''}>
+                            {section.title && (
+                                <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-violet-200/70">{section.title}</p>
+                            )}
+                            <div className="space-y-0.5">
+                                {section.items.map((item) => {
+                                    const count = badgeCounts[item.key] || 0;
+                                    const hasDot = activeDots.has(item.key) || count > 0;
+                                    const active = isActive(item.path);
 
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                onClick={() => {
-                                    setIsSidebarOpen(false);
-                                    if (item.key) {
-                                        setActiveDots(prev => {
-                                            const next = new Set(prev);
-                                            next.delete(item.key);
-                                            return next;
-                                        });
-                                    }
-                                }}
-                                className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all duration-300 group relative ${active
-                                    ? 'bg-white text-primary shadow-[0_10px_20px_rgba(0,0,0,0.1)] translate-x-1 font-black'
-                                    : 'text-white/80 hover:text-white hover:bg-black/40'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <span className={`${active ? 'text-primary' : 'text-white/60 group-hover:text-white'} transition-colors shrink-0`}>
-                                        {item.icon}
-                                    </span>
-                                    <span className={`font-black tracking-tight text-xs uppercase truncate ${active ? 'text-primary' : 'group-hover:text-white'}`}>
-                                        {item.label}
-                                    </span>
-                                </div>
+                                    return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        onClick={() => {
+                                            setIsSidebarOpen(false);
+                                            if (item.key) {
+                                                setActiveDots(prev => {
+                                                    const next = new Set(prev);
+                                                    next.delete(item.key);
+                                                    return next;
+                                                });
+                                            }
+                                        }}
+                                        className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border transition-colors duration-200 group relative ${active
+                                            ? 'bg-white/10 border-white/10 text-white'
+                                            : 'border-transparent text-white/75 hover:text-white hover:bg-white/5'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <span className={`${active ? 'text-white' : 'text-white/60 group-hover:text-white'} transition-colors shrink-0`}>
+                                                {item.icon}
+                                            </span>
+                                            <span className={`text-sm truncate ${active ? 'font-semibold text-white' : 'font-medium group-hover:text-white'}`}>
+                                                {item.label}
+                                            </span>
+                                        </div>
 
-                                {/* Notification Badges / Pulsating Red Dots */}
-                                {(count > 0 || hasDot) && (
-                                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                                        {count > 0 && (
-                                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black tracking-tight leading-none shadow-sm ${
-                                                active
-                                                    ? 'bg-red-500 text-white'
-                                                    : 'bg-red-500 text-white'
-                                            }`}>
-                                                {count > 99 ? '99+' : count}
-                                            </span>
+                                        {/* Notification Badges / Pulsating Red Dots */}
+                                        {(count > 0 || hasDot) && (
+                                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                                {count > 0 && (
+                                                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black tracking-tight leading-none shadow-sm ${
+                                                        active
+                                                            ? 'bg-red-500 text-white'
+                                                            : 'bg-red-500 text-white'
+                                                    }`}>
+                                                        {count > 99 ? '99+' : count}
+                                                    </span>
+                                                )}
+                                                {hasDot && (
+                                                    <span className="relative flex h-2.5 w-2.5">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-black/40 shadow-sm"></span>
+                                                    </span>
+                                                )}
+                                            </div>
                                         )}
-                                        {hasDot && (
-                                            <span className="relative flex h-2.5 w-2.5">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white/20 shadow-sm"></span>
-                                            </span>
-                                        )}
-                                    </div>
-                                )}
-                            </Link>
-                        );
-                    })}
+                                    </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </nav>
 
-                <div className="p-4 border-t border-white/5 bg-black">
+                <div className="p-3 border-t border-white/5 bg-[#0A0A0A]">
                     <button
                         onClick={async () => {
                             await useAuthStore.getState().logout();
                             window.location.href = '/admin/login';
                         }}
-                        className="flex items-center gap-3 px-4 py-3 w-full text-gray-500 hover:text-red-400 transition-all rounded-lg hover:bg-red-400/5 cursor-pointer">
+                        className="flex items-center gap-3 px-3 py-2.5 w-full text-white/60 hover:text-red-400 transition-all rounded-xl hover:bg-red-400/5 cursor-pointer">
                         <LogOut size={20} />
-                        <span className="font-bold text-sm">Sign Out</span>
+                        <span className="font-medium text-sm">Sign Out</span>
                     </button>
                 </div>
             </aside>
