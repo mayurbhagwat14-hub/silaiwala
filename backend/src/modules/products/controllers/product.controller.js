@@ -174,15 +174,19 @@ exports.getFeaturedProducts = asyncHandler(async (req, res, next) => {
  */
 exports.getCategories = asyncHandler(async (req, res, next) => {
   const { parent, type } = req.query;
-  const cacheKey = `cache:categories:list:${parent || 'all'}:${type || 'all'}`;
+  // exact=true: match only the listed type(s), e.g. ?type=store_item&exact=true or ?type=product,fabric&exact=true
+  const exact = req.query.exact === 'true';
+  const cacheKey = `cache:categories:list:${parent || 'all'}:${type || 'all'}:${exact ? 'exact' : 'grouped'}`;
 
   const categories = await getCached(cacheKey, 120, async () => {
     let query = { isActive: true };
-    
+
     if (parent) {
       query.parentCategory = parent === 'null' ? null : parent;
     }
-    if (type) {
+    if (type && exact) {
+      query.type = { $in: String(type).split(',').map((t) => t.trim()).filter(Boolean) };
+    } else if (type) {
       if (type === 'store_item' || type === 'product' || type === 'store' || type === 'fabric') {
         query.type = { $in: ['product', 'fabric', 'store_item', 'store'], $ne: 'service' };
       } else if (type === 'service') {

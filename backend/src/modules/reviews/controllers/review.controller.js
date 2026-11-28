@@ -99,6 +99,43 @@ exports.getReviews = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * @desc    Recent good tailor reviews for the customer home page ("Loved by our customers")
+ * @route   GET /api/v1/reviews/featured
+ * @access  Public — only first name, photo, rating, comment and date are returned
+ */
+exports.getFeaturedReviews = asyncHandler(async (req, res, next) => {
+  const limit = Math.min(Math.max(Number(req.query.limit) || 8, 1), 20);
+  const reviews = await Review.find({
+    targetType: "Tailor",
+    rating: { $gte: 4 },
+    comment: { $regex: /\S{2,}/ },
+  })
+    .populate("user", "name profileImage")
+    .sort("-createdAt")
+    .limit(limit)
+    .lean();
+
+  const firstNameWithInitial = (full) => {
+    const parts = String(full || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "Customer";
+    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.` : parts[0];
+  };
+
+  res.status(200).json({
+    success: true,
+    count: reviews.length,
+    data: reviews.map((r) => ({
+      _id: r._id,
+      name: firstNameWithInitial(r.name || r.user?.name),
+      profileImage: r.user?.profileImage || "",
+      rating: r.rating,
+      comment: r.comment,
+      createdAt: r.createdAt,
+    })),
+  });
+});
+
+/**
  * @desc    Get current user's reviews
  * @route   GET /api/v1/reviews/my-reviews
  * @access  Private

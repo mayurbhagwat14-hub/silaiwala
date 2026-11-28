@@ -370,7 +370,7 @@ const AdminStore = () => {
                                         {selectedTab === 'Categories' && (
                                             <>
                                                 <td className="px-6 py-4 font-bold text-sm text-gray-900">{item.name}</td>
-                                                <td className="px-6 py-4 text-xs font-medium text-gray-500 capitalize">{item.type}</td>
+                                                <td className="px-6 py-4 text-xs font-medium text-gray-500 capitalize">{({ product: 'Fabric', fabric: 'Fabric', store_item: 'Readymade', garment: 'Garment' })[item.type] || item.type}</td>
                                                 <td className="px-6 py-4 text-xs font-bold text-gray-700">{item.productCount || 0} Products</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-2 py-1 rounded-lg text-[9px] font-black border uppercase ${item.isActive ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
@@ -577,6 +577,7 @@ const AdminStore = () => {
                                                 <label className="block text-xs font-black uppercase text-gray-400 tracking-widest mb-1.5">Category Type</label>
                                                 <select value={newCategory.type} onChange={(e) => setNewCategory({...newCategory, type: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold shadow-sm outline-none focus:border-primary transition-all appearance-none">
                                                     <option value="product">Fabric (Product)</option>
+                                                    <option value="store_item">Readymade (Store Item)</option>
                                                     <option value="garment">Garment</option>
                                                 </select>
                                             </div>
